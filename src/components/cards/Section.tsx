@@ -58,9 +58,27 @@ const HSectionStrategy: CardStrategy<SectionOutputs> = {
     }
 };
 
+const CircleSectionStrategy: CardStrategy<SectionOutputs> = {
+    id: 'circle',
+    label: 'Circle',
+    inputConfig: {
+        D: { label: 'Diameter (D)', unitType: 'length', default: 100 },
+    },
+    calculate: (inputs) => {
+        const D = inputs['D'] || 0;
+        const A = (Math.PI * Math.pow(D, 2)) / 4;
+        const Ix = (Math.PI * Math.pow(D, 4)) / 64;
+        const Iy = Ix;
+        const Z = (Math.PI * Math.pow(D, 3)) / 32;
+
+        return { A, Ix, Iy, Z };
+    }
+};
+
 const SectionStrategies: CardStrategy<SectionOutputs>[] = [
     RectSectionStrategy,
-    HSectionStrategy
+    HSectionStrategy,
+    CircleSectionStrategy
 ];
 
 // --- UI Component ---
@@ -90,6 +108,12 @@ const SectionUI: React.FC<CardComponentProps> = ({ card }) => {
                     <div className="absolute top-0 w-full h-1 bg-current"></div>
                     <div className="absolute bottom-0 w-full h-1 bg-current"></div>
                     <div className="absolute top-0 bottom-0 left-1/2 w-1 -ml-0.5 bg-current"></div>
+                </div>
+            ) : shape === 'circle' ? (
+                // Circle
+                <div className="w-20 h-20 rounded-full border-2 border-current relative flex items-center justify-center">
+                    <div className="absolute w-full border-t border-dashed border-current opacity-50"></div>
+                    <div className="absolute h-full border-l border-dashed border-current opacity-50"></div>
                 </div>
             ) : (
                 // Rectangle
