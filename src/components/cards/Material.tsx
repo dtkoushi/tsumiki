@@ -1,8 +1,7 @@
 
-import React from 'react';
 import { Hexagon } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
-import type { CardComponentProps, CardStrategy } from '../../lib/registry/types';
+import type { CardStrategy } from '../../lib/registry/types';
 
 // --- Local Types ---
 
@@ -48,16 +47,6 @@ const MaterialStrategies: CardStrategy<MaterialOutputs>[] = [
     SM490Strategy
 ];
 
-// --- UI Component ---
-
-const MaterialUI: React.FC<CardComponentProps> = () => {
-    return (
-        <div className="w-full h-full flex items-center justify-center p-6 text-slate-300">
-            <Hexagon size={48} strokeWidth={1} />
-        </div>
-    );
-};
-
 // --- Definition ---
 
 export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
@@ -71,5 +60,4 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
         F: { label: 'Design Strength (F)', unitType: 'stress' },
         E: { label: 'Young\'s Modulus (E)', unitType: 'stress' },
     },
-    visualization: MaterialUI,
 });

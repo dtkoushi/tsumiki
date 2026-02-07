@@ -1,12 +1,12 @@
-
-import React from 'react';
 import { Square } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
-import type { CardComponentProps, CardStrategy } from '../../lib/registry/types';
+import type { CardStrategy } from '../../lib/registry/types';
+
+import { SectionVisualization } from './section/SectionVisualization';
 
 // --- Local Types ---
 
-interface SectionOutputs {
+export interface SectionOutputs {
     A: number;
     Ix: number;
     Iy: number;
@@ -81,48 +81,6 @@ const SectionStrategies: CardStrategy<SectionOutputs>[] = [
     CircleSectionStrategy
 ];
 
-// --- UI Component ---
-
-const SectionUI: React.FC<CardComponentProps> = ({ card }) => {
-    // Determine which shape to draw based on input 'shape' (strategyKey)
-    // or just default to Rect if not found.
-    // The current input value for 'shape' holds the strategy ID.
-    const shape = card.inputs['shape']?.value || 'rect';
-
-    return (
-        <div className="w-full h-full flex items-center justify-center p-6 text-slate-300">
-            {shape === 'h_beam' ? (
-                // H-Beam Icon simplified
-                <div className="relative w-16 h-20 border-[3px] border-current flex items-center justify-center">
-                    <div className="absolute inset-x-0  h-[3px] bg-current"></div>
-                    {/* Make it look like H: remove top/bottom borders of inner part? 
-                        Actually, let's just draw lines. 
-                    */}
-                    <div className="absolute inset-0 bg-slate-50 flex justify-between">
-                        <div className="w-1 h-full bg-slate-50"></div>
-                        <div className="w-1 h-full bg-current"></div>
-                        <div className="w-1 h-full bg-slate-50"></div>
-                    </div>
-                    {/* Re-do H shape purely with divs for clarity */}
-                    <div className="absolute inset-0 bg-slate-50"></div>
-                    <div className="absolute top-0 w-full h-1 bg-current"></div>
-                    <div className="absolute bottom-0 w-full h-1 bg-current"></div>
-                    <div className="absolute top-0 bottom-0 left-1/2 w-1 -ml-0.5 bg-current"></div>
-                </div>
-            ) : shape === 'circle' ? (
-                // Circle
-                <div className="w-20 h-20 rounded-full border-2 border-current relative flex items-center justify-center">
-                    <div className="absolute w-full border-t border-dashed border-current opacity-50"></div>
-                    <div className="absolute h-full border-l border-dashed border-current opacity-50"></div>
-                </div>
-            ) : (
-                // Rectangle
-                <div className="w-16 h-24 border-2 border-current"></div>
-            )}
-        </div>
-    );
-};
-
 // --- Definition ---
 
 export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
@@ -138,5 +96,5 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
         Iy: { label: 'I_y', unitType: 'inertia' },
         Z: { label: 'Z', unitType: 'modulus' },
     },
-    visualization: SectionUI,
+    visualization: SectionVisualization,
 });

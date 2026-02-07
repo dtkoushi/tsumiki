@@ -78,44 +78,8 @@ const BeamStrategies: CardStrategy<BeamOutputs>[] = [
     PointLoadStrategy
 ];
 
-// --- UI Component ---
-
-const BeamUI: React.FC<CardComponentProps> = ({ card }) => {
-    // Load Type: 'uniform' or 'point' (from strategy ID)
-    // The input 'loadType' holds the strategy ID.
-    const loadType = card.inputs['loadType']?.value || 'uniform';
-
-    return (
-        <div className="w-full h-full flex items-center justify-center p-6 text-slate-300">
-            {/* Visual Placeholder for Beam Diagram */}
-            <div className="flex flex-col items-center">
-                <div className="relative w-32 h-0 border-b-2 border-current mb-1">
-                    {/* Triangle Support */}
-                    <div className="absolute left-0 top-0 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-current"></div>
-                    {/* Roller Support */}
-                    <div className="absolute right-0 top-[2px] w-2.5 h-2.5 rounded-full border border-current"></div>
-
-                    {loadType === 'uniform' ? (
-                        // Distributed Load
-                        <div className="absolute bottom-2 left-0 right-0 h-3 bg-current/20 flex items-end justify-between px-1">
-                            <div className="w-full border-b border-current"></div>
-                        </div>
-                    ) : (
-                        // Point Load
-                        <div className="absolute bottom-2 left-1/2 w-0.5 h-4 bg-current">
-                            <div className="absolute top-0 -left-1 w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-current"></div>
-                        </div>
-                    )}
-                </div>
-                <span className="text-[10px] font-mono mt-2">
-                    {loadType === 'uniform' ? 'M = wL²/8' : 'M = PL/4'}
-                </span>
-            </div>
-        </div>
-    );
-};
-
 // --- Definition ---
+import { BeamVisualization } from './beam/BeamVisualization';
 
 export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     type: 'BEAM',
@@ -130,5 +94,5 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
         Mx: { label: 'Mx', unitType: 'moment' },
         Qx: { label: 'Qx', unitType: 'force' },
     },
-    visualization: BeamUI,
+    visualization: BeamVisualization,
 });
