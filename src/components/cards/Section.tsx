@@ -1,10 +1,11 @@
+
+import React from 'react';
 import { Square } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 
-import { SectionVisualization } from './section/SectionVisualization';
-
-// --- Local Types ---
+// --- Types ---
 
 export interface SectionOutputs {
     A: number;
@@ -13,7 +14,164 @@ export interface SectionOutputs {
     Z: number;
 }
 
-// --- Strategies ---
+// --- Visualization Logic ---
+
+// Adapting former DrawingStrategy logic to component-based VisualizationStrategy
+
+const RectSectionVisual: VisualizationStrategy = {
+    id: 'rect',
+    getBounds: (inputs) => {
+        const B = inputs['B'] || 100;
+        const H = inputs['H'] || 200;
+        return { minX: 0, minY: 0, maxX: B, maxY: H };
+    },
+    getDimensions: (inputs) => {
+        const B = inputs['B'] || 100;
+        const H = inputs['H'] || 200;
+        return [
+            {
+                type: 'horizontal',
+                start: { x: 0, y: H },
+                end: { x: B, y: H },
+                label: `B=${B}`,
+                offset: 20
+            },
+            {
+                type: 'vertical',
+                start: { x: 0, y: 0 },
+                end: { x: 0, y: H },
+                label: `H=${H}`,
+                offset: 20
+            }
+        ];
+    },
+    draw: (inputs, scale) => {
+        const B = inputs['B'] || 100;
+        const H = inputs['H'] || 200;
+        const path = `M 0 0 H ${B} V ${H} H 0 Z`;
+        return (
+            <path
+                d={path}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2 / scale}
+                vectorEffect="non-scaling-stroke"
+                className="transition-all duration-300 ease-out"
+            />
+        );
+    }
+};
+
+const HSectionVisual: VisualizationStrategy = {
+    id: 'h_beam',
+    getBounds: (inputs) => {
+        const B = inputs['B'] || 100;
+        const H = inputs['H'] || 200;
+        return { minX: 0, minY: 0, maxX: B, maxY: H };
+    },
+    getDimensions: (inputs) => {
+        const B = inputs['B'] || 100;
+        const H = inputs['H'] || 200;
+        return [
+            {
+                type: 'horizontal',
+                start: { x: 0, y: H },
+                end: { x: B, y: H },
+                label: `B=${B}`,
+                offset: 20
+            },
+            {
+                type: 'vertical',
+                start: { x: 0, y: 0 },
+                end: { x: 0, y: H },
+                label: `H=${H}`,
+                offset: 20
+            }
+        ];
+    },
+    draw: (inputs, scale) => {
+        const B = inputs['B'] || 100;
+        const H = inputs['H'] || 200;
+        const tw = inputs['tw'] || 6;
+        const tf = inputs['tf'] || 9;
+        const y_tf_bot = tf;
+        const y_bf_top = H - tf;
+
+        const path = `
+            M 0 0 
+            H ${B} 
+            v ${tf} 
+            h ${-(B - tw) / 2} 
+            V ${y_bf_top} 
+            h ${(B - tw) / 2} 
+            v ${tf} 
+            H 0 
+            v ${-tf} 
+            h ${(B - tw) / 2} 
+            V ${y_tf_bot} 
+            h ${-(B - tw) / 2} 
+            Z
+        `;
+        return (
+            <path
+                d={path}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2 / scale}
+                vectorEffect="non-scaling-stroke"
+                className="transition-all duration-300 ease-out"
+            />
+        );
+    }
+};
+
+const CircleSectionVisual: VisualizationStrategy = {
+    id: 'circle',
+    getBounds: (inputs) => {
+        const D = inputs['D'] || 100;
+        return { minX: 0, minY: 0, maxX: D, maxY: D };
+    },
+    getDimensions: (inputs) => {
+        const D = inputs['D'] || 100;
+        return [
+            {
+                type: 'horizontal',
+                start: { x: 0, y: D },
+                end: { x: D, y: D },
+                label: `D=${D}`,
+                offset: 20
+            }
+        ];
+    },
+    draw: (inputs, scale) => {
+        const D = inputs['D'] || 100;
+        const r = D / 2;
+        const path = `
+            M ${r} 0 
+            A ${r} ${r} 0 1 0 ${r} ${D}
+            A ${r} ${r} 0 1 0 ${r} 0
+        `;
+        return (
+            <path
+                d={path}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2 / scale}
+                vectorEffect="non-scaling-stroke"
+                className="transition-all duration-300 ease-out"
+            />
+        );
+    }
+};
+
+const SectionVisualization = createVisualizationComponent({
+    strategyKey: 'shape',
+    strategies: [RectSectionVisual, HSectionVisual, CircleSectionVisual],
+    height: 240,
+    padding: 40
+});
+
+// --- Calculation Strategies ---
 
 const RectSectionStrategy: CardStrategy<SectionOutputs> = {
     id: 'rect',
@@ -75,12 +233,6 @@ const CircleSectionStrategy: CardStrategy<SectionOutputs> = {
     }
 };
 
-const SectionStrategies: CardStrategy<SectionOutputs>[] = [
-    RectSectionStrategy,
-    HSectionStrategy,
-    CircleSectionStrategy
-];
-
 // --- Definition ---
 
 export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
@@ -89,7 +241,7 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
     icon: Square,
     description: 'Define section geometry (Rectangle, H-Beam, etc).',
     strategyKey: 'shape',
-    strategies: SectionStrategies,
+    strategies: [RectSectionStrategy, HSectionStrategy, CircleSectionStrategy],
     outputConfig: {
         A: { label: 'Area', unitType: 'area' },
         Ix: { label: 'I_x', unitType: 'inertia' },
