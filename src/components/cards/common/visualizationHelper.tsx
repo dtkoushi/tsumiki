@@ -2,6 +2,7 @@
 import React from 'react';
 import type { CardComponentProps } from '../../../lib/registry/types';
 import { AutoFitSvg } from './AutoFitSvg';
+export { AutoFitSvg };
 
 /**
  * Standard interface for visualization strategies.
@@ -20,8 +21,15 @@ export interface VisualizationStrategy<TInputs = Record<string, number>> {
     draw: (inputs: TInputs, scale: number) => React.ReactNode;
 }
 
+
+interface StrategyAxis {
+    key: string;
+    default: string;
+}
+
 interface CreateVisualizationOptions {
-    strategyKey: string; // Input key to select strategy (e.g. 'shape', 'loadType')
+    strategyKey?: string;
+    strategyAxes?: StrategyAxis[];
     strategies: VisualizationStrategy<any>[];
 
     // Optional: Transform raw card inputs to typed inputs
@@ -39,6 +47,7 @@ interface CreateVisualizationOptions {
 export function createVisualizationComponent(options: CreateVisualizationOptions): React.FC<CardComponentProps> {
     const {
         strategyKey,
+        strategyAxes,
         strategies,
         transformInputs,
         height = 200,
@@ -63,9 +72,18 @@ export function createVisualizationComponent(options: CreateVisualizationOptions
         }
 
         // 2. Select Strategy
-        // Helper to get value regardless of structure
-        const selectionVal = rawInputs[strategyKey]?.value;
-        const selection = String(selectionVal || strategies[0].id);
+        let selection: string;
+
+        if (strategyAxes) {
+            // Composite Mode
+            const parts = strategyAxes.map(axis => String(rawInputs[axis.key]?.value || axis.default));
+            selection = parts.join('_');
+        } else {
+            // Legacy / Single Mode
+            const key = strategyKey || 'strategy'; // Fallback
+            const selectionVal = rawInputs[key]?.value;
+            selection = String(selectionVal || strategies[0].id);
+        }
 
         const strategy = strategies.find(s => s.id === selection) || strategies[0];
 

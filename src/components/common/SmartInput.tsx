@@ -202,7 +202,11 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                                                     className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 rounded transition-colors group"
                                                 >
                                                     <span className="font-mono text-slate-600 group-hover:text-blue-700">{key}</span>
-                                                    <span className="text-slate-400 group-hover:text-blue-500">{typeof val === 'number' ? val.toLocaleString(undefined, { maximumFractionDigits: 2 }) : val}</span>
+                                                    <span className="text-slate-400 group-hover:text-blue-500">
+                                                        {typeof val === 'number'
+                                                            ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                            : (typeof val === 'object' ? '[Model]' : val)}
+                                                    </span>
                                                 </button>
                                             ))}
                                         </div>
