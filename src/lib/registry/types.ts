@@ -33,6 +33,32 @@ export interface CardStrategy<TOutputs extends Record<string, number> = Record<s
     calculate: (inputs: Record<string, number>) => TOutputs;
 }
 
+/**
+ * Declares a variable-length group of paired (input → output) rows rendered
+ * between the standard inputs and the visualization in GenericCard.
+ *
+ * Input keys follow the pattern `{keyPrefix}_1`, `{keyPrefix}_2`, etc.
+ * The corresponding output key is derived by `outputKeyFn`.
+ */
+export interface DynamicInputGroupConfig {
+    /** Prefix for dynamic input keys: 'd' → d_1, d_2, … */
+    keyPrefix: string;
+    /** Column header label for the input field */
+    inputLabel: string;
+    inputUnitType: import('../../lib/utils/unitFormatter').OutputUnitType;
+    /** Derives the output key from a given input key (e.g. 'd_1' → 'n_1') */
+    outputKeyFn: (inputKey: string) => string;
+    /** Column header label for the computed output field */
+    outputLabel: string;
+    outputUnitType: import('../../lib/utils/unitFormatter').OutputUnitType;
+    /** SI value assigned to newly added rows (default: 0) */
+    defaultValue?: number;
+    /** Minimum row count; remove button is disabled at this count (default: 1) */
+    minCount?: number;
+    /** Add-row button label (default: 'Add') */
+    addLabel?: string;
+}
+
 export interface CardDefinition<TOutputs extends Record<string, number> = Record<string, number>> {
     type: string;             // Unique ID (e.g., 'SECTION', 'BEAM')
     title: string;            // Display Name
@@ -76,6 +102,9 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     // Pure calculation logic
     // Returns a Record of numbers (outputs) based on inputs
     calculate: (inputs: Record<string, number>, rawInputs?: Record<string, any>) => TOutputs;
+
+    // Variable-length paired (input → output) rows rendered by GenericCard
+    dynamicInputGroup?: DynamicInputGroupConfig;
 
     // React Component for UI (Legacy override or GenericCard default)
     component?: React.FC<CardComponentProps>;

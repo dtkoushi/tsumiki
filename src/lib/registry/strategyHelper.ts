@@ -144,6 +144,8 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     visualization?: React.FC<any>;
     /** Replace GenericCard entirely. Use when inputs/outputs are dynamic or layout needs full control. */
     component?: CardDefinition<TOutputs>['component'];
+    /** Variable-length paired (input → output) rows rendered by GenericCard. */
+    dynamicInputGroup?: CardDefinition<TOutputs>['dynamicInputGroup'];
 }
 
 export function createCardDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: SimpleCardDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
@@ -157,7 +159,8 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         outputConfig,
         calculate,
         visualization,
-        component
+        component,
+        dynamicInputGroup
     } = options;
 
     return {
@@ -170,6 +173,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         outputConfig,
         calculate,
         visualization,
-        component
+        component,
+        dynamicInputGroup
     };
 }
