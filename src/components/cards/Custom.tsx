@@ -41,11 +41,8 @@ const CustomUI: React.FC<CardComponentProps> = ({ card, actions }) => {
     };
 
     const handleRemoveVariable = (key: string) => {
-        const newVars = variables.filter(v => v !== key);
-        setVariables(newVars);
-        // We can't strictly remove inputs from the card state via actions currently,
-        // but we can just stop rendering them.
-        // Ideally we'd have a removeInput action.
+        setVariables(prev => prev.filter(v => v !== key));
+        actions.removeInput(card.id, key);
     };
 
     const handleFormulaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

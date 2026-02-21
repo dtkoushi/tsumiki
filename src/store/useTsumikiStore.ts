@@ -20,6 +20,7 @@ interface TsumikiState {
     updateInput: (cardId: string, inputKey: string, value: string | number) => void;
     setInputRef: (cardId: string, inputKey: string, refCardId: string, refOutputKey: string) => void;
     removeReference: (cardId: string, inputKey: string) => void;
+    removeInput: (cardId: string, inputKey: string) => void;
     updateCardPosition: (id: string, x: number, y: number) => void;
     reorderCards: (newCards: Card[]) => void;
     moveCard: (activeId: string, overId: string) => void;
@@ -42,6 +43,7 @@ const recalculateAll = (cards: Card[]): Card[] => {
 
         const def = registry.get(card.type);
         let outputs: Record<string, number> = {};
+        let error: string | undefined;
 
         if (def && def.calculate) {
             // Resolve inputs using config to support defaults
@@ -81,10 +83,16 @@ const recalculateAll = (cards: Card[]): Card[] => {
             });
 
             // Pass resolved inputs AND raw inputs (for CustomCard formula)
-            outputs = def.calculate(resolvedInputs, card.inputs);
+            try {
+                outputs = def.calculate(resolvedInputs, card.inputs);
+            } catch (err) {
+                const message = err instanceof Error ? err.message : String(err);
+                if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);
+                error = message;
+            }
         }
 
-        updatedCardsMap.set(id, { ...card, outputs });
+        updatedCardsMap.set(id, { ...card, outputs, error });
     });
 
     return cards.map(c => updatedCardsMap.get(c.id)!);
@@ -163,6 +171,16 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
                     [inputKey]: { value: '', ref: { cardId: targetCardId, outputKey: targetOutputKey } },
                 },
             };
+        });
+        return { cards: recalculateAll(newCards) };
+    }),
+
+    removeInput: (cardId, inputKey) => set((state) => {
+        const newCards = state.cards.map((c) => {
+            if (c.id !== cardId) return c;
+            const newInputs = { ...c.inputs };
+            delete newInputs[inputKey];
+            return { ...c, inputs: newInputs };
         });
         return { cards: recalculateAll(newCards) };
     }),

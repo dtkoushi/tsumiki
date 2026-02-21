@@ -33,6 +33,7 @@ export const StackArea: React.FC = () => {
     const updateInput = useTsumikiStore((state) => state.updateInput);
     const setInputRef = useTsumikiStore((state) => state.setInputRef);
     const removeReference = useTsumikiStore((state) => state.removeReference);
+    const removeInput = useTsumikiStore((state) => state.removeInput);
     const updateCardUnit = useTsumikiStore((state) => state.updateCardUnit);
 
     const [activeId, setActiveId] = React.useState<string | null>(null);
@@ -53,8 +54,9 @@ export const StackArea: React.FC = () => {
         updateInput,
         setReference: setInputRef,
         removeReference,
+        removeInput,
         updateCardUnit
-    }), [updateInput, setInputRef, removeReference, updateCardUnit]);
+    }), [updateInput, setInputRef, removeReference, removeInput, updateCardUnit]);
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
@@ -114,10 +116,15 @@ export const StackArea: React.FC = () => {
                     </SortableContext>
 
                     {cards.length === 0 && (
-                        <div className="flex flex-col items-center justify-center py-20 text-slate-400 opacity-60">
-                            <Ghost size={64} strokeWidth={1} className="mb-4 text-slate-300" />
-                            <p className="text-lg font-medium text-slate-500">Stack is empty</p>
-                            <p className="text-sm">Add a card from the sidebar to start.</p>
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                            <Ghost size={64} strokeWidth={1} className="mb-6 text-slate-300" />
+                            <p className="text-lg font-semibold text-slate-500 mb-4">Stack is empty</p>
+                            <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside text-left max-w-xs">
+                                <li>Add a <strong className="text-slate-600">Section</strong> card to define cross-section geometry</li>
+                                <li>Add a <strong className="text-slate-600">Material</strong> card to set steel grade and E</li>
+                                <li>Add a <strong className="text-slate-600">Beam</strong> card and link span, section, and load</li>
+                                <li>Add a <strong className="text-slate-600">Verify</strong> card to check stress ratios</li>
+                            </ol>
                         </div>
                     )}
                 </div>

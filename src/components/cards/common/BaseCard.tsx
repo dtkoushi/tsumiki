@@ -37,6 +37,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                         <div
                             {...attributes}
                             {...listeners}
+                            aria-label="Drag to reorder"
                             className={clsx(
                                 "text-slate-300 hover:text-slate-500 p-1 -ml-2 rounded hover:bg-slate-100 transition-colors outline-none",
                                 isDragging ? "cursor-grabbing" : "cursor-grab"
@@ -48,6 +49,8 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                         {/* Toggle Collapse */}
                         <button
                             onClick={() => setIsCollapsed(!isCollapsed)}
+                            aria-expanded={!isCollapsed}
+                            aria-label={isCollapsed ? 'Expand card' : 'Collapse card'}
                             className="text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}

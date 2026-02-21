@@ -3,7 +3,7 @@ import { Link2, Unlink } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Card } from '../../types';
 import type { CardActions } from '../../lib/registry/types';
-import { formatOutput } from '../../lib/utils/unitFormatter';
+import { formatOutput, INPUT_FACTORS } from '../../lib/utils/unitFormatter';
 
 interface SmartInputProps {
     cardId: string;
@@ -31,6 +31,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [localValue, setLocalValue] = useState<string>('');
+    const [isInvalidInput, setIsInvalidInput] = useState(false);
     const pickerRef = useRef<HTMLDivElement>(null);
 
     const input = card.inputs[inputKey];
@@ -39,21 +40,8 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     const isReferencing = !!input?.ref;
     const referencedCard = isReferencing ? upstreamCards.find(c => c.id === input.ref!.cardId) : null;
 
-    // Conversion Logic
-    const getFactor = () => {
-        if (unitMode !== 'm') return 1;
-        switch (inputType) {
-            case 'length': return 1000;
-            case 'force': return 1000;
-            case 'moment': return 1000000;
-            case 'load': return 1;
-            case 'stress': return 1; // N/mm2 is standard
-            case 'modulus': return 1000000000; // m3 -> mm3
-            default: return 1;
-        }
-    };
-
-    const factor = getFactor();
+    // Conversion factor: display value * factor = SI value
+    const factor = unitMode === 'm' ? (INPUT_FACTORS[inputType] ?? 1) : 1;
 
     // Resolve display value
     const rawValue = input?.value;
@@ -63,17 +51,12 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         if (isReferencing) {
             if (!referencedCard) return '';
             const val = referencedCard.outputs[input.ref!.outputKey];
-            // Use the formatter to get a nice string representation
+            if (typeof val !== 'number') return '[Model]';
             return formatOutput(val, inputType as any, unitMode);
         }
 
         if (rawValue !== undefined && rawValue !== '' && !isNaN(Number(rawValue))) {
             const val = Number(rawValue) / factor;
-            // For display, we might want to round it nicely if it's a long decimal?
-            // But for inputs, we usually want the exact value. 
-            // formatOutput might add commas which is bad for inputs if we were editing it, 
-            // but for 'read-only' referenced values it's good.
-            // For editable inputs, simple string conversion is usually best to avoid locale issues in <input type="number"> or simple text.
             return val.toString();
         }
         return rawValue?.toString() || '';
@@ -90,7 +73,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     const handleFocus = () => {
         setIsFocused(true);
-        // On focus, ensure local value is set to the current number (without thousand separators if we had them)
         setLocalValue(displayValue);
     };
 
@@ -107,7 +89,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalValue(e.target.value);
+        const val = e.target.value;
+        setLocalValue(val);
+        setIsInvalidInput(val !== '' && isNaN(Number(val)));
     };
 
     const handleSelectReference = (targetCard: Card, outputKey: string) => {
@@ -129,49 +113,63 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
 
     return (
-        <div className="relative flex items-center group/smart-input" ref={pickerRef}>
-            <div className={clsx("relative w-full", isReferencing && "bg-blue-50/50 rounded")}>
-                <input
-                    type="text"
-                    className={clsx(
-                        "w-full text-right text-sm border border-slate-200 rounded-l px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none focus:z-10",
-                        isReferencing ? "text-slate-800 font-medium bg-blue-50 border-blue-200 cursor-default" : "bg-white",
-                        className
-                    )}
-                    value={isFocused ? localValue : displayValue}
-                    onChange={handleChange}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    placeholder={placeholder}
-                    readOnly={isReferencing}
-                />
+        <div className="relative flex flex-col group/smart-input" ref={pickerRef}>
+            <div className="relative flex items-center">
+                <div className={clsx("relative w-full", isReferencing && "bg-blue-50/50 rounded")}>
+                    <input
+                        type="text"
+                        className={clsx(
+                            "w-full text-right text-sm border rounded-l px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none focus:z-10",
+                            isReferencing
+                                ? "text-slate-800 font-medium bg-blue-50 border-blue-200 cursor-default"
+                                : isInvalidInput
+                                    ? "bg-white border-red-400"
+                                    : "bg-white border-slate-200",
+                            className
+                        )}
+                        value={isFocused ? localValue : displayValue}
+                        onChange={handleChange}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
+                        placeholder={placeholder}
+                        readOnly={isReferencing}
+                    />
 
-                {/* Tooltip for Linked Variable - Moved to top-left to avoid blocking the value */}
-                {isReferencing && (
-                    <div className="absolute bottom-full left-0 mb-1 opacity-0 group-hover/smart-input:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                        <div className="bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap flex items-center gap-1 backdrop-blur-sm bg-slate-800/90 transform -translate-x-2">
-                            {/* Arrow pointing down */}
-                            <div className="absolute -bottom-1 left-3 w-2 h-2 bg-slate-800 rotate-45"></div>
+                    {/* Tooltip for Linked Variable */}
+                    {isReferencing && (
+                        <div className="absolute bottom-full left-0 mb-1 opacity-0 group-hover/smart-input:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                            <div className="bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap flex items-center gap-1 backdrop-blur-sm bg-slate-800/90 transform -translate-x-2">
+                                {/* Arrow pointing down */}
+                                <div className="absolute -bottom-1 left-3 w-2 h-2 bg-slate-800 rotate-45"></div>
 
-                            <Link2 size={8} className="text-blue-200 shrink-0" />
-                            <span className="font-mono max-w-[150px] truncate relative z-10">
-                                {referencedCard?.alias || '?'}.{input.ref!.outputKey}
-                            </span>
+                                <Link2 size={8} className="text-blue-200 shrink-0" />
+                                <span className="font-mono max-w-[150px] truncate relative z-10">
+                                    {referencedCard?.alias || '?'}.{input.ref!.outputKey}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
+
+                <button
+                    onClick={() => isReferencing ? actions.removeReference(cardId, inputKey) : setIsPickerOpen(!isPickerOpen)}
+                    className={clsx(
+                        "h-full px-2 border border-l-0 rounded-r transition-colors flex items-center justify-center -ml-[1px]",
+                        isReferencing
+                            ? "text-blue-500 hover:text-red-500 border-blue-200 bg-blue-50"
+                            : "border-slate-200 bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+                    )}
+                    title={isReferencing ? `Linked to ${referencedCard?.alias || 'Unknown'}.${input.ref!.outputKey} (Click to unlink)` : "Link to variable"}
+                >
+                    {isReferencing ? <Unlink size={14} /> : <Link2 size={14} />}
+                </button>
             </div>
 
-            <button
-                onClick={() => isReferencing ? actions.removeReference(cardId, inputKey) : setIsPickerOpen(!isPickerOpen)}
-                className={clsx(
-                    "h-full px-1.5 border border-l-0 border-slate-200 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-r transition-colors flex items-center justify-center -ml-[1px]",
-                    isReferencing && "text-blue-500 hover:text-red-500 border-blue-200 bg-blue-50"
-                )}
-                title={isReferencing ? `Linked to ${referencedCard?.alias || 'Unknown'}.${input.ref!.outputKey} (Click to unlink)` : "Link to variable"}
-            >
-                {isReferencing ? <Unlink size={14} /> : <Link2 size={14} />}
-            </button>
+            {isInvalidInput && !isReferencing && (
+                <p className="text-[10px] text-red-500 mt-0.5 text-right" role="alert">
+                    Invalid number
+                </p>
+            )}
 
             {isPickerOpen && !isReferencing && (
                 <div className="absolute right-0 top-full mt-1 w-64 max-h-60 overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-100">

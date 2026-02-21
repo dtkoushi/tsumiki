@@ -6,6 +6,7 @@ export interface CardActions {
     updateInput: (cardId: string, key: string, value: any) => void;
     setReference: (cardId: string, inputKey: string, sourceCardId: string, outputKey: string) => void;
     removeReference: (cardId: string, inputKey: string) => void;
+    removeInput: (cardId: string, inputKey: string) => void;
     updateCardUnit: (cardId: string, mode: 'mm' | 'm') => void;
 }
 
@@ -62,9 +63,11 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     }>;
 
     // Output Config: Enforce keys match TOutputs
+    // hidden: true means the output is available for references but not shown in the Results panel
     outputConfig: Record<keyof TOutputs, {
         label: string;
         unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
+        hidden?: boolean;
     }>;
 
     // Optional: Determine if an input should be rendered based on card state

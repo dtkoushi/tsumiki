@@ -91,10 +91,6 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
                 {/* Standard Inputs */}
                 {standardInputs.length > 0 && (
                     <div className="space-y-2">
-                        {/* Only show label if there are inputs, but maybe we can skip the label to reuse space? 
-                            Let's keep it for clarity if mixed. */}
-                        {/* <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Parameters</label> */}
-
                         <div className="space-y-2">
                             {standardInputs.map(([key, config]) => {
                                 if (def.shouldRenderInput && !def.shouldRenderInput(card, key)) return null;
@@ -111,12 +107,19 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
                     </div>
                 )}
 
+                {/* Calculation Error */}
+                {card.error && (
+                    <div role="alert" className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2 font-mono break-all">
+                        ⚠ {card.error}
+                    </div>
+                )}
+
                 {/* Outputs */}
-                {def.outputConfig && Object.keys(def.outputConfig).length > 0 && (
+                {!card.error && def.outputConfig && Object.keys(def.outputConfig).length > 0 && (
                     <div className="space-y-2 pt-2 border-t border-slate-100">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Results</label>
                         <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {Object.entries(def.outputConfig).map(([key, config]) => (
+                            {Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => (
                                 <OutputRow key={key} name={key} config={config} card={card} unitMode={unitMode} />
                             ))}
                         </div>
@@ -126,3 +129,4 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
         </BaseCard>
     );
 };
+

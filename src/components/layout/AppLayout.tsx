@@ -10,6 +10,8 @@ import {
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import type { CardType } from '../../types';
 import { serializeProject, deserializeProject, compressToUrl } from '../../lib/utils/serialization';
+import { toast } from '../common/toast';
+import { Button } from '../common/Button';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -25,7 +27,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `tsumiki - project - ${Date.now()}.json`;
+        a.download = `tsumiki-project-${Date.now()}.json`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -47,29 +49,30 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     loadProject(data.cards, data.meta.title, data.meta.author);
                 }
             } else {
-                alert('Failed to load project. Invalid file format.');
+                toast('Failed to load project. Invalid file format.', 'error');
             }
             // Reset input
             if (fileInputRef.current) fileInputRef.current.value = '';
         };
+        reader.onerror = () => toast('Failed to read file', 'error');
         reader.readAsText(file);
     };
 
     const handleShare = () => {
         const hash = compressToUrl(meta, cards);
-        const url = `${window.location.origin}${window.location.pathname}?data = ${hash} `;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('Link copied to clipboard!');
-        });
+        const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
+        navigator.clipboard.writeText(url)
+            .then(() => toast('Link copied to clipboard!', 'success'))
+            .catch(() => toast('Failed to copy link', 'error'));
     };
 
 
     const cardTypes: { type: CardType; label: string; desc: string }[] = [
-        { type: 'SECTION', label: 'Section', desc: 'Define geometry properties' },
-        { type: 'MATERIAL', label: 'Material', desc: 'Select Steel Grade (JIS)' },
-        { type: 'BEAM', label: 'Beam', desc: 'Simple beam calculation' },
-        { type: 'VERIFY', label: 'Verify', desc: 'Check capacity ratio' },
-        { type: 'CUSTOM', label: 'Custom', desc: 'Arbitrary formula' },
+        { type: 'SECTION', label: 'Section', desc: 'Define cross-section geometry (rectangle, H-beam, circle)' },
+        { type: 'MATERIAL', label: 'Material', desc: 'Set steel grade and elastic modulus (JIS)' },
+        { type: 'BEAM', label: 'Beam', desc: 'Compute deflection, shear, and bending moment' },
+        { type: 'VERIFY', label: 'Verify', desc: 'Check stress ratio against allowable capacity' },
+        { type: 'CUSTOM', label: 'Custom', desc: 'Evaluate arbitrary formulas with named variables' },
     ];
 
     return (
@@ -139,24 +142,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             accept=".json"
                             className="hidden"
                         />
-                        <button
-                            onClick={handleImportClick}
-                            className="px-3 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded hover:bg-slate-50 text-slate-700 transition flex items-center gap-1.5"
-                        >
-                            <Upload size={14} /> Import
-                        </button>
-                        <button
-                            onClick={handleExport}
-                            className="px-3 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded hover:bg-slate-50 text-slate-700 transition flex items-center gap-1.5"
-                        >
-                            <Download size={14} /> Export
-                        </button>
-                        <button
-                            onClick={handleShare}
-                            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm shadow-blue-200 transition flex items-center gap-1.5"
-                        >
-                            <Share2 size={14} /> Share
-                        </button>
+                        <Button onClick={handleImportClick} leftIcon={<Upload size={14} />}>
+                            Import
+                        </Button>
+                        <Button onClick={handleExport} leftIcon={<Download size={14} />}>
+                            Export
+                        </Button>
+                        <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
+                            Share
+                        </Button>
                     </div>
                 </header>
 

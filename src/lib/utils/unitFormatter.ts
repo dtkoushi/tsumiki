@@ -5,6 +5,24 @@ export type UnitMode = 'mm' | 'm';
 // Defines the physical quantity type for proper conversion
 export type OutputUnitType = 'length' | 'area' | 'inertia' | 'force' | 'moment' | 'stress' | 'ratio' | 'modulus' | 'load' | 'none';
 
+// Multiply display value by this factor to get SI value (used in SmartInput)
+export const INPUT_FACTORS: Partial<Record<OutputUnitType, number>> = {
+    length: 1000,
+    force: 1000,
+    moment: 1_000_000,
+    modulus: 1_000_000_000,
+};
+
+// Divide SI value by this divisor to get display value (used in formatOutput)
+export const DISPLAY_DIVISORS: Partial<Record<OutputUnitType, number>> = {
+    length: 1000,
+    area: 1_000_000,
+    inertia: 1_000_000_000_000,
+    force: 1000,
+    moment: 1_000_000,
+    modulus: 1_000_000_000,
+};
+
 /**
  * Formats a numerical value based on the physical quantity type and display mode.
  * 
