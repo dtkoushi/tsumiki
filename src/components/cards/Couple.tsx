@@ -46,15 +46,16 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
     }
 
     // ── Layout constants ──────────────────────────────────────────────────────
-    // Beam centered; arrows extend symmetrically on both sides
+    // Positive N (d > 0, above NA) → right-side arrow →
+    // Negative N (d < 0, below NA) → left-side arrow ←
     const W = 260, H = 160;
     const beamCX  = 130;
     const beamW   = 14;
     const beamX1  = beamCX - beamW / 2;  // left edge
     const beamX2  = beamCX + beamW / 2;  // right edge
     const cy      = H / 2;
-    const dExtent = cy - 22;             // max pixel extent for |d|
-    const arrowMaxL = 82;               // max arrow length (both sides equal)
+    const dExtent = cy - 22;
+    const arrowMaxL = 82;
 
     const maxAbsD = Math.max(...points.map(p => Math.abs(p.d)));
     const maxAbsN = Math.max(...points.map(p => Math.abs(p.N)), 1e-12);
@@ -62,22 +63,22 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
     const toY   = (d: number) => cy - (d / maxAbsD) * dExtent;
     const toLen = (N: number) => (Math.abs(N) / maxAbsN) * arrowMaxL;
 
-    const dUnit = unitMode === 'm' ? 'm'  : 'mm';
     const nUnit = unitMode === 'm' ? 'kN' : 'N';
     const kUnit = unitMode === 'm' ? 'kN/m' : 'N/mm';
 
-    // Stress envelope polygon (only when all N same sign and ≥2 points)
-    const allSameSign = points.every(p => p.N >= 0) || points.every(p => p.N <= 0);
-    const showEnvelope = allSameSign && points.length >= 2;
-    const sortedByD = [...points].sort((a, b) => b.d - a.d);
-    const envelopeRStr = showEnvelope
-        ? [...sortedByD.map(p => `${beamX2},${toY(p.d)}`),
-           ...sortedByD.slice().reverse().map(p => `${beamX2 + toLen(p.N)},${toY(p.d)}`)
+    // Separate by sign and sort top→bottom within each group
+    const posPoints = points.filter(p => p.N >= 0).sort((a, b) => b.d - a.d);
+    const negPoints = points.filter(p => p.N <  0).sort((a, b) => b.d - a.d);
+
+    // Stress envelopes per sign group (need ≥2 points in group)
+    const posEnvStr = posPoints.length >= 2
+        ? [...posPoints.map(p => `${beamX2},${toY(p.d)}`),
+           ...posPoints.slice().reverse().map(p => `${beamX2 + toLen(p.N)},${toY(p.d)}`)
           ].join(' ')
         : '';
-    const envelopeLStr = showEnvelope
-        ? [...sortedByD.map(p => `${beamX1},${toY(p.d)}`),
-           ...sortedByD.slice().reverse().map(p => `${beamX1 - toLen(p.N)},${toY(p.d)}`)
+    const negEnvStr = negPoints.length >= 2
+        ? [...negPoints.map(p => `${beamX1},${toY(p.d)}`),
+           ...negPoints.slice().reverse().map(p => `${beamX1 - toLen(p.N)},${toY(p.d)}`)
           ].join(' ')
         : '';
 
@@ -96,66 +97,51 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
                 width={beamW} height={dExtent * 2 + 4}
                 fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1.5" />
 
-            {/* Stress envelopes – right and left (mirrored) */}
-            {showEnvelope && (
-                <>
-                    <polygon points={envelopeRStr}
-                        fill="rgba(59,130,246,0.09)"
-                        stroke="rgba(59,130,246,0.3)"
-                        strokeWidth="1" strokeDasharray="3,2" />
-                    <polygon points={envelopeLStr}
-                        fill="rgba(59,130,246,0.09)"
-                        stroke="rgba(59,130,246,0.3)"
-                        strokeWidth="1" strokeDasharray="3,2" />
-                </>
+            {/* Stress envelope – positive (right) */}
+            {posEnvStr && (
+                <polygon points={posEnvStr}
+                    fill="rgba(59,130,246,0.09)" stroke="rgba(59,130,246,0.3)"
+                    strokeWidth="1" strokeDasharray="3,2" />
             )}
 
-            {/* Per-point: symmetric arrows on both sides */}
+            {/* Stress envelope – negative (left) */}
+            {negEnvStr && (
+                <polygon points={negEnvStr}
+                    fill="rgba(239,68,68,0.09)" stroke="rgba(239,68,68,0.3)"
+                    strokeWidth="1" strokeDasharray="3,2" />
+            )}
+
+            {/* Per-point arrows: N≥0 → right side (→), N<0 → left side (←) */}
             {points.map(p => {
                 const y      = toY(p.d);
                 const len    = toLen(p.N);
-                const endRX  = beamX2 + len;          // right arrow tip
-                const endLX  = beamX1 - len;          // left  arrow tip
-                const dDisplay = formatOutput(Math.abs(p.d), 'length', unitMode);
-                const nDisplay = formatOutput(Math.abs(p.N), 'force',  unitMode);
+                const isPos  = p.N >= 0;
+                const cx     = isPos ? beamX2 : beamX1;
+                const endX   = isPos ? cx + len : cx - len;
+                const color  = isPos ? '#3b82f6' : '#ef4444';
+                const nDisplay = formatOutput(Math.abs(p.N), 'force', unitMode);
 
                 return (
                     <g key={p.key}>
-                        {/* Dots at beam edges */}
-                        <circle cx={beamX2} cy={y} r={2.5} fill="#3b82f6" />
-                        <circle cx={beamX1} cy={y} r={2.5} fill="#3b82f6" />
+                        <circle cx={cx} cy={y} r={2.5} fill={color} />
 
-                        {/* Right arrow → */}
                         {len > 3 && (
                             <>
-                                <line x1={beamX2} y1={y} x2={endRX} y2={y}
-                                    stroke="#3b82f6" strokeWidth="1.5" />
-                                <polygon
-                                    points={`${endRX},${y} ${endRX - 6},${y - 3} ${endRX - 6},${y + 3}`}
-                                    fill="#3b82f6" />
+                                <line x1={cx} y1={y} x2={endX} y2={y}
+                                    stroke={color} strokeWidth="1.5" />
+                                {/* Arrowhead: → for positive, ← for negative */}
+                                {isPos
+                                    ? <polygon points={`${endX},${y} ${endX-6},${y-3} ${endX-6},${y+3}`} fill={color} />
+                                    : <polygon points={`${endX},${y} ${endX+6},${y-3} ${endX+6},${y+3}`} fill={color} />
+                                }
                             </>
                         )}
 
-                        {/* Left arrow ← (mirror) */}
-                        {len > 3 && (
-                            <>
-                                <line x1={beamX1} y1={y} x2={endLX} y2={y}
-                                    stroke="#3b82f6" strokeWidth="1.5" />
-                                <polygon
-                                    points={`${endLX},${y} ${endLX + 6},${y - 3} ${endLX + 6},${y + 3}`}
-                                    fill="#3b82f6" />
-                            </>
-                        )}
-
-                        {/* d label above the midpoint of the left arrow */}
-                        <text x={(beamX1 + endLX) / 2} y={y - 5}
-                            textAnchor="middle" fontSize="7" fill="#64748b">
-                            {dDisplay}{dUnit}
-                        </text>
-
-                        {/* N label at the right arrow tip */}
-                        <text x={endRX + 4} y={y}
-                            textAnchor="start" fontSize="7.5" fill="#059669" dominantBaseline="middle">
+                        <text
+                            x={isPos ? endX + 4 : endX - 4}
+                            y={y}
+                            textAnchor={isPos ? 'start' : 'end'}
+                            fontSize="7.5" fill="#059669" dominantBaseline="middle">
                             {nDisplay}{nUnit}
                         </text>
                     </g>
@@ -182,8 +168,8 @@ export const CoupleCardDef = createCardDefinition({
 
     defaultInputs: {
         M:   { value: 0 },
-        d_1: { value: 500 },
-        d_2: { value: 300 },
+        d_1: { value:  500 },   // above NA (positive d → positive N)
+        d_2: { value: -500 },   // below NA (negative d → negative N)
     },
 
     inputConfig: {
