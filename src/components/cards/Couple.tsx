@@ -46,35 +46,38 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
     }
 
     // ── Layout constants ──────────────────────────────────────────────────────
-    const W = 230, H = 160;
-    const beamCX  = 58;
-    const beamW   = 16;
-    const beamX1  = beamCX - beamW / 2;
-    const beamX2  = beamCX + beamW / 2;
+    // Beam centered; arrows extend symmetrically on both sides
+    const W = 260, H = 160;
+    const beamCX  = 130;
+    const beamW   = 14;
+    const beamX1  = beamCX - beamW / 2;  // left edge
+    const beamX2  = beamCX + beamW / 2;  // right edge
     const cy      = H / 2;
-    const dExtent = cy - 22;          // max pixel extent for |d|
-    const arrowOX = beamX2;
-    const arrowMaxL = W - arrowOX - 46;
+    const dExtent = cy - 22;             // max pixel extent for |d|
+    const arrowMaxL = 82;               // max arrow length (both sides equal)
 
     const maxAbsD = Math.max(...points.map(p => Math.abs(p.d)));
     const maxAbsN = Math.max(...points.map(p => Math.abs(p.N)), 1e-12);
 
     const toY   = (d: number) => cy - (d / maxAbsD) * dExtent;
-    const toLen = (N: number) => (N / maxAbsN) * arrowMaxL;
+    const toLen = (N: number) => (Math.abs(N) / maxAbsN) * arrowMaxL;
 
     const dUnit = unitMode === 'm' ? 'm'  : 'mm';
     const nUnit = unitMode === 'm' ? 'kN' : 'N';
-    // k unit: N/mm = kN/m numerically identical
     const kUnit = unitMode === 'm' ? 'kN/m' : 'N/mm';
 
     // Stress envelope polygon (only when all N same sign and ≥2 points)
     const allSameSign = points.every(p => p.N >= 0) || points.every(p => p.N <= 0);
     const showEnvelope = allSameSign && points.length >= 2;
     const sortedByD = [...points].sort((a, b) => b.d - a.d);
-    const envelopeStr = showEnvelope
-        ? [
-            ...sortedByD.map(p => `${arrowOX},${toY(p.d)}`),
-            ...sortedByD.slice().reverse().map(p => `${arrowOX + toLen(p.N)},${toY(p.d)}`),
+    const envelopeRStr = showEnvelope
+        ? [...sortedByD.map(p => `${beamX2},${toY(p.d)}`),
+           ...sortedByD.slice().reverse().map(p => `${beamX2 + toLen(p.N)},${toY(p.d)}`)
+          ].join(' ')
+        : '';
+    const envelopeLStr = showEnvelope
+        ? [...sortedByD.map(p => `${beamX1},${toY(p.d)}`),
+           ...sortedByD.slice().reverse().map(p => `${beamX1 - toLen(p.N)},${toY(p.d)}`)
           ].join(' ')
         : '';
 
@@ -82,9 +85,9 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
 
             {/* Neutral axis */}
-            <line x1={8} y1={cy} x2={W - 4} y2={cy}
+            <line x1={4} y1={cy} x2={W - 4} y2={cy}
                 stroke="#cbd5e1" strokeWidth="1" strokeDasharray="5,3" />
-            <text x={W - 6} y={cy - 3} textAnchor="end" fontSize="7" fill="#94a3b8">
+            <text x={beamCX} y={cy - 3} textAnchor="middle" fontSize="7" fill="#94a3b8">
                 N.A.
             </text>
 
@@ -93,55 +96,66 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
                 width={beamW} height={dExtent * 2 + 4}
                 fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1.5" />
 
-            {/* Stress envelope */}
+            {/* Stress envelopes – right and left (mirrored) */}
             {showEnvelope && (
-                <polygon points={envelopeStr}
-                    fill="rgba(59,130,246,0.09)"
-                    stroke="rgba(59,130,246,0.3)"
-                    strokeWidth="1" strokeDasharray="3,2" />
+                <>
+                    <polygon points={envelopeRStr}
+                        fill="rgba(59,130,246,0.09)"
+                        stroke="rgba(59,130,246,0.3)"
+                        strokeWidth="1" strokeDasharray="3,2" />
+                    <polygon points={envelopeLStr}
+                        fill="rgba(59,130,246,0.09)"
+                        stroke="rgba(59,130,246,0.3)"
+                        strokeWidth="1" strokeDasharray="3,2" />
+                </>
             )}
 
-            {/* Per-point: dimension marker + force arrow */}
+            {/* Per-point: symmetric arrows on both sides */}
             {points.map(p => {
-                const y    = toY(p.d);
-                const len  = toLen(p.N);
-                const endX = arrowOX + len;
-                const dir  = len >= 0 ? 1 : -1;
+                const y      = toY(p.d);
+                const len    = toLen(p.N);
+                const endRX  = beamX2 + len;          // right arrow tip
+                const endLX  = beamX1 - len;          // left  arrow tip
                 const dDisplay = formatOutput(Math.abs(p.d), 'length', unitMode);
                 const nDisplay = formatOutput(Math.abs(p.N), 'force',  unitMode);
 
                 return (
                     <g key={p.key}>
-                        {/* Dimension line */}
-                        <line x1={beamX1 - 12} y1={cy} x2={beamX1 - 12} y2={y}
-                            stroke="#94a3b8" strokeWidth="0.8" />
-                        <line x1={beamX1 - 16} y1={cy} x2={beamX1 - 8} y2={cy}
-                            stroke="#94a3b8" strokeWidth="0.8" />
-                        <line x1={beamX1 - 16} y1={y}  x2={beamX1 - 8} y2={y}
-                            stroke="#94a3b8" strokeWidth="0.8" />
-                        <text x={beamX1 - 18} y={(cy + y) / 2}
-                            textAnchor="end" fontSize="7.5" fill="#64748b" dominantBaseline="middle">
-                            {dDisplay}{dUnit}
-                        </text>
+                        {/* Dots at beam edges */}
+                        <circle cx={beamX2} cy={y} r={2.5} fill="#3b82f6" />
+                        <circle cx={beamX1} cy={y} r={2.5} fill="#3b82f6" />
 
-                        {/* Dot */}
-                        <circle cx={arrowOX} cy={y} r={2.5} fill="#3b82f6" />
-
-                        {/* Arrow */}
-                        {Math.abs(len) > 3 && (
+                        {/* Right arrow → */}
+                        {len > 3 && (
                             <>
-                                <line x1={arrowOX} y1={y} x2={endX} y2={y}
+                                <line x1={beamX2} y1={y} x2={endRX} y2={y}
                                     stroke="#3b82f6" strokeWidth="1.5" />
                                 <polygon
-                                    points={`${endX},${y} ${endX - 6*dir},${y - 3} ${endX - 6*dir},${y + 3}`}
+                                    points={`${endRX},${y} ${endRX - 6},${y - 3} ${endRX - 6},${y + 3}`}
                                     fill="#3b82f6" />
                             </>
                         )}
 
-                        {/* N label */}
-                        <text x={endX + 4 * dir} y={y}
-                            textAnchor={dir > 0 ? 'start' : 'end'}
-                            fontSize="7.5" fill="#059669" dominantBaseline="middle">
+                        {/* Left arrow ← (mirror) */}
+                        {len > 3 && (
+                            <>
+                                <line x1={beamX1} y1={y} x2={endLX} y2={y}
+                                    stroke="#3b82f6" strokeWidth="1.5" />
+                                <polygon
+                                    points={`${endLX},${y} ${endLX + 6},${y - 3} ${endLX + 6},${y + 3}`}
+                                    fill="#3b82f6" />
+                            </>
+                        )}
+
+                        {/* d label above the midpoint of the left arrow */}
+                        <text x={(beamX1 + endLX) / 2} y={y - 5}
+                            textAnchor="middle" fontSize="7" fill="#64748b">
+                            {dDisplay}{dUnit}
+                        </text>
+
+                        {/* N label at the right arrow tip */}
+                        <text x={endRX + 4} y={y}
+                            textAnchor="start" fontSize="7.5" fill="#059669" dominantBaseline="middle">
                             {nDisplay}{nUnit}
                         </text>
                     </g>
@@ -150,7 +164,7 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
 
             {/* k label at bottom */}
             {k !== 0 && (
-                <text x={8} y={H - 5} fontSize="7" fill="#94a3b8">
+                <text x={beamCX} y={H - 5} textAnchor="middle" fontSize="7" fill="#94a3b8">
                     k = {k.toExponential(3)} {kUnit}
                 </text>
             )}
