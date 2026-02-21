@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GripVertical, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { GripVertical, X, ChevronDown, ChevronRight, MessageSquare } from 'lucide-react';
 import type { Card } from '../../../types';
 import { useTsumikiStore } from '../../../store/useTsumikiStore';
 import { useSortableItem } from '../../stack/useSortableItem';
@@ -13,8 +13,9 @@ interface BaseCardProps {
 }
 
 export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color = "border-slate-200" }) => {
-    const { removeCard, updateCardUnit, updateCardAlias } = useTsumikiStore();
+    const { removeCard, updateCardUnit, updateCardAlias, updateCardMemo } = useTsumikiStore();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMemoOpen, setIsMemoOpen] = useState(false);
 
     // Use sortable context
     const { attributes, listeners, setNodeRef, style, isDragging, isDragOverlay } = useSortableItem();
@@ -82,6 +83,18 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                             {unitMode === 'mm' ? 'MM, N' : 'M, kN'}
                         </button>
 
+                        {/* Memo Toggle */}
+                        <button
+                            onClick={() => setIsMemoOpen(!isMemoOpen)}
+                            className={clsx(
+                                "p-1.5 rounded-md transition-colors",
+                                card.memo ? "text-blue-500 hover:bg-blue-50" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                            )}
+                            title="Toggle memo"
+                        >
+                            <MessageSquare size={16} />
+                        </button>
+
                         <button
                             onClick={() => removeCard(card.id)}
                             className="text-slate-300 hover:text-red-400 p-1.5 rounded-md hover:bg-red-50 transition-colors"
@@ -90,6 +103,17 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                         </button>
                     </div>
                 </div>
+
+                {/* Memo */}
+                {isMemoOpen && (
+                    <textarea
+                        rows={3}
+                        placeholder="メモ…"
+                        value={card.memo ?? ''}
+                        onChange={(e) => updateCardMemo(card.id, e.target.value)}
+                        className="w-full border-t border-slate-100 bg-slate-50 px-4 py-2 text-sm text-slate-600 resize-y focus:outline-none focus:ring-0"
+                    />
+                )}
 
                 {/* Content */}
                 {!isCollapsed && (

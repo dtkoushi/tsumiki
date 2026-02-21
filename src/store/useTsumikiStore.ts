@@ -25,6 +25,7 @@ interface TsumikiState {
     reorderCards: (newCards: Card[]) => void;
     moveCard: (activeId: string, overId: string) => void;
     updateCardUnit: (cardId: string, mode: 'mm' | 'm') => void;
+    updateCardMemo: (id: string, memo: string) => void;
 
     // Project State
     loadProject: (cards: Card[], title: string, author: string) => void;
@@ -144,6 +145,10 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
         cards: state.cards.map(c =>
             c.id === cardId ? { ...c, unitMode: mode } : c
         )
+    })),
+
+    updateCardMemo: (id, memo) => set(state => ({
+        cards: state.cards.map(c => c.id === id ? { ...c, memo } : c)
     })),
 
     updateInput: (cardId, inputKey, value) => set((state) => {

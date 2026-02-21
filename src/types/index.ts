@@ -16,4 +16,5 @@ export interface Card {
     outputs: Record<string, number>;
     unitMode?: 'mm' | 'm'; // Default 'mm'. Controls display units (mm/N vs m/kN)
     error?: string; // Set when card calculation throws an error
+    memo?: string;
 }
