@@ -1,28 +1,31 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Layout,
     Plus,
     Download,
     Upload,
     Github,
-    Share2
+    Share2,
+    PanelRight
 } from 'lucide-react';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import type { CardType } from '../../types';
 import { serializeProject, deserializeProject, compressToUrl } from '../../lib/utils/serialization';
 import { toast } from '../common/toast';
 import { Button } from '../common/Button';
+import { CardNavigator } from '../stack/CardNavigator';
 
 interface AppLayoutProps {
     children: React.ReactNode;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-    const { meta, cards, addCard, loadProject } = useTsumikiStore();
+    const { meta, cards, pinnedOutputs, addCard, loadProject } = useTsumikiStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showNavigator, setShowNavigator] = useState(false);
 
     const handleExport = () => {
-        const jsonString = serializeProject(meta, cards);
+        const jsonString = serializeProject(meta, cards, pinnedOutputs);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -46,7 +49,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             const data = deserializeProject(text);
             if (data) {
                 if (confirm('Load project? Current unsaved changes will be lost.')) {
-                    loadProject(data.cards, data.meta.title, data.meta.author);
+                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? []);
                 }
             } else {
                 toast('Failed to load project. Invalid file format.', 'error');
@@ -59,7 +62,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
 
     const handleShare = () => {
-        const hash = compressToUrl(meta, cards);
+        const hash = compressToUrl(meta, cards, pinnedOutputs);
         const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
         navigator.clipboard.writeText(url)
             .then(() => toast('Link copied to clipboard!', 'success'))
@@ -152,14 +155,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
                             Share
                         </Button>
+                        <Button
+                            onClick={() => setShowNavigator(v => !v)}
+                            leftIcon={<PanelRight size={14} />}
+                            title="Toggle card navigator"
+                        >
+                            Navigator
+                        </Button>
                     </div>
                 </header>
 
-                {/* Stack Scroll Area */}
-                <div className="flex-1 overflow-y-auto p-8 relative">
-                    <div className="max-w-3xl mx-auto pb-20">
-                        {children}
+                {/* Stack Scroll Area + Navigator */}
+                <div className="flex-1 flex overflow-hidden">
+                    <div className="flex-1 overflow-y-auto p-8 relative">
+                        <div className="max-w-3xl mx-auto pb-20">
+                            {children}
+                        </div>
                     </div>
+                    {showNavigator && <CardNavigator />}
                 </div>
             </main>
         </div>

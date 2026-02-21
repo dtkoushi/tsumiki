@@ -9,9 +9,15 @@ interface ProjectMeta {
     author: string;
 }
 
+export interface PinnedOutput {
+    cardId: string;
+    outputKey: string;
+}
+
 interface TsumikiState {
     cards: Card[];
     meta: ProjectMeta;
+    pinnedOutputs: PinnedOutput[];
 
     // Actions
     addCard: (type: CardType) => void;
@@ -26,9 +32,11 @@ interface TsumikiState {
     moveCard: (activeId: string, overId: string) => void;
     updateCardUnit: (cardId: string, mode: 'mm' | 'm') => void;
     updateCardMemo: (id: string, memo: string) => void;
+    pinOutput: (cardId: string, outputKey: string) => void;
+    unpinOutput: (cardId: string, outputKey: string) => void;
 
     // Project State
-    loadProject: (cards: Card[], title: string, author: string) => void;
+    loadProject: (cards: Card[], title: string, author: string, pinnedOutputs?: PinnedOutput[]) => void;
 }
 
 const recalculateAll = (cards: Card[]): Card[] => {
@@ -102,9 +110,11 @@ const recalculateAll = (cards: Card[]): Card[] => {
 export const useTsumikiStore = create<TsumikiState>((set) => ({
     cards: [],
     meta: { title: 'New Project', author: 'User' },
+    pinnedOutputs: [],
 
-    loadProject: (cards, title, author) => set((state) => ({
+    loadProject: (cards, title, author, pinnedOutputs = []) => set((state) => ({
         cards: recalculateAll(cards),
+        pinnedOutputs,
         meta: {
             title: title || state.meta.title,
             author: author || state.meta.author
@@ -149,6 +159,15 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
 
     updateCardMemo: (id, memo) => set(state => ({
         cards: state.cards.map(c => c.id === id ? { ...c, memo } : c)
+    })),
+
+    pinOutput: (cardId, outputKey) => set((state) => {
+        if (state.pinnedOutputs.some(p => p.cardId === cardId && p.outputKey === outputKey)) return {};
+        return { pinnedOutputs: [...state.pinnedOutputs, { cardId, outputKey }] };
+    }),
+
+    unpinOutput: (cardId, outputKey) => set((state) => ({
+        pinnedOutputs: state.pinnedOutputs.filter(p => !(p.cardId === cardId && p.outputKey === outputKey))
     })),
 
     updateInput: (cardId, inputKey, value) => set((state) => {

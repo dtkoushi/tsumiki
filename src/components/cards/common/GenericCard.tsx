@@ -1,12 +1,14 @@
 
 import React from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Pin } from 'lucide-react';
+import { clsx } from 'clsx';
 import { BaseCard } from './BaseCard';
 import { SmartInput } from '../../common/SmartInput';
 import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../../lib/utils/unitFormatter';
 import type { CardComponentProps, CardActions, DynamicInputGroupConfig } from '../../../lib/registry/types';
 import type { Card } from '../../../types';
 import { registry } from '../../../lib/registry';
+import { useTsumikiStore } from '../../../store/useTsumikiStore';
 
 const SelectInput = ({ name, config, card, actions }: { name: string, config: any, card: any, actions: any }) => (
     <div className="flex flex-col gap-1 w-full">
@@ -135,9 +137,30 @@ const DynamicGroupSection = ({
     );
 };
 
-const OutputRow = ({ name, config, card, unitMode }: { name: string, config: { label: string, unitType: OutputUnitType }, card: any, unitMode: UnitMode }) => (
-    <div className="flex justify-between items-end gap-2 border-b border-slate-700/50 last:border-0 pb-1 last:pb-0">
-        <span className="text-slate-400 shrink-0 text-xs mb-0.5">{config.label}:</span>
+const OutputRow = ({
+    name, config, card, unitMode, isPinned, onPinToggle
+}: {
+    name: string;
+    config: { label: string; unitType: OutputUnitType };
+    card: any;
+    unitMode: UnitMode;
+    isPinned: boolean;
+    onPinToggle: () => void;
+}) => (
+    <div className="flex justify-between items-center gap-2 border-b border-slate-700/50 last:border-0 pb-1 last:pb-0">
+        <div className="flex items-center gap-1 shrink-0">
+            <button
+                onClick={onPinToggle}
+                className={clsx(
+                    "p-0.5 rounded transition-colors",
+                    isPinned ? "text-amber-400 hover:text-amber-300" : "text-slate-600 hover:text-slate-300"
+                )}
+                title={isPinned ? 'Unpin' : 'Pin to panel'}
+            >
+                <Pin size={10} />
+            </button>
+            <span className="text-slate-400 text-xs">{config.label}:</span>
+        </div>
         <span className="truncate text-right w-full font-mono text-emerald-400" title={card.outputs[name]?.toString()}>
             {formatOutput(card.outputs[name], config.unitType, unitMode)}
             <span className="text-slate-500 ml-1 text-[10px]">
@@ -148,7 +171,7 @@ const OutputRow = ({ name, config, card, unitMode }: { name: string, config: { l
 );
 
 export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
-
+    const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
 
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const def = registry.get(card.type);
@@ -219,9 +242,20 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
                     <div className="space-y-2 pt-2 border-t border-slate-100">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Results</label>
                         <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => (
-                                <OutputRow key={key} name={key} config={config} card={card} unitMode={unitMode} />
-                            ))}
+                            {Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => {
+                                const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
+                                return (
+                                    <OutputRow
+                                        key={key}
+                                        name={key}
+                                        config={config}
+                                        card={card}
+                                        unitMode={unitMode}
+                                        isPinned={isPinned}
+                                        onPinToggle={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
                 )}

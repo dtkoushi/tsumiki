@@ -15,7 +15,7 @@ function App() {
       try {
         const project = decompressFromUrl(dataDetails);
         if (project && project.cards && project.meta) {
-          loadProject(project.cards, project.meta.title, project.meta.author);
+          loadProject(project.cards, project.meta.title, project.meta.author, project.pinnedOutputs ?? []);
           window.history.replaceState({}, document.title, window.location.pathname);
         }
       } catch (e) {
