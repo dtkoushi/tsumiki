@@ -23,7 +23,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
     const unitMode = card.unitMode || 'mm';
 
     return (
-        <div ref={setNodeRef} style={style} className="relative group outline-none mb-4">
+        <div ref={setNodeRef} style={style} className="relative group outline-none mb-4" data-card-id={card.id}>
             {/* Card Container */}
             <div className={clsx(
                 "bg-white rounded-xl shadow-sm border-l-4 transition-all duration-200",

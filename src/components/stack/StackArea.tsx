@@ -2,8 +2,7 @@ import React, { useMemo } from 'react';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { registry } from '../../lib/registry';
 import { GenericCard } from '../cards/common/GenericCard';
-
-
+import { PinnedPanel } from './PinnedPanel';
 
 import { Ghost } from 'lucide-react';
 
@@ -97,6 +96,7 @@ export const StackArea: React.FC = () => {
 
     return (
         <div className="w-full">
+            <PinnedPanel />
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
