@@ -34,10 +34,11 @@ Each card type is defined as a `CardDefinition` in `src/lib/registry/index.ts`. 
 - An optional SVG visualization strategy
 - For multi-strategy cards (Section, Beam): a strategy selector that picks among sub-definitions
 
-Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM`
+Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM` | `COUPLE`
 
 **Section** supports strategies: Rectangle, H-Beam, Circle
 **Beam** uses a 2-axis strategy grid: Boundary (Simple | Cantilever) × Load (Uniform | Point)
+**Couple** converts bending moment M into couple forces using k = M / (2·Σdi²), Ni = k·di
 
 ### Key Files
 
@@ -45,7 +46,8 @@ Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM`
 |------|------|
 | `src/store/useTsumikiStore.ts` | Zustand global state; holds card array, triggers recalculation on every mutation |
 | `src/lib/registry/index.ts` | Central registry of all `CardDefinition` objects |
-| `src/lib/registry/types.ts` | `CardDefinition` interface |
+| `src/lib/registry/types.ts` | `CardDefinition`, `CardActions`, `DynamicInputGroupConfig` interfaces |
+| `src/lib/registry/strategyHelper.ts` | `createCardDefinition` / `createStrategyDefinition` helpers |
 | `src/lib/engine/graph.ts` | Topological sort and dependency resolution |
 | `src/lib/mechanics/beam.ts` | Pure beam mechanics formulas (`calculateBeamAt`, `calculateBeamMax`) |
 | `src/lib/utils/unitFormatter.ts` | SI ↔ display unit conversion (mm/N mode vs m/kN mode) |
@@ -56,10 +58,13 @@ Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM`
 
 ### Adding a New Card Type
 
-1. Define a `CardDefinition` object (see existing definitions in `src/lib/registry/index.ts` for examples).
-2. Register it in the registry's export array.
-3. If it needs a custom UI, create a component under `src/components/cards/` and reference it in the definition; otherwise `GenericCard` handles rendering automatically.
-4. Add the new type literal to `src/types/index.ts`.
+1. Define a `CardDefinition` using `createCardDefinition` (fixed inputs) or `createStrategyDefinition` (strategy-switched inputs) from `strategyHelper.ts`.
+2. Register it in `src/lib/registry/index.ts`.
+3. Add the new type literal to `src/types/index.ts`.
+4. Add a sidebar entry to the `cardTypes` array in `src/components/layout/AppLayout.tsx`.
+5. `GenericCard` handles rendering automatically. Use `visualization` for an SVG diagram, `dynamicInputGroup` for variable-count paired input→output rows.
+
+**`dynamicInputGroup`**: declare in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. See `src/components/cards/Couple.tsx` for a working example.
 
 ### Unit System
 
