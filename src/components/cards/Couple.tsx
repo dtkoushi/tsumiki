@@ -8,7 +8,6 @@ import { formatOutput, type UnitMode } from '../../lib/utils/unitFormatter';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-// Resolve a SmartInput value (value or ref) to SI number
 function resolveInput(card: Card, key: string, upstreamCards: Card[]): number {
     const inp = card.inputs[key];
     if (!inp) return 0;
@@ -20,6 +19,9 @@ function resolveInput(card: Card, key: string, upstreamCards: Card[]): number {
 }
 
 // ─── SVG Visualization ────────────────────────────────────────────────────────
+//
+// 偶力 (couple): 距離 d_i ごとに NA 上側 (+d_i) に +N_i →、下側 (-d_i) に -N_i ← を描く。
+// 各ペアが対称になることで偶力の本質が視覚化される。
 
 const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
     const unitMode = (card.unitMode ?? 'mm') as UnitMode;
@@ -28,12 +30,13 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
         .filter(k => /^d_\d+$/.test(k))
         .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
 
+    // d_i は NA からの距離（正値）、N_i は上側の偶力（正値）
     const points = distKeys.map(key => {
         const idx = key.split('_')[1];
-        const d = resolveInput(card, key, upstreamCards);
-        const N = card.outputs[`n_${idx}`] ?? 0;
+        const d = Math.abs(resolveInput(card, key, upstreamCards));
+        const N = Math.abs(card.outputs[`n_${idx}`] ?? 0);
         return { key, d, N };
-    }).filter(p => p.d !== 0);
+    }).filter(p => p.d > 0);
 
     const k = card.outputs['k'] ?? 0;
 
@@ -45,40 +48,46 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
         );
     }
 
-    // ── Layout constants ──────────────────────────────────────────────────────
-    // Positive N (d > 0, above NA) → right-side arrow →
-    // Negative N (d < 0, below NA) → left-side arrow ←
-    const W = 260, H = 160;
+    // ── Layout ────────────────────────────────────────────────────────────────
+    const W = 260, H = 170;
     const beamCX  = 130;
     const beamW   = 14;
-    const beamX1  = beamCX - beamW / 2;  // left edge
-    const beamX2  = beamCX + beamW / 2;  // right edge
-    const cy      = H / 2;
-    const dExtent = cy - 22;
-    const arrowMaxL = 82;
+    const beamX1  = beamCX - beamW / 2;   // left  edge of cross-section
+    const beamX2  = beamCX + beamW / 2;   // right edge of cross-section
+    const cy      = H / 2;                // neutral axis y
+    const dExtent = cy - 20;              // max pixel reach from NA
+    const arrowMaxL = 82;                 // max arrow length
 
-    const maxAbsD = Math.max(...points.map(p => Math.abs(p.d)));
-    const maxAbsN = Math.max(...points.map(p => Math.abs(p.N)), 1e-12);
+    const maxD = Math.max(...points.map(p => p.d));
+    const maxN = Math.max(...points.map(p => p.N), 1e-12);
 
-    const toY   = (d: number) => cy - (d / maxAbsD) * dExtent;
-    const toLen = (N: number) => (Math.abs(N) / maxAbsN) * arrowMaxL;
+    // y position: sign=+1 → above NA, sign=-1 → below NA
+    const toY   = (d: number, sign: 1 | -1) => cy - sign * (d / maxD) * dExtent;
+    const toLen = (N: number) => (N / maxN) * arrowMaxL;
 
     const nUnit = unitMode === 'm' ? 'kN' : 'N';
     const kUnit = unitMode === 'm' ? 'kN/m' : 'N/mm';
 
-    // Separate by sign and sort top→bottom within each group
-    const posPoints = points.filter(p => p.N >= 0).sort((a, b) => b.d - a.d);
-    const negPoints = points.filter(p => p.N <  0).sort((a, b) => b.d - a.d);
+    // Sort descending by d (largest distance = furthest from NA = first)
+    const sorted = [...points].sort((a, b) => b.d - a.d);
 
-    // Stress envelopes per sign group (need ≥2 points in group)
-    const posEnvStr = posPoints.length >= 2
-        ? [...posPoints.map(p => `${beamX2},${toY(p.d)}`),
-           ...posPoints.slice().reverse().map(p => `${beamX2 + toLen(p.N)},${toY(p.d)}`)
+    // Stress-distribution envelope polygons.
+    // Above NA (right side): trace beam edge top→bottom, then arrow tips bottom→top.
+    // Below NA (left  side): trace beam edge bottom→top, then arrow tips top→bottom.
+    // Both include the NA point so the triangle closes at y=cy, N=0.
+    const showEnv = sorted.length >= 1;
+    const envAbove = showEnv
+        ? [`${beamX2},${cy}`,
+           ...sorted.map(p => `${beamX2},${toY(p.d, 1)}`),
+           ...sorted.slice().reverse().map(p => `${beamX2 + toLen(p.N)},${toY(p.d, 1)}`),
+           `${beamX2},${cy}`,
           ].join(' ')
         : '';
-    const negEnvStr = negPoints.length >= 2
-        ? [...negPoints.map(p => `${beamX1},${toY(p.d)}`),
-           ...negPoints.slice().reverse().map(p => `${beamX1 - toLen(p.N)},${toY(p.d)}`)
+    const envBelow = showEnv
+        ? [`${beamX1},${cy}`,
+           ...sorted.map(p => `${beamX1},${toY(p.d, -1)}`),
+           ...sorted.slice().reverse().map(p => `${beamX1 - toLen(p.N)},${toY(p.d, -1)}`),
+           `${beamX1},${cy}`,
           ].join(' ')
         : '';
 
@@ -97,60 +106,69 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
                 width={beamW} height={dExtent * 2 + 4}
                 fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1.5" />
 
-            {/* Stress envelope – positive (right) */}
-            {posEnvStr && (
-                <polygon points={posEnvStr}
-                    fill="rgba(59,130,246,0.09)" stroke="rgba(59,130,246,0.3)"
-                    strokeWidth="1" strokeDasharray="3,2" />
+            {/* Stress-distribution envelopes (above / below NA, symmetric) */}
+            {showEnv && (
+                <>
+                    <polygon points={envAbove}
+                        fill="rgba(59,130,246,0.09)" stroke="rgba(59,130,246,0.3)"
+                        strokeWidth="1" strokeDasharray="3,2" />
+                    <polygon points={envBelow}
+                        fill="rgba(59,130,246,0.09)" stroke="rgba(59,130,246,0.3)"
+                        strokeWidth="1" strokeDasharray="3,2" />
+                </>
             )}
 
-            {/* Stress envelope – negative (left) */}
-            {negEnvStr && (
-                <polygon points={negEnvStr}
-                    fill="rgba(239,68,68,0.09)" stroke="rgba(239,68,68,0.3)"
-                    strokeWidth="1" strokeDasharray="3,2" />
-            )}
-
-            {/* Per-point arrows: N≥0 → right side (→), N<0 → left side (←) */}
+            {/* Per-pair arrows: +Ni above NA (→), −Ni below NA (←) */}
             {points.map(p => {
-                const y      = toY(p.d);
-                const len    = toLen(p.N);
-                const isPos  = p.N >= 0;
-                const cx     = isPos ? beamX2 : beamX1;
-                const endX   = isPos ? cx + len : cx - len;
-                const color  = isPos ? '#3b82f6' : '#ef4444';
-                const nDisplay = formatOutput(Math.abs(p.N), 'force', unitMode);
+                const yA   = toY(p.d,  1);        // above NA
+                const yB   = toY(p.d, -1);        // below NA (mirror)
+                const len  = toLen(p.N);
+                const endR = beamX2 + len;         // right arrow tip (above NA)
+                const endL = beamX1 - len;         // left  arrow tip (below NA)
+                const nDisplay = formatOutput(p.N, 'force', unitMode);
 
                 return (
                     <g key={p.key}>
-                        <circle cx={cx} cy={y} r={2.5} fill={color} />
-
+                        {/* ── Above NA: dot + right arrow → ── */}
+                        <circle cx={beamX2} cy={yA} r={2.5} fill="#3b82f6" />
                         {len > 3 && (
                             <>
-                                <line x1={cx} y1={y} x2={endX} y2={y}
-                                    stroke={color} strokeWidth="1.5" />
-                                {/* Arrowhead: → for positive, ← for negative */}
-                                {isPos
-                                    ? <polygon points={`${endX},${y} ${endX-6},${y-3} ${endX-6},${y+3}`} fill={color} />
-                                    : <polygon points={`${endX},${y} ${endX+6},${y-3} ${endX+6},${y+3}`} fill={color} />
-                                }
+                                <line x1={beamX2} y1={yA} x2={endR} y2={yA}
+                                    stroke="#3b82f6" strokeWidth="1.5" />
+                                <polygon
+                                    points={`${endR},${yA} ${endR-6},${yA-3} ${endR-6},${yA+3}`}
+                                    fill="#3b82f6" />
+                                <text x={endR + 4} y={yA}
+                                    textAnchor="start" fontSize="7.5"
+                                    fill="#059669" dominantBaseline="middle">
+                                    {nDisplay}{nUnit}
+                                </text>
                             </>
                         )}
 
-                        <text
-                            x={isPos ? endX + 4 : endX - 4}
-                            y={y}
-                            textAnchor={isPos ? 'start' : 'end'}
-                            fontSize="7.5" fill="#059669" dominantBaseline="middle">
-                            {nDisplay}{nUnit}
-                        </text>
+                        {/* ── Below NA: dot + left arrow ← (same magnitude) ── */}
+                        <circle cx={beamX1} cy={yB} r={2.5} fill="#3b82f6" />
+                        {len > 3 && (
+                            <>
+                                <line x1={beamX1} y1={yB} x2={endL} y2={yB}
+                                    stroke="#3b82f6" strokeWidth="1.5" />
+                                <polygon
+                                    points={`${endL},${yB} ${endL+6},${yB-3} ${endL+6},${yB+3}`}
+                                    fill="#3b82f6" />
+                                <text x={endL - 4} y={yB}
+                                    textAnchor="end" fontSize="7.5"
+                                    fill="#059669" dominantBaseline="middle">
+                                    {nDisplay}{nUnit}
+                                </text>
+                            </>
+                        )}
                     </g>
                 );
             })}
 
-            {/* k label at bottom */}
+            {/* k label */}
             {k !== 0 && (
-                <text x={beamCX} y={H - 5} textAnchor="middle" fontSize="7" fill="#94a3b8">
+                <text x={beamCX} y={H - 4} textAnchor="middle" fontSize="7" fill="#94a3b8">
                     k = {k.toExponential(3)} {kUnit}
                 </text>
             )}
@@ -164,12 +182,13 @@ export const CoupleCardDef = createCardDefinition({
     type: 'COUPLE',
     title: '偶力変換',
     icon: Layers,
-    description: '曲げモーメントを線形分布の偶力に変換する（Ni ∝ di）。',
+    description: '曲げモーメントを偶力に変換する。各 d_i ごとに +d_i に +N_i、−d_i に −N_i が生じる（N_i × 2d_i の和 = M）。',
 
+    // d_i: NA からの距離（正値）。+d_i に +Ni、-d_i に -Ni が自動で生じる。
     defaultInputs: {
         M:   { value: 0 },
-        d_1: { value:  500 },   // above NA (positive d → positive N)
-        d_2: { value: -500 },   // below NA (negative d → negative N)
+        d_1: { value: 500 },
+        d_2: { value: 300 },
     },
 
     inputConfig: {
@@ -179,18 +198,19 @@ export const CoupleCardDef = createCardDefinition({
     outputConfig: {},
 
     dynamicInputGroup: {
-        keyPrefix:     'd',
-        inputLabel:    '距離 d',
-        inputUnitType: 'length',
-        outputKeyFn:   (key) => `n_${key.split('_')[1]}`,
-        outputLabel:   '偶力 N',
+        keyPrefix:      'd',
+        inputLabel:     '距離 d（NA から）',
+        inputUnitType:  'length',
+        outputKeyFn:    (key) => `n_${key.split('_')[1]}`,
+        outputLabel:    '偶力 N',
         outputUnitType: 'force',
-        defaultValue:  500,   // 500 mm SI default
-        minCount:      1,
-        addLabel:      '追加',
+        defaultValue:   300,
+        minCount:       1,
+        addLabel:       '追加',
     },
 
-    // All SI: M [Nmm], d_i [mm] → n_i [N], k [N/mm]
+    // 偶力の式: M = Σ(Ni × 2 × di), Ni = k × di → k = M / (2 × Σdi²)
+    // d_i は正値（NA からの距離）として扱う
     calculate: (inputs) => {
         const M = inputs['M'] ?? 0;
 
@@ -199,23 +219,21 @@ export const CoupleCardDef = createCardDefinition({
             .sort(([a], [b]) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
 
         const outputs: Record<string, number> = { k: 0 };
-
         if (distEntries.length === 0) return outputs;
 
+        // Use |d| — direction is implicit (couples are always symmetric about NA)
         const sumD2 = distEntries.reduce((sum, [, d]) => sum + d * d, 0);
-
         if (sumD2 === 0) {
-            distEntries.forEach(([key]) => {
-                outputs[`n_${key.split('_')[1]}`] = 0;
-            });
+            distEntries.forEach(([key]) => { outputs[`n_${key.split('_')[1]}`] = 0; });
             return outputs;
         }
 
-        const k = M / sumD2;
+        // M = Σ(Ni × 2 × di) = 2k × Σdi²  →  k = M / (2 × Σdi²)
+        const k = M / (2 * sumD2);
         outputs['k'] = k;
 
         distEntries.forEach(([key, d]) => {
-            outputs[`n_${key.split('_')[1]}`] = k * d;
+            outputs[`n_${key.split('_')[1]}`] = k * Math.abs(d);
         });
 
         return outputs;
