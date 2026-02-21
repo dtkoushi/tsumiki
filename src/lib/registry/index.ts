@@ -4,6 +4,7 @@ import { SectionCardDef } from '../../components/cards/Section';
 import { BeamCardDef } from '../../components/cards/Beam';
 import { VerifyCardDef } from '../../components/cards/Verify';
 import { CustomCardDef } from '../../components/cards/Custom';
+import { CoupleCardDef } from '../../components/cards/Couple';
 
 
 class CardRegistry {
@@ -33,6 +34,7 @@ registry.register(SectionCardDef);
 registry.register(BeamCardDef);
 registry.register(VerifyCardDef);
 registry.register(CustomCardDef);
+registry.register(CoupleCardDef);
 
 // Make types available
 export type { CardDefinition } from './types';

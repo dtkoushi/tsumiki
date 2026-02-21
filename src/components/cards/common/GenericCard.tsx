@@ -1,9 +1,11 @@
 
 import React from 'react';
+import { Plus, X } from 'lucide-react';
 import { BaseCard } from './BaseCard';
 import { SmartInput } from '../../common/SmartInput';
 import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../../lib/utils/unitFormatter';
-import type { CardComponentProps } from '../../../lib/registry/types';
+import type { CardComponentProps, CardActions, DynamicInputGroupConfig } from '../../../lib/registry/types';
+import type { Card } from '../../../types';
 import { registry } from '../../../lib/registry';
 
 const SelectInput = ({ name, config, card, actions }: { name: string, config: any, card: any, actions: any }) => (
@@ -46,6 +48,93 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { na
     </div>
 );
 
+const DynamicGroupSection = ({
+    config, card, actions, upstreamCards, unitMode
+}: {
+    config: DynamicInputGroupConfig;
+    card: Card;
+    actions: CardActions;
+    upstreamCards: Card[];
+    unitMode: UnitMode;
+}) => {
+    const { keyPrefix, inputLabel, inputUnitType, outputKeyFn, outputLabel, outputUnitType, defaultValue = 0, minCount = 1, addLabel = 'Add' } = config;
+
+    const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
+    const keys = Object.keys(card.inputs)
+        .filter(k => pattern.test(k))
+        .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
+
+    const handleAdd = () => {
+        const nums = keys.map(k => parseInt(k.split('_')[1]));
+        const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
+        actions.updateInput(card.id, `${keyPrefix}_${next}`, defaultValue);
+    };
+
+    const dUnitLabel = getUnitLabel(inputUnitType, unitMode);
+    const nUnitLabel = getUnitLabel(outputUnitType, unitMode);
+
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {inputLabel} → {outputLabel}
+                </label>
+                <button
+                    onClick={handleAdd}
+                    className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                >
+                    <Plus size={12} /> {addLabel}
+                </button>
+            </div>
+
+            {keys.length > 0 && (
+                <div className="grid grid-cols-[1fr_12px_1fr_20px] gap-x-2 items-center px-1">
+                    <span className="text-[10px] text-slate-400">{inputLabel} [{dUnitLabel}]</span>
+                    <span />
+                    <span className="text-[10px] text-slate-400 text-right">{outputLabel} [{nUnitLabel}]</span>
+                    <span />
+                </div>
+            )}
+
+            {keys.map(key => {
+                const outputKey = outputKeyFn(key);
+                const outputVal = card.outputs[outputKey] ?? 0;
+                return (
+                    <div key={key} className="grid grid-cols-[1fr_12px_1fr_20px] gap-x-2 items-center">
+                        <SmartInput
+                            cardId={card.id}
+                            inputKey={key}
+                            card={card}
+                            actions={actions}
+                            upstreamCards={upstreamCards}
+                            inputType={inputUnitType as any}
+                            unitMode={unitMode}
+                            placeholder="0"
+                        />
+                        <span className="text-slate-300 text-xs text-center">→</span>
+                        <div className="text-right font-mono text-sm font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-2 py-1 truncate">
+                            {formatOutput(outputVal, outputUnitType, unitMode)}
+                        </div>
+                        <button
+                            onClick={() => actions.removeInput(card.id, key)}
+                            className="text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center"
+                            disabled={keys.length <= minCount}
+                        >
+                            <X size={14} />
+                        </button>
+                    </div>
+                );
+            })}
+
+            {keys.length === 0 && (
+                <div className="text-xs text-slate-400 italic text-center py-2">
+                    {addLabel} ボタンで行を追加してください
+                </div>
+            )}
+        </div>
+    );
+};
+
 const OutputRow = ({ name, config, card, unitMode }: { name: string, config: { label: string, unitType: OutputUnitType }, card: any, unitMode: UnitMode }) => (
     <div className="flex justify-between items-end gap-2 border-b border-slate-700/50 last:border-0 pb-1 last:pb-0">
         <span className="text-slate-400 shrink-0 text-xs mb-0.5">{config.label}:</span>
@@ -71,8 +160,8 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
     const resolvedInputConfig = { ...(def.inputConfig || {}), ...dynamicConfig };
 
     // Split inputs into Selectors and Standard Inputs
-    const selectors = Object.entries(resolvedInputConfig).filter(([_, config]) => config.type === 'select');
-    const standardInputs = Object.entries(resolvedInputConfig).filter(([_, config]) => config.type !== 'select');
+    const selectors = Object.entries(resolvedInputConfig).filter(([, config]) => config.type === 'select');
+    const standardInputs = Object.entries(resolvedInputConfig).filter(([, config]) => config.type !== 'select');
 
     return (
         <BaseCard card={card} icon={<def.icon size={18} />} color="border-slate-400">
@@ -98,6 +187,17 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
                             })}
                         </div>
                     </div>
+                )}
+
+                {/* Dynamic Input Group (paired input → output rows with add/remove) */}
+                {def.dynamicInputGroup && (
+                    <DynamicGroupSection
+                        config={def.dynamicInputGroup}
+                        card={card}
+                        actions={actions}
+                        upstreamCards={upstreamCards}
+                        unitMode={unitMode}
+                    />
                 )}
 
                 {/* Visualization Area */}
