@@ -14,7 +14,8 @@
   - [ストラテジーカードの追加](#2-ストラテジーカードの追加-createstrategydefinition)
   - [マルチ軸ストラテジーカード](#3-マルチ軸ストラテジーカード)
   - [ビジュアライゼーションの追加](#4-ビジュアライゼーションの追加)
-  - [カードの登録](#5-カードの登録)
+  - [dynamicInputGroup — 動的ペア行](#5-dynamicinputgroup--動的ペア行)
+  - [カードの登録](#6-カードの登録)
 - [ユニットシステム](#ユニットシステム)
 - [データモデル](#データモデル)
 - [ファイル構成](#ファイル構成)
@@ -116,6 +117,21 @@ JIS 鋼材グレードを選択して設計基準強度と弾性係数を返し�
 ### CUSTOM — カスタム数式
 
 変数を自由に定義し、mathjs の数式で計算します。変数は他カードの出力に参照リンクできます。
+
+### COUPLE — 偶力変換
+
+曲げモーメント M を偶力に分解します。
+NA から距離 d_i の位置に +N_i（→）、−d_i の位置に −N_i（←）の対称力ペアが生じます。
+線形分布則（N_i ∝ d_i）に基づき計算します。
+
+| 入力 | 説明 |
+|------|------|
+| M | 曲げモーメント |
+| d_1, d_2, … | NA からの距離（正値・複数）|
+
+**計算式**: M = Σ(N_i × 2 × d_i)、N_i/N_j = d_i/d_j → **k = M / (2·Σd_i²)**、N_i = k·d_i
+
+距離行は UI から動的に追加・削除できます（後述の `dynamicInputGroup` 機能）。
 
 ---
 
@@ -334,7 +350,81 @@ export const MyCardDef = createCardDefinition({
 
 ---
 
-### 5. カードの登録
+### 5. dynamicInputGroup — 動的ペア行
+
+**ユースケース**: 行数が可変で、各行に「入力値 → 対応する計算結果」が並ぶ UI が必要な場合。
+`GenericCard` が行追加・削除ボタン付きで自動レンダリングするため、カスタムコンポーネントは不要です。
+
+**COUPLE カードの例**
+
+```typescript
+export const CoupleCardDef = createCardDefinition({
+    type: 'COUPLE',
+    title: '偶力変換',
+    icon: Layers,
+
+    defaultInputs: {
+        M:   { value: 0 },
+        d_1: { value: 500 },
+        d_2: { value: 300 },
+    },
+
+    inputConfig: {
+        M: { label: '曲げモーメント M', unitType: 'moment' },
+    },
+
+    outputConfig: {},  // k は visualization 内で表示するため省略
+
+    // ── dynamicInputGroup の設定 ──────────────────────────────────────
+    dynamicInputGroup: {
+        keyPrefix:      'd',           // 入力キーのプレフィックス (d_1, d_2, ...)
+        inputLabel:     '距離 d（NA から）',
+        inputUnitType:  'length',
+        outputKeyFn:    (key) => `n_${key.split('_')[1]}`, // d_i → n_i
+        outputLabel:    '偶力 N',
+        outputUnitType: 'force',
+        defaultValue:   300,           // 「追加」ボタンで追加される初期値（SI単位）
+        minCount:       1,             // この行数より削除不可
+        addLabel:       '追加',
+    },
+
+    calculate: (inputs) => {
+        const M = inputs['M'] ?? 0;
+        const distEntries = Object.entries(inputs)
+            .filter(([k]) => /^d_\d+$/.test(k));
+        const sumD2 = distEntries.reduce((s, [, d]) => s + d * d, 0);
+        if (sumD2 === 0) return { k: 0 };
+        const k = M / (2 * sumD2);
+        const outputs: Record<string, number> = { k };
+        distEntries.forEach(([key, d]) => {
+            outputs[`n_${key.split('_')[1]}`] = k * Math.abs(d);
+        });
+        return outputs;
+    },
+
+    visualization: CoupleSvg,
+});
+```
+
+**`DynamicInputGroupConfig` のフィールド一覧**
+
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `keyPrefix` | `string` | 入力キーのプレフィックス（例: `'d'` → `d_1`, `d_2`, …）|
+| `inputLabel` | `string` | 入力列のラベル |
+| `inputUnitType` | `OutputUnitType` | 入力の単位タイプ |
+| `outputKeyFn` | `(inputKey: string) => string` | 入力キーから出力キーを生成する関数 |
+| `outputLabel` | `string` | 出力列のラベル |
+| `outputUnitType` | `OutputUnitType` | 出力の単位タイプ |
+| `defaultValue` | `number` | 追加ボタン押下時の初期値（SI単位）|
+| `minCount` | `number` | 削除できる最小行数（デフォルト: 1）|
+| `addLabel` | `string` | 追加ボタンのラベル |
+
+> **レンダリング順序**: Selectors → Standard Inputs → **DynamicGroupSection** → Visualization → Outputs
+
+---
+
+### 6. カードの登録
 
 新しいカードを作成したら、レジストリに登録して `CardType` を追加します。
 
@@ -349,7 +439,7 @@ registry.register(MyCardDef); // 追加
 **`src/types/index.ts`**
 
 ```typescript
-export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM' | 'MY_TYPE'; // 追加
+export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM' | 'COUPLE' | 'MY_TYPE'; // 追加
 ```
 
 **`src/components/layout/AppLayout.tsx`** — サイドバーのボタン一覧に追加
@@ -389,7 +479,7 @@ const cardTypes = [
 
 ```typescript
 // src/types/index.ts
-export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM';
+export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM' | 'COUPLE';
 
 export interface CardInput {
     value: string | number;
@@ -424,6 +514,7 @@ src/
 │   │   │   ├── AutoFitSvg.tsx        # SVGの自動フィットユーティリティ
 │   │   │   └── visualizationHelper.tsx
 │   │   ├── Beam.tsx                  # 梁計算カード定義
+│   │   ├── Couple.tsx                # 偶力変換カード定義（CoupleSvg を含む）
 │   │   ├── Custom.tsx                # カスタム数式カード定義
 │   │   ├── Material.tsx              # 材料カード定義
 │   │   ├── Section.tsx               # 断面カード定義
@@ -447,7 +538,7 @@ src/
 │   ├── registry/
 │   │   ├── index.ts                  # CardRegistry・登録処理
 │   │   ├── strategyHelper.ts         # createCardDefinition / createStrategyDefinition
-│   │   └── types.ts                  # CardDefinition・CardActions インターフェース
+│   │   └── types.ts                  # CardDefinition・CardActions・DynamicInputGroupConfig
 │   └── utils/
 │       ├── serialization.ts          # JSON エクスポート・URL 圧縮 (pako)
 │       └── unitFormatter.ts          # SI ↔ 表示値 変換・単位ラベル
