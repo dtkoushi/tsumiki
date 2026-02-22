@@ -267,9 +267,11 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
 
 // ─── Custom Card Component ─────────────────────────────────────────────────────
 
-const BeamMultiComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
+const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
     const unitMode = (card.unitMode || 'mm') as UnitMode;
-    const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
+    const pinnedOutputs = useTsumikiStore(state => state.pinnedOutputs);
+    const pinOutput = useTsumikiStore(state => state.pinOutput);
+    const unpinOutput = useTsumikiStore(state => state.unpinOutput);
 
     const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
@@ -570,5 +572,5 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
         };
     },
 
-    component: BeamMultiComponent,
+    component: React.memo(BeamMultiComponentInner),
 });
