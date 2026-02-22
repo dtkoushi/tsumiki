@@ -118,15 +118,17 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                 if (loadType === 'point') {
                     const ax = toX(a);
                     const arrowH = loadH * scale;
+                    const s = val >= 0 ? -1 : 1; // -1: above beam, +1: below beam
+                    const shaftFar = beamY + s * arrowH;
                     return (
                         <g key={n}>
-                            <line x1={ax} y1={beamY - arrowH} x2={ax} y2={beamY - 1}
+                            <line x1={ax} y1={shaftFar} x2={ax} y2={beamY + s}
                                 stroke={C_POINT} strokeWidth="2" />
                             <polygon
-                                points={`${ax - 5},${beamY - ms - 2} ${ax + 5},${beamY - ms - 2} ${ax},${beamY}`}
+                                points={`${ax - 5},${beamY + s * (ms + 2)} ${ax + 5},${beamY + s * (ms + 2)} ${ax},${beamY}`}
                                 fill={C_POINT}
                             />
-                            <text x={ax} y={beamY - arrowH - 3}
+                            <text x={ax} y={s < 0 ? shaftFar - 3 : shaftFar + 12}
                                 textAnchor="middle" fontSize="9" fill={C_POINT} fontWeight="600">
                                 P{n}
                             </text>
@@ -170,32 +172,33 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                     const bx = toX(b);
                     const distW = Math.max(bx - ax, 6);
                     const distH = loadH * scale;
-                    const rectTop = beamY - distH;
+                    const s = val >= 0 ? -1 : 1; // -1: above beam, +1: below beam
+                    const farY = beamY + s * distH;
                     const numArrows = Math.max(2, Math.round(distW / 28) + 1);
                     return (
                         <g key={n}>
-                            <rect x={ax} y={rectTop} width={distW} height={distH}
+                            <rect x={ax} y={Math.min(beamY, farY)} width={distW} height={distH}
                                 fill="rgba(59,130,246,0.08)" stroke="none" />
-                            <line x1={ax} y1={rectTop} x2={ax + distW} y2={rectTop}
+                            <line x1={ax} y1={farY} x2={ax + distW} y2={farY}
                                 stroke={C_DIST} strokeWidth="1.5" />
-                            <line x1={ax} y1={rectTop} x2={ax} y2={beamY}
+                            <line x1={ax} y1={farY} x2={ax} y2={beamY}
                                 stroke={C_DIST} strokeWidth="1" />
-                            <line x1={ax + distW} y1={rectTop} x2={ax + distW} y2={beamY}
+                            <line x1={ax + distW} y1={farY} x2={ax + distW} y2={beamY}
                                 stroke={C_DIST} strokeWidth="1" />
                             {Array.from({ length: numArrows }, (_, i) => {
                                 const tx = ax + (numArrows > 1 ? (i / (numArrows - 1)) * distW : distW / 2);
                                 return (
                                     <g key={i}>
-                                        <line x1={tx} y1={rectTop + 2} x2={tx} y2={beamY - 1}
+                                        <line x1={tx} y1={farY - s * 2} x2={tx} y2={beamY + s}
                                             stroke={C_DIST} strokeWidth="1" />
                                         <polygon
-                                            points={`${tx - 4},${beamY - ms} ${tx + 4},${beamY - ms} ${tx},${beamY}`}
+                                            points={`${tx - 4},${beamY + s * ms} ${tx + 4},${beamY + s * ms} ${tx},${beamY}`}
                                             fill={C_DIST}
                                         />
                                     </g>
                                 );
                             })}
-                            <text x={ax + distW / 2} y={rectTop - 4}
+                            <text x={ax + distW / 2} y={s < 0 ? farY - 4 : farY + 12}
                                 textAnchor="middle" fontSize="9" fill={C_DIST} fontWeight="600">
                                 w{n}
                             </text>
