@@ -160,21 +160,26 @@ const drawPointLoad = (a: number, scale: number) => {
     );
 };
 
-const drawMomentLoad = (a: number, scale: number) => {
+const drawMomentLoad = (a: number, scale: number, val: number = 1) => {
     const r = 16 / scale;
+    const clockwise = val >= 0;
     const N_pts = 20;
     const pts = Array.from({ length: N_pts + 1 }, (_, i) => {
         const angle = (i / N_pts) * (3 * Math.PI / 2);
-        return `${a + r * Math.cos(angle)},${0 - r * Math.sin(angle)}`;
+        // clockwise (positive): arc goes below beam first (y = +r·sin)
+        // counter-clockwise (negative): arc goes above beam first (y = -r·sin)
+        const y = clockwise ? r * Math.sin(angle) : -r * Math.sin(angle);
+        return `${a + r * Math.cos(angle)},${y}`;
     });
-    // Arrowhead at end (angle=3π/2): position=(a, r), tangent=right
+    // Arrowhead at angle=3π/2: tangent always points right, end y flips
+    const ey = clockwise ? -r : r;
     const aw = 4 / scale;
     const al = 7 / scale;
     return (
         <g>
             <polyline points={pts.join(' ')} fill="none" stroke={C_MOMENT} strokeWidth={1.5 / scale} />
             <polygon
-                points={`${a - al},${r - aw} ${a + aw * 1.2},${r} ${a - al},${r + aw}`}
+                points={`${a - al},${ey - aw} ${a + aw * 1.2},${ey} ${a - al},${ey + aw}`}
                 fill={C_MOMENT}
             />
             <text x={a + r + 4 / scale} y={4 / scale}
@@ -211,7 +216,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
             const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawMomentLoad(a, scale)}</>;
+            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
     'cantilever_uniform': {
@@ -237,7 +242,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         draw: (inputs, scale) => {
             const L = inputs['L'] || 2000;
             const a = inputs['a'] ?? L;
-            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawMomentLoad(a, scale)}</>;
+            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
     'fixed_fixed_uniform': {
@@ -263,7 +268,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
             const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawMomentLoad(a, scale)}</>;
+            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
     'fixed_pinned_uniform': {
@@ -289,7 +294,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
             const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawMomentLoad(a, scale)}</>;
+            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
 };

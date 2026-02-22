@@ -180,12 +180,19 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                 if (loadType === 'moment') {
                     const ax = toX(a);
                     const r = 10 + 12 * scale;
+                    const clockwise = val >= 0;
                     const N_pts = 20;
                     const pts = Array.from({ length: N_pts + 1 }, (_, i) => {
                         const angle = (i / N_pts) * (3 * Math.PI / 2);
-                        return `${ax + r * Math.cos(angle)},${beamY - r * Math.sin(angle)}`;
+                        // clockwise (positive): arc goes below beam first
+                        // counter-clockwise (negative): arc goes above beam first
+                        const py = clockwise
+                            ? beamY + r * Math.sin(angle)
+                            : beamY - r * Math.sin(angle);
+                        return `${ax + r * Math.cos(angle)},${py}`;
                     });
-                    const ey = beamY + r;
+                    // Arrowhead at angle=3π/2: tangent points right, end y flips
+                    const ey = clockwise ? beamY - r : beamY + r;
                     return (
                         <g key={n}>
                             <polyline points={pts.join(' ')} fill="none" stroke="#8b5cf6" strokeWidth="1.5" />
