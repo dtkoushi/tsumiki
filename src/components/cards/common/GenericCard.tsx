@@ -170,8 +170,10 @@ const OutputRow = ({
     </div>
 );
 
-export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
-    const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
+const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
+    const pinnedOutputs = useTsumikiStore(state => state.pinnedOutputs);
+    const pinOutput = useTsumikiStore(state => state.pinOutput);
+    const unpinOutput = useTsumikiStore(state => state.unpinOutput);
 
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const def = registry.get(card.type);
@@ -264,3 +266,5 @@ export const GenericCard: React.FC<CardComponentProps> = ({ card, actions, upstr
     );
 };
 
+
+export const GenericCard = React.memo(GenericCardInner);

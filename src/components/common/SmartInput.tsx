@@ -64,13 +64,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     const displayValue = getDisplayValue();
 
-    // Sync local value with prop value when not focused
-    useEffect(() => {
-        if (!isFocused) {
-            setLocalValue(displayValue);
-        }
-    }, [displayValue, isFocused]);
-
     const handleFocus = () => {
         setIsFocused(true);
         setLocalValue(displayValue);
