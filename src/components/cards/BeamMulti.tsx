@@ -17,6 +17,7 @@ type SmartInputType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modul
 // --- Types ---
 
 type LoadType = 'point' | 'moment' | 'dist';
+type BoundaryType = 'simple' | 'fixed_fixed' | 'fixed_pinned' | 'cantilever';
 
 interface LoadRow {
     n: number;
@@ -45,31 +46,93 @@ function resolveInput(card: Card, key: string, upstreamCards: Card[]): number {
     return Number(inp.value ?? 0);
 }
 
-function evalSuperposition(L: number, loads: LoadRow[], x: number): BeamResult {
-    let M = 0;
-    let Q = 0;
+type PointFn = (L: number, P: number, a: number, x: number) => BeamResult;
+
+/** Numerically integrate a point-load influence function over [a, b] to get partial UDL contribution */
+function integratePointLoad(fn: PointFn, L: number, w: number, a: number, b: number, x: number, N = 40): BeamResult {
+    const end = b > a ? b : a + 1;
+    let M = 0, Q = 0;
+    const step = (end - a) / N;
+    for (let i = 0; i < N; i++) {
+        const xi = a + (i + 0.5) * step;
+        const r = fn(L, w * step, xi, x);
+        M += r.M; Q += r.Q;
+    }
+    return { M, Q };
+}
+
+/** Approximate a concentrated moment M0 at position a as two opposite point loads */
+function momentViaPointLoads(fn: PointFn, L: number, M0: number, a: number, x: number): BeamResult {
+    const eps = Math.max(L / 500, 1);
+    const a1 = Math.max(0, Math.min(a - eps / 2, L - eps));
+    const a2 = Math.min(L, a1 + eps);
+    const P = M0 / eps;
+    // -P downward at a1, +P upward at a2 → CCW moment M0 at midpoint
+    const r1 = fn(L, -P, a1, x);
+    const r2 = fn(L, P, a2, x);
+    return { M: r1.M + r2.M, Q: r1.Q + r2.Q };
+}
+
+function evalSuperposition(L: number, loads: LoadRow[], x: number, boundary: BoundaryType): BeamResult {
+    let M = 0, Q = 0;
     for (const load of loads) {
         if (L <= 0) continue;
+        const b = load.b > load.a ? load.b : load.a + L * 0.25;
         let contrib: BeamResult = { M: 0, Q: 0 };
-        if (load.type === 'point') {
-            contrib = BeamFormulas.simple_point(L, load.val, load.a, x);
-        } else if (load.type === 'moment') {
-            contrib = BeamSuperposition.simple_moment(L, load.val, load.a, x);
-        } else if (load.type === 'dist') {
-            contrib = BeamSuperposition.simple_partial_uniform(L, load.val, load.a, load.b, x);
+
+        if (boundary === 'simple') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.simple_point(L, load.val, load.a, x);
+            } else if (load.type === 'moment') {
+                contrib = BeamSuperposition.simple_moment(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = BeamSuperposition.simple_partial_uniform(L, load.val, load.a, b, x);
+            }
+        } else if (boundary === 'fixed_fixed') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.fixed_fixed_point(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = integratePointLoad(BeamFormulas.fixed_fixed_point, L, load.val, load.a, b, x);
+            } else if (load.type === 'moment') {
+                contrib = momentViaPointLoads(BeamFormulas.fixed_fixed_point, L, load.val, load.a, x);
+            }
+        } else if (boundary === 'fixed_pinned') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.fixed_pinned_point(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = integratePointLoad(BeamFormulas.fixed_pinned_point, L, load.val, load.a, b, x);
+            } else if (load.type === 'moment') {
+                contrib = momentViaPointLoads(BeamFormulas.fixed_pinned_point, L, load.val, load.a, x);
+            }
+        } else if (boundary === 'cantilever') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.cantilever_point(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = integratePointLoad(BeamFormulas.cantilever_point, L, load.val, load.a, b, x);
+            } else if (load.type === 'moment') {
+                contrib = momentViaPointLoads(BeamFormulas.cantilever_point, L, load.val, load.a, x);
+            }
         }
+
         M += contrib.M;
         Q += contrib.Q;
     }
     return { M, Q };
 }
 
-// --- Load type options ---
+// --- Constants ---
 
 const LOAD_TYPE_OPTIONS: { value: LoadType; label: string }[] = [
     { value: 'point', label: 'Point Load (P)' },
     { value: 'moment', label: 'Moment (M0)' },
     { value: 'dist', label: 'Dist. Load (w)' },
+];
+
+const BOUNDARY_OPTIONS: { value: BoundaryType; label: string }[] = [
+    { value: 'simple', label: '単純支持' },
+    { value: 'fixed_fixed', label: '両端固定' },
+    { value: 'fixed_pinned', label: '片端固定・片端ピン' },
+    { value: 'cantilever', label: '片持ち梁' },
 ];
 
 const getValUnitType = (type: LoadType): SmartInputType => {
@@ -87,15 +150,17 @@ const getValLabel = (type: LoadType): string => {
 // ─── SVG Visualization ────────────────────────────────────────────────────────
 
 const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
-    const W = 380, H = 160;
-    const beamX0 = 40, beamX1 = 340;
-    const beamY = 110;
-    const loadTop = 22;        // top of load arrow area
-    const loadH = beamY - loadTop - 6; // usable height for loads
+    const W = 380, H = 165;
+    const beamX0 = 50, beamX1 = 340;
+    const beamY = 105;
+    const loadTop = 18;
+    const loadH = beamY - loadTop - 4;
     const unitMode = (card.unitMode || 'mm') as UnitMode;
+    const ms = 8;
 
     const L = resolveInput(card, 'L', upstreamCards) || 4000;
     const x_loc = resolveInput(card, 'x_loc', upstreamCards);
+    const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
     const toX = (mm: number): number => {
         if (L <= 0) return beamX0;
@@ -107,7 +172,70 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
         .map(k => parseInt(k.split('_')[2]))
         .sort((a, b) => a - b);
 
-    const ms = 8; // marker size
+    // Resolve all loads for magnitude scaling
+    const resolvedLoads = loadIndices.map(n => ({
+        n,
+        type: (card.inputs[`load_type_${n}`]?.value as LoadType) || 'point',
+        a: resolveInput(card, `a_${n}`, upstreamCards),
+        b: resolveInput(card, `b_${n}`, upstreamCards),
+        val: resolveInput(card, `val_${n}`, upstreamCards),
+    }));
+
+    // Force-type (point, dist) and moment scale independently so adding a moment
+    // doesn't affect arrow lengths of force loads and vice versa.
+    const maxForceMag = resolvedLoads
+        .filter(l => l.type !== 'moment')
+        .reduce((acc, l) => Math.max(acc, Math.abs(l.val)), 0);
+    const maxMomentMag = resolvedLoads
+        .filter(l => l.type === 'moment')
+        .reduce((acc, l) => Math.max(acc, Math.abs(l.val)), 0);
+
+    const scaleForce = (val: number): number => {
+        if (maxForceMag <= 0 || Math.abs(val) < 1e-10) return 0;
+        return 0.15 + 0.85 * (Math.abs(val) / maxForceMag);
+    };
+    const scaleMoment = (val: number): number => {
+        if (maxMomentMag <= 0 || Math.abs(val) < 1e-10) return 0;
+        return 0.15 + 0.85 * (Math.abs(val) / maxMomentMag);
+    };
+
+    // Support drawing helpers (pixel coordinates)
+    const drawFixed = (x: number, side: 'left' | 'right') => {
+        const dir = side === 'left' ? -1 : 1;
+        const h = 14;
+        return (
+            <g>
+                <line x1={x} y1={beamY - h} x2={x} y2={beamY + h} stroke="#475569" strokeWidth="2" />
+                {[-h, -h / 2, 0, h / 2, h].map((dy, i) => (
+                    <line key={i} x1={x} y1={beamY + dy}
+                        x2={x + dir * 8} y2={beamY + dy + 6}
+                        stroke="#475569" strokeWidth="1" />
+                ))}
+            </g>
+        );
+    };
+
+    const drawPin = (x: number) => (
+        <g>
+            <polygon
+                points={`${x - ms},${beamY + ms * 2} ${x + ms},${beamY + ms * 2} ${x},${beamY}`}
+                fill="none" stroke="#475569" strokeWidth="1.5"
+            />
+            <line x1={x - ms - 4} y1={beamY + ms * 2}
+                x2={x + ms + 4} y2={beamY + ms * 2}
+                stroke="#475569" strokeWidth="1.5" />
+        </g>
+    );
+
+    const drawRoller = (x: number) => (
+        <g>
+            <circle cx={x} cy={beamY + ms} r={ms}
+                fill="none" stroke="#475569" strokeWidth="1.5" />
+            <line x1={x - ms - 4} y1={beamY + ms * 2}
+                x2={x + ms + 4} y2={beamY + ms * 2}
+                stroke="#475569" strokeWidth="1.5" />
+        </g>
+    );
 
     return (
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
@@ -122,24 +250,25 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
             )}
 
             {/* Loads */}
-            {loadIndices.map(n => {
-                const loadType = (card.inputs[`load_type_${n}`]?.value as LoadType) || 'point';
-                const a = resolveInput(card, `a_${n}`, upstreamCards);
-                const rawB = resolveInput(card, `b_${n}`, upstreamCards);
-                const b = rawB > a ? rawB : a + L * 0.25; // fallback for unset b
+            {resolvedLoads.map(load => {
+                const { n, type: loadType, a, b: rawB, val } = load;
+                const b = rawB > a ? rawB : a + L * 0.25;
+                const scale = loadType === 'moment' ? scaleMoment(val) : scaleForce(val);
 
                 if (loadType === 'point') {
+                    if (scale === 0) return null;
                     const ax = toX(a);
+                    const arrowH = loadH * scale;
+                    const arrowTop = beamY - arrowH;
                     return (
                         <g key={n}>
-                            <line x1={ax} y1={loadTop} x2={ax} y2={beamY - 1}
+                            <line x1={ax} y1={arrowTop} x2={ax} y2={beamY - 1}
                                 stroke="#ef4444" strokeWidth="2" />
-                            {/* Arrowhead */}
                             <polygon
                                 points={`${ax - 5},${beamY - ms - 2} ${ax + 5},${beamY - ms - 2} ${ax},${beamY}`}
                                 fill="#ef4444"
                             />
-                            <text x={ax} y={loadTop - 4}
+                            <text x={ax} y={arrowTop - 3}
                                 textAnchor="middle" fontSize="9" fill="#ef4444" fontWeight="600">
                                 P{n}
                             </text>
@@ -148,24 +277,21 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                 }
 
                 if (loadType === 'moment') {
+                    if (scale === 0) return null;
                     const ax = toX(a);
-                    const r = 18;
-                    const cy_m = beamY - 42;
-                    // 270° CCW arc (visually): right→top→left→bottom
-                    // In SVG coords: x = ax+r·cos(θ), y = cy_m - r·sin(θ), θ: 0 → 3π/2
-                    const N = 20;
-                    const pts = Array.from({ length: N + 1 }, (_, i) => {
-                        const angle = (i / N) * (3 * Math.PI / 2);
+                    const r = 10 + 12 * scale;
+                    const cy_m = beamY;
+                    const N_pts = 20;
+                    const pts = Array.from({ length: N_pts + 1 }, (_, i) => {
+                        const angle = (i / N_pts) * (3 * Math.PI / 2);
                         return `${ax + r * Math.cos(angle)},${cy_m - r * Math.sin(angle)}`;
                     });
-                    // endpoint at θ=3π/2: (ax, cy_m+r), tangent points rightward
                     const ex = ax;
                     const ey = cy_m + r;
                     return (
                         <g key={n}>
                             <polyline points={pts.join(' ')}
                                 fill="none" stroke="#8b5cf6" strokeWidth="1.5" />
-                            {/* Arrowhead pointing right */}
                             <polygon
                                 points={`${ex - 7},${ey - 4} ${ex + 5},${ey} ${ex - 7},${ey + 4}`}
                                 fill="#8b5cf6"
@@ -179,25 +305,23 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                 }
 
                 if (loadType === 'dist') {
+                    if (scale === 0) return null;
                     const ax = toX(a);
                     const bx = toX(b);
                     const distW = Math.max(bx - ax, 6);
-                    const rectTop = loadTop + 4;
+                    const distH = loadH * scale;
+                    const rectTop = beamY - distH;
                     const numArrows = Math.max(2, Math.round(distW / 28) + 1);
                     return (
                         <g key={n}>
-                            {/* Fill */}
-                            <rect x={ax} y={rectTop} width={distW} height={beamY - rectTop}
+                            <rect x={ax} y={rectTop} width={distW} height={distH}
                                 fill="rgba(59,130,246,0.08)" stroke="none" />
-                            {/* Top line */}
                             <line x1={ax} y1={rectTop} x2={ax + distW} y2={rectTop}
                                 stroke="#3b82f6" strokeWidth="1.5" />
-                            {/* Side verticals */}
                             <line x1={ax} y1={rectTop} x2={ax} y2={beamY}
                                 stroke="#3b82f6" strokeWidth="1" />
                             <line x1={ax + distW} y1={rectTop} x2={ax + distW} y2={beamY}
                                 stroke="#3b82f6" strokeWidth="1" />
-                            {/* Arrows */}
                             {Array.from({ length: numArrows }, (_, i) => {
                                 const tx = ax + (numArrows > 1 ? (i / (numArrows - 1)) * distW : distW / 2);
                                 return (
@@ -226,21 +350,17 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
             <line x1={beamX0} y1={beamY} x2={beamX1} y2={beamY}
                 stroke="#475569" strokeWidth="3" strokeLinecap="round" />
 
-            {/* Pin support (left) */}
-            <polygon
-                points={`${beamX0 - ms},${beamY + ms * 2} ${beamX0 + ms},${beamY + ms * 2} ${beamX0},${beamY}`}
-                fill="none" stroke="#475569" strokeWidth="1.5"
-            />
-            <line x1={beamX0 - ms - 4} y1={beamY + ms * 2}
-                x2={beamX0 + ms + 4} y2={beamY + ms * 2}
-                stroke="#475569" strokeWidth="1.5" />
+            {/* Supports based on boundary */}
+            {boundary === 'simple' && <>{drawPin(beamX0)}{drawRoller(beamX1)}</>}
+            {boundary === 'fixed_fixed' && <>{drawFixed(beamX0, 'left')}{drawFixed(beamX1, 'right')}</>}
+            {boundary === 'fixed_pinned' && <>{drawFixed(beamX0, 'left')}{drawPin(beamX1)}</>}
+            {boundary === 'cantilever' && drawFixed(beamX0, 'left')}
 
-            {/* Roller support (right) */}
-            <circle cx={beamX1} cy={beamY + ms} r={ms}
-                fill="none" stroke="#475569" strokeWidth="1.5" />
-            <line x1={beamX1 - ms - 4} y1={beamY + ms * 2}
-                x2={beamX1 + ms + 4} y2={beamY + ms * 2}
-                stroke="#475569" strokeWidth="1.5" />
+            {/* x=0 label at left end */}
+            <text x={beamX0} y={H - 6}
+                textAnchor="middle" fontSize="9" fill="#94a3b8">
+                x=0
+            </text>
 
             {/* x_loc label */}
             {x_loc > 0 && x_loc < L && (() => {
@@ -264,6 +384,8 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
 const BeamMultiComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
+
+    const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
     const loadIndices = Object.keys(card.inputs)
         .filter(k => /^load_type_\d+$/.test(k))
@@ -291,9 +413,44 @@ const BeamMultiComponent: React.FC<CardComponentProps> = ({ card, actions, upstr
         { key: 'Qx', label: 'Qx', unitType: 'force' as OutputUnitType },
     ];
 
+    const StyledSelect = ({ value, onChange, options }: {
+        value: string;
+        onChange: (v: string) => void;
+        options: { value: string; label: string }[];
+    }) => (
+        <div className="relative">
+            <select
+                className="w-full appearance-none bg-white border border-slate-200 rounded px-2 py-1.5 pr-6 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer hover:bg-slate-50"
+                value={value}
+                onChange={e => onChange(e.target.value)}
+            >
+                {options.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-500">
+                <svg className="fill-current h-3 w-3" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                </svg>
+            </div>
+        </div>
+    );
+
     return (
         <BaseCard card={card} icon={<GitBranch size={18} />} color="border-purple-400">
             <div className="flex flex-col gap-4">
+
+                {/* ── Boundary Condition ── */}
+                <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
+                    <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">Boundary</span>
+                    <div className="w-48">
+                        <StyledSelect
+                            value={boundary}
+                            onChange={v => actions.updateInput(card.id, 'boundary', v)}
+                            options={BOUNDARY_OPTIONS}
+                        />
+                    </div>
+                </div>
 
                 {/* ── Span & Check Location ── */}
                 <div className="space-y-2">
@@ -351,31 +508,21 @@ const BeamMultiComponent: React.FC<CardComponentProps> = ({ card, actions, upstr
                                 {/* Type + remove */}
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-slate-400 w-8 shrink-0">#{n}</span>
-                                    <div className="flex-1 relative">
-                                        <select
-                                            className="w-full appearance-none bg-slate-50 border border-slate-200 rounded px-2 py-1.5 pr-6 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer hover:bg-slate-100"
+                                    <div className="flex-1">
+                                        <StyledSelect
                                             value={loadTypeVal}
-                                            onChange={(e) => {
-                                                actions.updateInput(card.id, `load_type_${n}`, e.target.value);
-                                                if (e.target.value !== 'dist') {
+                                            onChange={v => {
+                                                actions.updateInput(card.id, `load_type_${n}`, v);
+                                                if (v !== 'dist') {
                                                     actions.removeInput(card.id, `b_${n}`);
                                                 }
                                             }}
-                                        >
-                                            {LOAD_TYPE_OPTIONS.map(opt => (
-                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                            ))}
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-500">
-                                            <svg className="fill-current h-3 w-3" viewBox="0 0 20 20">
-                                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                            </svg>
-                                        </div>
+                                            options={LOAD_TYPE_OPTIONS}
+                                        />
                                     </div>
                                     <button
                                         onClick={() => handleRemoveLoad(n)}
-                                        disabled={loadIndices.length <= 1}
-                                        className="text-slate-400 hover:text-rose-500 disabled:opacity-30 transition-colors shrink-0"
+                                        className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
                                     >
                                         <X size={14} />
                                     </button>
@@ -437,7 +584,7 @@ const BeamMultiComponent: React.FC<CardComponentProps> = ({ card, actions, upstr
                 </div>
 
                 {/* ── Visualization ── */}
-                <div className="w-full bg-slate-50 rounded-lg border border-slate-200 overflow-hidden" style={{ height: 160 }}>
+                <div className="w-full bg-slate-50 rounded-lg border border-slate-200 overflow-hidden" style={{ height: 165 }}>
                     <BeamMultiSvg card={card} actions={actions} upstreamCards={upstreamCards} />
                 </div>
 
@@ -492,9 +639,10 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     type: 'BEAM_MULTI',
     title: 'Beam (Multi-Load)',
     icon: GitBranch,
-    description: 'Superposition of multiple loads on a simply supported beam.',
+    description: 'Superposition of multiple loads on a beam.',
 
     defaultInputs: {
+        boundary: { value: 'simple' },
         L: { value: 4000 },
         x_loc: { value: 2000 },
         load_type_1: { value: 'point' },
@@ -503,6 +651,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     },
 
     inputConfig: {
+        boundary: { label: 'Boundary', unitType: 'none', default: 'simple' },
         L: { label: 'Span', unitType: 'length', default: 4000 },
         x_loc: { label: 'Check Location', unitType: 'length', default: 2000 },
     },
@@ -517,6 +666,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     calculate: (inputs, rawInputs) => {
         const L = inputs['L'] || 4000;
         const x_loc = inputs['x_loc'] || 0;
+        const boundary = ((rawInputs?.['boundary']?.value) as BoundaryType) || 'simple';
 
         const loadIndices = Object.keys(rawInputs || {})
             .filter(k => /^load_type_\d+$/.test(k))
@@ -531,14 +681,14 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
             val: inputs[`val_${n}`] || 0,
         }));
 
-        const { M: Mx, Q: Qx } = evalSuperposition(L, loads, x_loc);
+        const { M: Mx, Q: Qx } = evalSuperposition(L, loads, x_loc, boundary);
 
         let M_max = 0;
         let V_max = 0;
         const N = 500;
         for (let i = 0; i <= N; i++) {
             const x = (L / N) * i;
-            const { M, Q } = evalSuperposition(L, loads, x);
+            const { M, Q } = evalSuperposition(L, loads, x, boundary);
             if (Math.abs(M) > Math.abs(M_max)) M_max = M;
             if (Math.abs(Q) > V_max) V_max = Math.abs(Q);
         }
