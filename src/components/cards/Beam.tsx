@@ -3,7 +3,8 @@ import { Columns } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
-import { calculateBeamMax, evalSuperposition, type BeamModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
+import { calculateBeamMax, calculateBeamMultiMax, type BeamModel, type BeamMultiModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
+import { C_BEAM, C_POINT, C_DIST, C_MOMENT } from './common/beamSvgHelpers';
 
 // --- Types ---
 
@@ -11,12 +12,6 @@ interface BeamOutputs {
     M_max: number;
     V_max: number;
 }
-
-// --- Colors (matching BeamMulti) ---
-const C_BEAM = '#475569';
-const C_POINT = '#ef4444';
-const C_DIST = '#3b82f6';
-const C_MOMENT = '#8b5cf6';
 
 // --- Support drawing helpers (world coordinates, scale = px per world unit) ---
 
@@ -328,7 +323,7 @@ const createModel = (inputs: Record<string, number>, id: string): BeamModel => {
     };
 };
 
-// Moment load strategies use a separate path via evalSuperposition rather than
+// Moment load strategies use a separate path via calculateBeamMultiMax rather than
 // createModel()/calculateBeamMax() because BeamModel.load is typed as 'uniform' | 'point'
 // and does not include 'moment'. The diagramModel is emitted as a BeamMultiModel
 // (type: 'multi') so that Diagram can render it via evalSuperposition as well.
@@ -337,17 +332,10 @@ const calcMomentStrategy = (inputs: Record<string, number>, boundary: BoundaryTy
     const M0 = inputs['M0'] || 0;
     const a = inputs['a'] || L / 2;
     const loads: BeamMultiLoad[] = [{ type: 'moment', a, b: 0, val: M0 }];
-
-    let M_max = 0, V_max = 0;
-    for (let i = 0; i <= 500; i++) {
-        const x = (L / 500) * i;
-        const { M, Q } = evalSuperposition(L, loads, x, boundary);
-        if (Math.abs(M) > Math.abs(M_max)) M_max = M;
-        if (Math.abs(Q) > V_max) V_max = Math.abs(Q);
-    }
-
+    const model: BeamMultiModel = { type: 'multi', boundary, L, loads };
+    const { M_max, V_max } = calculateBeamMultiMax(model);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return { M_max, V_max, diagramModel: { type: 'multi', boundary, L, loads } as any };
+    return { M_max, V_max, diagramModel: model as any };
 };
 
 const Strategies: CardStrategy<BeamOutputs>[] = [

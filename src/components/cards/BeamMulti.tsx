@@ -10,7 +10,7 @@ import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '
 import { calculateBeamMultiMax, type BoundaryType, type LoadType } from '../../lib/mechanics/beam';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { resolveInput } from '../../lib/utils/cardHelpers';
-import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
+import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport, C_BEAM, C_POINT, C_DIST, C_MOMENT } from './common/beamSvgHelpers';
 
 // Subset of OutputUnitType that SmartInput accepts
 type SmartInputType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
@@ -121,13 +121,13 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                     return (
                         <g key={n}>
                             <line x1={ax} y1={beamY - arrowH} x2={ax} y2={beamY - 1}
-                                stroke="#ef4444" strokeWidth="2" />
+                                stroke={C_POINT} strokeWidth="2" />
                             <polygon
                                 points={`${ax - 5},${beamY - ms - 2} ${ax + 5},${beamY - ms - 2} ${ax},${beamY}`}
-                                fill="#ef4444"
+                                fill={C_POINT}
                             />
                             <text x={ax} y={beamY - arrowH - 3}
-                                textAnchor="middle" fontSize="9" fill="#ef4444" fontWeight="600">
+                                textAnchor="middle" fontSize="9" fill={C_POINT} fontWeight="600">
                                 P{n}
                             </text>
                         </g>
@@ -152,13 +152,13 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                     const ey = clockwise ? beamY - r : beamY + r;
                     return (
                         <g key={n}>
-                            <polyline points={pts.join(' ')} fill="none" stroke="#8b5cf6" strokeWidth="1.5" />
+                            <polyline points={pts.join(' ')} fill="none" stroke={C_MOMENT} strokeWidth="1.5" />
                             <polygon
                                 points={`${ax - 7},${ey - 4} ${ax + 5},${ey} ${ax - 7},${ey + 4}`}
-                                fill="#8b5cf6"
+                                fill={C_MOMENT}
                             />
                             <text x={ax + r + 4} y={beamY + 4}
-                                textAnchor="start" fontSize="9" fill="#8b5cf6" fontWeight="600">
+                                textAnchor="start" fontSize="9" fill={C_MOMENT} fontWeight="600">
                                 M{n}
                             </text>
                         </g>
@@ -177,26 +177,26 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                             <rect x={ax} y={rectTop} width={distW} height={distH}
                                 fill="rgba(59,130,246,0.08)" stroke="none" />
                             <line x1={ax} y1={rectTop} x2={ax + distW} y2={rectTop}
-                                stroke="#3b82f6" strokeWidth="1.5" />
+                                stroke={C_DIST} strokeWidth="1.5" />
                             <line x1={ax} y1={rectTop} x2={ax} y2={beamY}
-                                stroke="#3b82f6" strokeWidth="1" />
+                                stroke={C_DIST} strokeWidth="1" />
                             <line x1={ax + distW} y1={rectTop} x2={ax + distW} y2={beamY}
-                                stroke="#3b82f6" strokeWidth="1" />
+                                stroke={C_DIST} strokeWidth="1" />
                             {Array.from({ length: numArrows }, (_, i) => {
                                 const tx = ax + (numArrows > 1 ? (i / (numArrows - 1)) * distW : distW / 2);
                                 return (
                                     <g key={i}>
                                         <line x1={tx} y1={rectTop + 2} x2={tx} y2={beamY - 1}
-                                            stroke="#3b82f6" strokeWidth="1" />
+                                            stroke={C_DIST} strokeWidth="1" />
                                         <polygon
                                             points={`${tx - 4},${beamY - ms} ${tx + 4},${beamY - ms} ${tx},${beamY}`}
-                                            fill="#3b82f6"
+                                            fill={C_DIST}
                                         />
                                     </g>
                                 );
                             })}
                             <text x={ax + distW / 2} y={rectTop - 4}
-                                textAnchor="middle" fontSize="9" fill="#3b82f6" fontWeight="600">
+                                textAnchor="middle" fontSize="9" fill={C_DIST} fontWeight="600">
                                 w{n}
                             </text>
                         </g>
@@ -208,7 +208,7 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
 
             {/* Beam line */}
             <line x1={beamX0} y1={beamY} x2={beamX1} y2={beamY}
-                stroke="#475569" strokeWidth="3" strokeLinecap="round" />
+                stroke={C_BEAM} strokeWidth="3" strokeLinecap="round" />
 
             {/* Supports */}
             {boundary === 'simple' && <><DrawPinSupport x={beamX0} beamY={beamY} /><DrawRollerSupport x={beamX1} beamY={beamY} /></>}
