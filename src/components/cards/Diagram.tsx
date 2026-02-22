@@ -9,57 +9,14 @@ import { SmartInput } from '../common/SmartInput';
 import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/utils/unitFormatter';
 import { evalDiagramAt, type DiagramModel, type BoundaryType } from '../../lib/mechanics/beam';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
+import { resolveInput } from '../../lib/utils/cardHelpers';
+import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
 
 // --- Types ---
 
 interface DiagramOutputs {
     [key: string]: number;
 }
-
-// --- SVG helpers ---
-
-const drawFixed = (x: number, beamY: number, side: 'left' | 'right') => {
-    const dir = side === 'left' ? -1 : 1;
-    const h = 14;
-    return (
-        <g>
-            <line x1={x} y1={beamY - h} x2={x} y2={beamY + h} stroke="#475569" strokeWidth="2" />
-            {[-h, -h / 2, 0, h / 2, h].map((dy, i) => (
-                <line key={i} x1={x} y1={beamY + dy}
-                    x2={x + dir * 8} y2={beamY + dy + 6}
-                    stroke="#475569" strokeWidth="1" />
-            ))}
-        </g>
-    );
-};
-
-const drawPin = (x: number, beamY: number) => {
-    const ms = 8;
-    return (
-        <g>
-            <polygon
-                points={`${x - ms},${beamY + ms * 2} ${x + ms},${beamY + ms * 2} ${x},${beamY}`}
-                fill="none" stroke="#475569" strokeWidth="1.5"
-            />
-            <line x1={x - ms - 4} y1={beamY + ms * 2}
-                x2={x + ms + 4} y2={beamY + ms * 2}
-                stroke="#475569" strokeWidth="1.5" />
-        </g>
-    );
-};
-
-const drawRoller = (x: number, beamY: number) => {
-    const ms = 8;
-    return (
-        <g>
-            <circle cx={x} cy={beamY + ms} r={ms}
-                fill="none" stroke="#475569" strokeWidth="1.5" />
-            <line x1={x - ms - 4} y1={beamY + ms * 2}
-                x2={x + ms + 4} y2={beamY + ms * 2}
-                stroke="#475569" strokeWidth="1.5" />
-        </g>
-    );
-};
 
 // --- Diagram SVG ---
 
@@ -152,10 +109,10 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
                 stroke="#475569" strokeWidth="3" strokeLinecap="round" />
 
             {/* Support symbols */}
-            {boundary === 'simple' && <>{drawPin(beamX0, beamY)}{drawRoller(beamX1, beamY)}</>}
-            {boundary === 'fixed_fixed' && <>{drawFixed(beamX0, beamY, 'left')}{drawFixed(beamX1, beamY, 'right')}</>}
-            {boundary === 'fixed_pinned' && <>{drawFixed(beamX0, beamY, 'left')}{drawPin(beamX1, beamY)}</>}
-            {boundary === 'cantilever' && drawFixed(beamX0, beamY, 'left')}
+            {boundary === 'simple' && <><DrawPinSupport x={beamX0} beamY={beamY} /><DrawRollerSupport x={beamX1} beamY={beamY} /></>}
+            {boundary === 'fixed_fixed' && <><DrawFixedSupport x={beamX0} beamY={beamY} side="left" /><DrawFixedSupport x={beamX1} beamY={beamY} side="right" /></>}
+            {boundary === 'fixed_pinned' && <><DrawFixedSupport x={beamX0} beamY={beamY} side="left" /><DrawPinSupport x={beamX1} beamY={beamY} /></>}
+            {boundary === 'cantilever' && <DrawFixedSupport x={beamX0} beamY={beamY} side="left" />}
 
             {/* x=0 label */}
             <text x={beamX0} y={H - 4} textAnchor="middle" fontSize="9" fill="#94a3b8">x=0</text>
@@ -235,17 +192,10 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
     };
 
     // Build x positions for SVG
-    const xPositions = xIndices.map(n => {
-        const inp = card.inputs[`x_${n}`];
-        let x = 0;
-        if (inp?.ref) {
-            const src = upstreamCards.find(c => c.id === inp.ref!.cardId);
-            x = (src?.outputs[inp.ref!.outputKey] as number) ?? 0;
-        } else {
-            x = parseFloat(String(inp?.value ?? 0)) || 0;
-        }
-        return { n, x };
-    });
+    const xPositions = xIndices.map(n => ({
+        n,
+        x: resolveInput(card, `x_${n}`, upstreamCards),
+    }));
 
     // Build result fields for outputs panel
     const resultFields: { key: string; label: string; unitType: OutputUnitType }[] = xIndices.flatMap(n => [

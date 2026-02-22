@@ -310,6 +310,22 @@ export function evalSuperposition(L: number, loads: BeamMultiLoad[], x: number, 
     return { M, Q };
 }
 
+// --- Multi-load max scan ---
+
+export function calculateBeamMultiMax(model: BeamMultiModel): { M_max: number; V_max: number } {
+    const { L, loads, boundary } = model;
+    let M_max = 0;
+    let V_max = 0;
+    const N = 500;
+    for (let i = 0; i <= N; i++) {
+        const x = (L / N) * i;
+        const { M, Q } = evalSuperposition(L, loads, x, boundary);
+        if (Math.abs(M) > Math.abs(M_max)) M_max = M;
+        if (Math.abs(Q) > V_max) V_max = Math.abs(Q);
+    }
+    return { M_max, V_max };
+}
+
 export function evalDiagramAt(model: DiagramModel, x: number): BeamResult {
     if ('type' in model && model.type === 'multi') {
         return evalSuperposition(model.L, model.loads, x, model.boundary);

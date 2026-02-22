@@ -328,6 +328,10 @@ const createModel = (inputs: Record<string, number>, id: string): BeamModel => {
     };
 };
 
+// Moment load strategies use a separate path via evalSuperposition rather than
+// createModel()/calculateBeamMax() because BeamModel.load is typed as 'uniform' | 'point'
+// and does not include 'moment'. The diagramModel is emitted as a BeamMultiModel
+// (type: 'multi') so that Diagram can render it via evalSuperposition as well.
 const calcMomentStrategy = (inputs: Record<string, number>, boundary: BoundaryType) => {
     const L = inputs['L'] || 0;
     const M0 = inputs['M0'] || 0;

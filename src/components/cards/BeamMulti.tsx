@@ -4,12 +4,13 @@ import { GitBranch, Plus, X, Pin } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
-import type { Card } from '../../types';
 import { BaseCard } from './common/BaseCard';
 import { SmartInput } from '../common/SmartInput';
 import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/utils/unitFormatter';
-import { evalSuperposition, type BoundaryType, type LoadType } from '../../lib/mechanics/beam';
+import { calculateBeamMultiMax, type BoundaryType, type LoadType } from '../../lib/mechanics/beam';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
+import { resolveInput } from '../../lib/utils/cardHelpers';
+import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
 
 // Subset of OutputUnitType that SmartInput accepts
 type SmartInputType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
@@ -28,19 +29,6 @@ interface BeamMultiOutputs {
     M_max: number;
     V_max: number;
 }
-
-// --- Helpers ---
-
-function resolveInput(card: Card, key: string, upstreamCards: Card[]): number {
-    const inp = card.inputs[key];
-    if (!inp) return 0;
-    if (inp.ref) {
-        const src = upstreamCards.find(c => c.id === inp.ref!.cardId);
-        return src?.outputs[inp.ref!.outputKey] ?? 0;
-    }
-    return Number(inp.value ?? 0);
-}
-
 
 // --- Constants ---
 
@@ -69,6 +57,15 @@ const getValLabel = (type: LoadType): string => {
     return 'P';
 };
 
+// --- Utilities ---
+
+function getLoadIndices(inputs: Record<string, { value: string | number; ref?: unknown }>): number[] {
+    return Object.keys(inputs)
+        .filter(k => /^load_type_\d+$/.test(k))
+        .map(k => parseInt(k.split('_')[2]))
+        .sort((a, b) => a - b);
+}
+
 // ─── SVG Visualization (荷重図) ───────────────────────────────────────────────
 
 const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
@@ -87,10 +84,7 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
         return beamX0 + Math.min(Math.max(mm / L, 0), 1) * (beamX1 - beamX0);
     };
 
-    const loadIndices = Object.keys(card.inputs)
-        .filter(k => /^load_type_\d+$/.test(k))
-        .map(k => parseInt(k.split('_')[2]))
-        .sort((a, b) => a - b);
+    const loadIndices = getLoadIndices(card.inputs);
 
     const resolvedLoads = loadIndices.map(n => ({
         n,
@@ -112,43 +106,6 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
         maxForceMag <= 0 || Math.abs(val) < 1e-10 ? 0 : 0.15 + 0.85 * (Math.abs(val) / maxForceMag);
     const scaleMoment = (val: number) =>
         maxMomentMag <= 0 || Math.abs(val) < 1e-10 ? 0 : 0.15 + 0.85 * (Math.abs(val) / maxMomentMag);
-
-    const drawFixed = (x: number, side: 'left' | 'right') => {
-        const dir = side === 'left' ? -1 : 1;
-        const h = 14;
-        return (
-            <g>
-                <line x1={x} y1={beamY - h} x2={x} y2={beamY + h} stroke="#475569" strokeWidth="2" />
-                {[-h, -h / 2, 0, h / 2, h].map((dy, i) => (
-                    <line key={i} x1={x} y1={beamY + dy}
-                        x2={x + dir * 8} y2={beamY + dy + 6}
-                        stroke="#475569" strokeWidth="1" />
-                ))}
-            </g>
-        );
-    };
-
-    const drawPin = (x: number) => (
-        <g>
-            <polygon
-                points={`${x - ms},${beamY + ms * 2} ${x + ms},${beamY + ms * 2} ${x},${beamY}`}
-                fill="none" stroke="#475569" strokeWidth="1.5"
-            />
-            <line x1={x - ms - 4} y1={beamY + ms * 2}
-                x2={x + ms + 4} y2={beamY + ms * 2}
-                stroke="#475569" strokeWidth="1.5" />
-        </g>
-    );
-
-    const drawRoller = (x: number) => (
-        <g>
-            <circle cx={x} cy={beamY + ms} r={ms}
-                fill="none" stroke="#475569" strokeWidth="1.5" />
-            <line x1={x - ms - 4} y1={beamY + ms * 2}
-                x2={x + ms + 4} y2={beamY + ms * 2}
-                stroke="#475569" strokeWidth="1.5" />
-        </g>
-    );
 
     return (
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
@@ -254,10 +211,10 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
                 stroke="#475569" strokeWidth="3" strokeLinecap="round" />
 
             {/* Supports */}
-            {boundary === 'simple' && <>{drawPin(beamX0)}{drawRoller(beamX1)}</>}
-            {boundary === 'fixed_fixed' && <>{drawFixed(beamX0, 'left')}{drawFixed(beamX1, 'right')}</>}
-            {boundary === 'fixed_pinned' && <>{drawFixed(beamX0, 'left')}{drawPin(beamX1)}</>}
-            {boundary === 'cantilever' && drawFixed(beamX0, 'left')}
+            {boundary === 'simple' && <><DrawPinSupport x={beamX0} beamY={beamY} /><DrawRollerSupport x={beamX1} beamY={beamY} /></>}
+            {boundary === 'fixed_fixed' && <><DrawFixedSupport x={beamX0} beamY={beamY} side="left" /><DrawFixedSupport x={beamX1} beamY={beamY} side="right" /></>}
+            {boundary === 'fixed_pinned' && <><DrawFixedSupport x={beamX0} beamY={beamY} side="left" /><DrawPinSupport x={beamX1} beamY={beamY} /></>}
+            {boundary === 'cantilever' && <DrawFixedSupport x={beamX0} beamY={beamY} side="left" />}
 
             {/* x=0 label */}
             <text x={beamX0} y={H - 6} textAnchor="middle" fontSize="9" fill="#94a3b8">x=0</text>
@@ -275,10 +232,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
 
     const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
-    const loadIndices = Object.keys(card.inputs)
-        .filter(k => /^load_type_\d+$/.test(k))
-        .map(k => parseInt(k.split('_')[2]))
-        .sort((a, b) => a - b);
+    const loadIndices = getLoadIndices(card.inputs);
 
     const handleAddLoad = () => {
         const next = loadIndices.length > 0 ? Math.max(...loadIndices) + 1 : 1;
@@ -542,10 +496,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
         const L = inputs['L'] || 4000;
         const boundary = ((rawInputs?.['boundary']?.value) as BoundaryType) || 'simple';
 
-        const loadIndices = Object.keys(rawInputs || {})
-            .filter(k => /^load_type_\d+$/.test(k))
-            .map(k => parseInt(k.split('_')[2]))
-            .sort((a, b) => a - b);
+        const loadIndices = getLoadIndices(rawInputs || {});
 
         const loads: LoadRow[] = loadIndices.map(n => ({
             n,
@@ -555,20 +506,13 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
             val: inputs[`val_${n}`] || 0,
         }));
 
-        let M_max = 0;
-        let V_max = 0;
-        const N = 500;
-        for (let i = 0; i <= N; i++) {
-            const x = (L / N) * i;
-            const { M, Q } = evalSuperposition(L, loads, x, boundary);
-            if (Math.abs(M) > Math.abs(M_max)) M_max = M;
-            if (Math.abs(Q) > V_max) V_max = Math.abs(Q);
-        }
+        const model = { type: 'multi' as const, boundary, L, loads };
+        const { M_max, V_max } = calculateBeamMultiMax(model);
 
         return {
             M_max, V_max,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            diagramModel: { type: 'multi', boundary, L, loads } as any,
+            diagramModel: model as any,
         };
     },
 
