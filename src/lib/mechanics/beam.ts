@@ -20,6 +20,27 @@ export interface BeamResult {
     Q: number; // Shear in N
 }
 
+// --- Multi-load / Diagram types ---
+
+export type BoundaryType = BeamModel['boundary'];
+export type LoadType = 'point' | 'moment' | 'dist';
+
+export interface BeamMultiLoad {
+    type: LoadType;
+    a: number;
+    b: number;
+    val: number;
+}
+
+export interface BeamMultiModel {
+    type: 'multi';
+    boundary: BoundaryType;
+    L: number;
+    loads: BeamMultiLoad[];
+}
+
+export type DiagramModel = BeamModel | BeamMultiModel;
+
 // --- Formulas ---
 
 export const BeamFormulas = {
@@ -214,4 +235,84 @@ export function calculateBeamMax(model: BeamModel): { M_max: number; V_max: numb
 
     // For fixed_fixed and fixed_pinned: use numerical scan
     return scanBeamMax(model);
+}
+
+// --- Superposition evaluation for multi-load beams ---
+
+type PointFn = (L: number, P: number, a: number, x: number) => BeamResult;
+
+function integratePointLoad(fn: PointFn, L: number, w: number, a: number, b: number, x: number, N = 40): BeamResult {
+    const end = b > a ? b : a + 1;
+    let M = 0, Q = 0;
+    const step = (end - a) / N;
+    for (let i = 0; i < N; i++) {
+        const xi = a + (i + 0.5) * step;
+        const r = fn(L, w * step, xi, x);
+        M += r.M; Q += r.Q;
+    }
+    return { M, Q };
+}
+
+function momentViaPointLoads(fn: PointFn, L: number, M0: number, a: number, x: number): BeamResult {
+    const eps = Math.max(L / 500, 1);
+    const a1 = Math.max(0, Math.min(a - eps / 2, L - eps));
+    const a2 = Math.min(L, a1 + eps);
+    const P = M0 / eps;
+    const r1 = fn(L, -P, a1, x);
+    const r2 = fn(L, P, a2, x);
+    return { M: r1.M + r2.M, Q: r1.Q + r2.Q };
+}
+
+export function evalSuperposition(L: number, loads: BeamMultiLoad[], x: number, boundary: BoundaryType): BeamResult {
+    let M = 0, Q = 0;
+    for (const load of loads) {
+        if (L <= 0) continue;
+        const b = load.b > load.a ? load.b : load.a + L * 0.25;
+        let contrib: BeamResult = { M: 0, Q: 0 };
+
+        if (boundary === 'simple') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.simple_point(L, load.val, load.a, x);
+            } else if (load.type === 'moment') {
+                contrib = BeamSuperposition.simple_moment(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = BeamSuperposition.simple_partial_uniform(L, load.val, load.a, b, x);
+            }
+        } else if (boundary === 'fixed_fixed') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.fixed_fixed_point(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = integratePointLoad(BeamFormulas.fixed_fixed_point, L, load.val, load.a, b, x);
+            } else if (load.type === 'moment') {
+                contrib = momentViaPointLoads(BeamFormulas.fixed_fixed_point, L, load.val, load.a, x);
+            }
+        } else if (boundary === 'fixed_pinned') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.fixed_pinned_point(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = integratePointLoad(BeamFormulas.fixed_pinned_point, L, load.val, load.a, b, x);
+            } else if (load.type === 'moment') {
+                contrib = momentViaPointLoads(BeamFormulas.fixed_pinned_point, L, load.val, load.a, x);
+            }
+        } else if (boundary === 'cantilever') {
+            if (load.type === 'point') {
+                contrib = BeamFormulas.cantilever_point(L, load.val, load.a, x);
+            } else if (load.type === 'dist') {
+                contrib = integratePointLoad(BeamFormulas.cantilever_point, L, load.val, load.a, b, x);
+            } else if (load.type === 'moment') {
+                contrib = momentViaPointLoads(BeamFormulas.cantilever_point, L, load.val, load.a, x);
+            }
+        }
+
+        M += contrib.M;
+        Q += contrib.Q;
+    }
+    return { M, Q };
+}
+
+export function evalDiagramAt(model: DiagramModel, x: number): BeamResult {
+    if ('type' in model && model.type === 'multi') {
+        return evalSuperposition(model.L, model.loads, x, model.boundary);
+    }
+    return calculateBeamAt(model as BeamModel, x);
 }

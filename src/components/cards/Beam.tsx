@@ -3,33 +3,37 @@ import { Columns } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
-import { calculateBeamAt, calculateBeamMax, type BeamModel } from '../../lib/mechanics/beam';
+import { calculateBeamMax, evalSuperposition, type BeamModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
 
 // --- Types ---
 
 interface BeamOutputs {
     M_max: number;
     V_max: number;
-    Mx: number;
-    Qx: number;
 }
 
-// --- Support drawing helpers ---
+// --- Colors (matching BeamMulti) ---
+const C_BEAM = '#475569';
+const C_POINT = '#ef4444';
+const C_DIST = '#3b82f6';
+const C_MOMENT = '#8b5cf6';
 
-type BoundaryType = 'simple' | 'cantilever' | 'fixed_fixed' | 'fixed_pinned';
+// --- Support drawing helpers (world coordinates, scale = px per world unit) ---
+
+type BoundaryDraw = 'simple' | 'cantilever' | 'fixed_fixed' | 'fixed_pinned';
 
 const drawFixedSupport = (x: number, scale: number, side: 'left' | 'right') => {
-    const ms = 15 / scale;
-    const hatchDir = side === 'left' ? -1 : 1;
+    const h = 14 / scale;
+    const dir = side === 'left' ? -1 : 1;
     return (
         <g>
-            <line x1={x} y1={-ms} x2={x} y2={ms} stroke="currentColor" strokeWidth={3 / scale} />
-            {[-1, -0.5, 0, 0.5, 1].map(i => (
+            <line x1={x} y1={-h} x2={x} y2={h} stroke={C_BEAM} strokeWidth={2 / scale} />
+            {[-h, -h / 2, 0, h / 2, h].map((dy, i) => (
                 <line
                     key={i}
-                    x1={x} y1={ms * i}
-                    x2={x + hatchDir * ms / 2} y2={ms * i + ms / 2}
-                    stroke="currentColor"
+                    x1={x} y1={dy}
+                    x2={x + dir * 8 / scale} y2={dy + 6 / scale}
+                    stroke={C_BEAM}
                     strokeWidth={1 / scale}
                 />
             ))}
@@ -38,45 +42,52 @@ const drawFixedSupport = (x: number, scale: number, side: 'left' | 'right') => {
 };
 
 const drawPinSupport = (x: number, scale: number) => {
-    const ms = 15 / scale;
+    const ms = 8 / scale;
     return (
-        <path
-            d={`M ${x - ms / 2} ${ms} L ${x + ms / 2} ${ms} L ${x} 0 Z`}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5 / scale}
-        />
+        <g>
+            <polygon
+                points={`${x - ms},${ms * 2} ${x + ms},${ms * 2} ${x},0`}
+                fill="none" stroke={C_BEAM} strokeWidth={1.5 / scale}
+            />
+            <line
+                x1={x - ms - 4 / scale} y1={ms * 2}
+                x2={x + ms + 4 / scale} y2={ms * 2}
+                stroke={C_BEAM} strokeWidth={1.5 / scale}
+            />
+        </g>
     );
 };
 
 const drawRollerSupport = (x: number, scale: number) => {
-    const ms = 15 / scale;
+    const ms = 8 / scale;
     return (
-        <circle
-            cx={x} cy={ms / 2} r={ms / 2}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5 / scale}
-        />
+        <g>
+            <circle cx={x} cy={ms} r={ms} fill="none" stroke={C_BEAM} strokeWidth={1.5 / scale} />
+            <line
+                x1={x - ms - 4 / scale} y1={ms * 2}
+                x2={x + ms + 4 / scale} y2={ms * 2}
+                stroke={C_BEAM} strokeWidth={1.5 / scale}
+            />
+        </g>
     );
 };
 
-const drawBeamAndSupports = (L: number, scale: number, boundary: BoundaryType) => {
+const drawBeamAndSupports = (L: number, scale: number, boundary: BoundaryDraw) => {
     return (
-        <g className="text-slate-700 dark:text-slate-300 transition-all duration-300 ease-out">
-            {/* Beam Line */}
-            <line x1={0} y1={0} x2={L} y2={0} stroke="currentColor" strokeWidth={3 / scale} />
-
-            {/* Left support */}
+        <g>
+            <line x1={0} y1={0} x2={L} y2={0}
+                stroke={C_BEAM} strokeWidth={3 / scale} strokeLinecap="round" />
             {(boundary === 'cantilever' || boundary === 'fixed_fixed' || boundary === 'fixed_pinned')
                 ? drawFixedSupport(0, scale, 'left')
                 : drawPinSupport(0, scale)
             }
-
-            {/* Right support */}
             {boundary === 'simple' && drawRollerSupport(L, scale)}
             {boundary === 'fixed_fixed' && drawFixedSupport(L, scale, 'right')}
             {boundary === 'fixed_pinned' && drawPinSupport(L, scale)}
+            <text x={0} y={24 / scale}
+                textAnchor="middle" fontSize={9 / scale} fill="#94a3b8">
+                x=0
+            </text>
         </g>
     );
 };
@@ -88,9 +99,90 @@ const getBeamBounds = (L: number) => {
     return {
         minX: -VU * 4,
         maxX: L + VU * 2,
-        minY: -VU * 5,
+        minY: -VU * 6,
         maxY: VU * 4,
     };
+};
+
+// --- Load drawing helpers ---
+
+const drawUniformLoad = (L: number, scale: number) => {
+    const ms = 8 / scale;
+    const loadH = ms * 5;
+    const numArrows = 7;
+    return (
+        <g>
+            <rect x={0} y={-loadH} width={L} height={loadH}
+                fill={C_DIST} fillOpacity={0.08} stroke="none" />
+            <line x1={0} y1={-loadH} x2={L} y2={-loadH}
+                stroke={C_DIST} strokeWidth={1.5 / scale} />
+            <line x1={0} y1={-loadH} x2={0} y2={0}
+                stroke={C_DIST} strokeWidth={1 / scale} />
+            <line x1={L} y1={-loadH} x2={L} y2={0}
+                stroke={C_DIST} strokeWidth={1 / scale} />
+            {Array.from({ length: numArrows }, (_, i) => {
+                const tx = (i / (numArrows - 1)) * L;
+                return (
+                    <g key={i}>
+                        <line x1={tx} y1={-loadH + 2 / scale} x2={tx} y2={-1 / scale}
+                            stroke={C_DIST} strokeWidth={1 / scale} />
+                        <polygon
+                            points={`${tx - 4 / scale},${-ms} ${tx + 4 / scale},${-ms} ${tx},0`}
+                            fill={C_DIST}
+                        />
+                    </g>
+                );
+            })}
+            <text x={L / 2} y={-loadH - 4 / scale}
+                textAnchor="middle" fontSize={10 / scale} fill={C_DIST} fontWeight="600">
+                w
+            </text>
+        </g>
+    );
+};
+
+const drawPointLoad = (a: number, scale: number) => {
+    const ms = 8 / scale;
+    const loadH = ms * 5;
+    return (
+        <g>
+            <line x1={a} y1={-loadH} x2={a} y2={-1 / scale}
+                stroke={C_POINT} strokeWidth={2 / scale} />
+            <polygon
+                points={`${a - 5 / scale},${-ms - 2 / scale} ${a + 5 / scale},${-ms - 2 / scale} ${a},0`}
+                fill={C_POINT}
+            />
+            <text x={a} y={-loadH - 4 / scale}
+                textAnchor="middle" fontSize={10 / scale} fill={C_POINT} fontWeight="600">
+                P
+            </text>
+        </g>
+    );
+};
+
+const drawMomentLoad = (a: number, scale: number) => {
+    const r = 16 / scale;
+    const N_pts = 20;
+    const pts = Array.from({ length: N_pts + 1 }, (_, i) => {
+        const angle = (i / N_pts) * (3 * Math.PI / 2);
+        return `${a + r * Math.cos(angle)},${0 - r * Math.sin(angle)}`;
+    });
+    // Arrowhead at end (angle=3π/2): position=(a, r), tangent=right
+    const aw = 4 / scale;
+    const al = 7 / scale;
+    return (
+        <g>
+            <polyline points={pts.join(' ')} fill="none" stroke={C_MOMENT} strokeWidth={1.5 / scale} />
+            <polygon
+                points={`${a - al},${r - aw} ${a + aw * 1.2},${r} ${a - al},${r + aw}`}
+                fill={C_MOMENT}
+            />
+            <text x={a + r + 4 / scale} y={4 / scale}
+                textAnchor="start" fontSize={10 / scale} fill={C_MOMENT} fontWeight="600">
+                M0
+            </text>
+        </g>
+    );
 };
 
 // --- Visualization Strategies ---
@@ -101,22 +193,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'simple')}
-                    <g className="text-blue-500 transition-all duration-300 ease-out">
-                        <rect x={0} y={-ms * 2} width={L} height={ms * 2} fill="currentColor" fillOpacity={0.1} stroke="none" />
-                        <line x1={0} y1={-ms * 2} x2={L} y2={-ms * 2} stroke="currentColor" strokeWidth={1.5 / scale} />
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={t} d={`M ${L * t} ${-ms * 2} L ${L * t} 0`} stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={`h${t}`} d={`M ${L * t - ms / 4} ${-ms / 2} L ${L * t} 0 L ${L * t + ms / 4} ${-ms / 2}`} fill="none" stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                    </g>
-                </>
-            );
+            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawUniformLoad(L, scale)}</>;
         }
     },
     'simple_point': {
@@ -124,57 +201,43 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
-            const x_loc = inputs['x_loc'] || 0;
-            const ms = 15 / scale;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'simple')}
-                    <g className="text-red-500 transition-all duration-300 ease-out">
-                        <line x1={x_loc} y1={-ms * 3} x2={x_loc} y2={0} stroke="currentColor" strokeWidth={2 / scale} />
-                        <path d={`M ${x_loc - ms / 2} ${-ms} L ${x_loc} 0 L ${x_loc + ms / 2} ${-ms}`} fill="none" stroke="currentColor" strokeWidth={2 / scale} />
-                    </g>
-                </>
-            );
+            const a = inputs['a'] ?? L / 2;
+            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawPointLoad(a, scale)}</>;
+        }
+    },
+    'simple_moment': {
+        id: 'simple_moment',
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
+        draw: (inputs, scale) => {
+            const L = inputs['L'] || 4000;
+            const a = inputs['a'] ?? L / 2;
+            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawMomentLoad(a, scale)}</>;
         }
     },
     'cantilever_uniform': {
         id: 'cantilever_uniform',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
         draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'cantilever')}
-                    <g className="text-blue-500 transition-all duration-300 ease-out">
-                        <rect x={0} y={-ms * 2} width={L} height={ms * 2} fill="currentColor" fillOpacity={0.1} stroke="none" />
-                        <line x1={0} y1={-ms * 2} x2={L} y2={-ms * 2} stroke="currentColor" strokeWidth={1.5 / scale} />
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={t} d={`M ${L * t} ${-ms * 2} L ${L * t} 0`} stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={`h${t}`} d={`M ${L * t - ms / 4} ${-ms / 2} L ${L * t} 0 L ${L * t + ms / 4} ${-ms / 2}`} fill="none" stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                    </g>
-                </>
-            );
+            const L = inputs['L'] || 2000;
+            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawUniformLoad(L, scale)}</>;
         }
     },
     'cantilever_point': {
         id: 'cantilever_point',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
         draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'cantilever')}
-                    <g className="text-red-500 transition-all duration-300 ease-out">
-                        <line x1={L} y1={-ms * 3} x2={L} y2={0} stroke="currentColor" strokeWidth={2 / scale} />
-                        <path d={`M ${L - ms / 2} ${-ms} L ${L} 0 L ${L + ms / 2} ${-ms}`} fill="none" stroke="currentColor" strokeWidth={2 / scale} />
-                    </g>
-                </>
-            );
+            const L = inputs['L'] || 2000;
+            const a = inputs['a'] ?? L;
+            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawPointLoad(a, scale)}</>;
+        }
+    },
+    'cantilever_moment': {
+        id: 'cantilever_moment',
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
+        draw: (inputs, scale) => {
+            const L = inputs['L'] || 2000;
+            const a = inputs['a'] ?? L;
+            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawMomentLoad(a, scale)}</>;
         }
     },
     'fixed_fixed_uniform': {
@@ -182,22 +245,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'fixed_fixed')}
-                    <g className="text-blue-500 transition-all duration-300 ease-out">
-                        <rect x={0} y={-ms * 2} width={L} height={ms * 2} fill="currentColor" fillOpacity={0.1} stroke="none" />
-                        <line x1={0} y1={-ms * 2} x2={L} y2={-ms * 2} stroke="currentColor" strokeWidth={1.5 / scale} />
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={t} d={`M ${L * t} ${-ms * 2} L ${L * t} 0`} stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={`h${t}`} d={`M ${L * t - ms / 4} ${-ms / 2} L ${L * t} 0 L ${L * t + ms / 4} ${-ms / 2}`} fill="none" stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                    </g>
-                </>
-            );
+            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawUniformLoad(L, scale)}</>;
         }
     },
     'fixed_fixed_point': {
@@ -205,17 +253,17 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            const x_loc = inputs['x_loc'] || L / 2;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'fixed_fixed')}
-                    <g className="text-red-500 transition-all duration-300 ease-out">
-                        <line x1={x_loc} y1={-ms * 3} x2={x_loc} y2={0} stroke="currentColor" strokeWidth={2 / scale} />
-                        <path d={`M ${x_loc - ms / 2} ${-ms} L ${x_loc} 0 L ${x_loc + ms / 2} ${-ms}`} fill="none" stroke="currentColor" strokeWidth={2 / scale} />
-                    </g>
-                </>
-            );
+            const a = inputs['a'] ?? L / 2;
+            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawPointLoad(a, scale)}</>;
+        }
+    },
+    'fixed_fixed_moment': {
+        id: 'fixed_fixed_moment',
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
+        draw: (inputs, scale) => {
+            const L = inputs['L'] || 4000;
+            const a = inputs['a'] ?? L / 2;
+            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawMomentLoad(a, scale)}</>;
         }
     },
     'fixed_pinned_uniform': {
@@ -223,22 +271,7 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'fixed_pinned')}
-                    <g className="text-blue-500 transition-all duration-300 ease-out">
-                        <rect x={0} y={-ms * 2} width={L} height={ms * 2} fill="currentColor" fillOpacity={0.1} stroke="none" />
-                        <line x1={0} y1={-ms * 2} x2={L} y2={-ms * 2} stroke="currentColor" strokeWidth={1.5 / scale} />
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={t} d={`M ${L * t} ${-ms * 2} L ${L * t} 0`} stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                        {[0, 0.2, 0.4, 0.6, 0.8, 1].map(t => (
-                            <path key={`h${t}`} d={`M ${L * t - ms / 4} ${-ms / 2} L ${L * t} 0 L ${L * t + ms / 4} ${-ms / 2}`} fill="none" stroke="currentColor" strokeWidth={1 / scale} />
-                        ))}
-                    </g>
-                </>
-            );
+            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawUniformLoad(L, scale)}</>;
         }
     },
     'fixed_pinned_point': {
@@ -246,17 +279,17 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
-            const ms = 15 / scale;
-            const x_loc = inputs['x_loc'] || L / 2;
-            return (
-                <>
-                    {drawBeamAndSupports(L, scale, 'fixed_pinned')}
-                    <g className="text-red-500 transition-all duration-300 ease-out">
-                        <line x1={x_loc} y1={-ms * 3} x2={x_loc} y2={0} stroke="currentColor" strokeWidth={2 / scale} />
-                        <path d={`M ${x_loc - ms / 2} ${-ms} L ${x_loc} 0 L ${x_loc + ms / 2} ${-ms}`} fill="none" stroke="currentColor" strokeWidth={2 / scale} />
-                    </g>
-                </>
-            );
+            const a = inputs['a'] ?? L / 2;
+            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawPointLoad(a, scale)}</>;
+        }
+    },
+    'fixed_pinned_moment': {
+        id: 'fixed_pinned_moment',
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
+        draw: (inputs, scale) => {
+            const L = inputs['L'] || 4000;
+            const a = inputs['a'] ?? L / 2;
+            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawMomentLoad(a, scale)}</>;
         }
     },
 };
@@ -287,8 +320,25 @@ const createModel = (inputs: Record<string, number>, id: string): BeamModel => {
         L: inputs['L'] || 0,
         w: inputs['w'],
         P: inputs['P'],
-        x_loc: inputs['x_loc'],
     };
+};
+
+const calcMomentStrategy = (inputs: Record<string, number>, boundary: BoundaryType) => {
+    const L = inputs['L'] || 0;
+    const M0 = inputs['M0'] || 0;
+    const a = inputs['a'] || L / 2;
+    const loads: BeamMultiLoad[] = [{ type: 'moment', a, b: 0, val: M0 }];
+
+    let M_max = 0, V_max = 0;
+    for (let i = 0; i <= 500; i++) {
+        const x = (L / 500) * i;
+        const { M, Q } = evalSuperposition(L, loads, x, boundary);
+        if (Math.abs(M) > Math.abs(M_max)) M_max = M;
+        if (Math.abs(Q) > V_max) V_max = Math.abs(Q);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { M_max, V_max, diagramModel: { type: 'multi', boundary, L, loads } as any };
 };
 
 const Strategies: CardStrategy<BeamOutputs>[] = [
@@ -298,13 +348,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 4000 },
             w: { label: 'Load (w)', unitType: 'load', default: 10 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'simple_uniform');
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
     },
     {
@@ -313,15 +361,24 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 4000 },
             P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 2000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'simple_point');
-            model.x_loc = model.L / 2; // Load at center
+            model.x_loc = inputs['a'] || model.L / 2;
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
+    },
+    {
+        id: 'simple_moment',
+        label: 'Simple - Moment',
+        inputConfig: {
+            L: { label: 'Span', unitType: 'length', default: 4000 },
+            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+        },
+        calculate: (inputs) => calcMomentStrategy(inputs, 'simple'),
     },
     {
         id: 'cantilever_uniform',
@@ -329,13 +386,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 2000 },
             w: { label: 'Load (w)', unitType: 'load', default: 10 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 1000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'cantilever_uniform');
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
     },
     {
@@ -344,15 +399,24 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 2000 },
             P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 1000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'cantilever_point');
-            model.x_loc = model.L; // Load at tip
+            model.x_loc = inputs['a'] || model.L;
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
+    },
+    {
+        id: 'cantilever_moment',
+        label: 'Cantilever - Moment',
+        inputConfig: {
+            L: { label: 'Span', unitType: 'length', default: 2000 },
+            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+        },
+        calculate: (inputs) => calcMomentStrategy(inputs, 'cantilever'),
     },
     {
         id: 'fixed_fixed_uniform',
@@ -360,13 +424,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 4000 },
             w: { label: 'Load (w)', unitType: 'load', default: 10 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_fixed_uniform');
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
     },
     {
@@ -375,15 +437,24 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 4000 },
             P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 2000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_fixed_point');
-            model.x_loc = model.L / 2; // Load at center
+            model.x_loc = inputs['a'] || model.L / 2;
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
+    },
+    {
+        id: 'fixed_fixed_moment',
+        label: '両端固定 - 集中モーメント',
+        inputConfig: {
+            L: { label: 'Span', unitType: 'length', default: 4000 },
+            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+        },
+        calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_fixed'),
     },
     {
         id: 'fixed_pinned_uniform',
@@ -391,13 +462,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 4000 },
             w: { label: 'Load (w)', unitType: 'load', default: 10 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_pinned_uniform');
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
     },
     {
@@ -406,15 +475,24 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         inputConfig: {
             L: { label: 'Span', unitType: 'length', default: 4000 },
             P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            x_loc: { label: 'Loc (x)', unitType: 'length', default: 2000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_pinned_point');
-            model.x_loc = model.L / 2; // Load at center
+            model.x_loc = inputs['a'] || model.L / 2;
             const { M_max, V_max } = calculateBeamMax(model);
-            const { M: Mx, Q: Qx } = calculateBeamAt(model, inputs['x_loc'] || 0);
-            return { M_max, V_max, Mx, Qx, structuralModel: model };
+            return { M_max, V_max, diagramModel: model };
         }
+    },
+    {
+        id: 'fixed_pinned_moment',
+        label: '片端固定・片端ピン - 集中モーメント',
+        inputConfig: {
+            L: { label: 'Span', unitType: 'length', default: 4000 },
+            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
+            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+        },
+        calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_pinned'),
     },
 ];
 
@@ -443,7 +521,8 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
             label: 'Load Condition',
             options: [
                 { label: 'Uniform Load', value: 'uniform' },
-                { label: 'Point Load', value: 'point' }
+                { label: 'Point Load', value: 'point' },
+                { label: 'Moment Load', value: 'moment' },
             ],
             default: 'uniform'
         }
@@ -452,8 +531,6 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     outputConfig: {
         M_max: { label: 'M_max', unitType: 'moment' },
         V_max: { label: 'V_max', unitType: 'force' },
-        Mx: { label: 'Mx', unitType: 'moment' },
-        Qx: { label: 'Qx', unitType: 'force' },
     },
     visualization: BeamVisualization,
 });

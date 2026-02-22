@@ -78,6 +78,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         { type: 'CUSTOM', label: 'Custom', desc: 'Evaluate arbitrary formulas with named variables' },
         { type: 'COUPLE', label: '偶力変換', desc: 'Convert bending moment to linearly distributed couple forces' },
         { type: 'BEAM_MULTI', label: 'Beam (Multi)', desc: 'Superposition of multiple loads on a simply supported beam' },
+        { type: 'DIAGRAM', label: 'Diagram', desc: 'M/Q distribution diagram and values at check locations' },
     ];
 
     return (
