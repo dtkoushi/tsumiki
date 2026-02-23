@@ -191,6 +191,7 @@ export const CoupleCardDef = createCardDefinition({
     dynamicInputGroup: {
         keyPrefix:      'd',
         inputLabel:     ja['card.couple.inputs.distance'],
+        rowLabel:       ja['card.couple.dynamicRow.label'],
         inputUnitType:  'length',
         outputKeyFn:    (key) => `n_${key.split('_')[1]}`,
         outputLabel:    ja['card.couple.outputs.forceN'],

@@ -52,10 +52,10 @@ const getValUnitType = (type: LoadType): SmartInputType => {
     return 'force';
 };
 
-const getValLabel = (type: LoadType): string => {
-    if (type === 'moment') return 'M0';
-    if (type === 'dist') return 'w';
-    return 'P';
+const getValLabelJa = (type: LoadType): string => {
+    if (type === 'moment') return ja['card.beamMulti.loadRow.valM0'];
+    if (type === 'dist') return ja['card.beamMulti.loadRow.valW'];
+    return ja['card.beamMulti.loadRow.valP'];
 };
 
 // --- Utilities ---
@@ -299,7 +299,8 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                 {/* ── Span ── */}
                 <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                     <span className="text-sm text-slate-600 truncate mr-2 font-medium">
-                        {ja['card.beamMulti.inputs.span']} <span className="text-xs text-slate-400 font-normal">(L)</span>
+                        {ja['card.beamMulti.inputs.span']}
+                        <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('length', unitMode)}]</span>
                     </span>
                     <div className="w-24">
                         <SmartInput
@@ -308,7 +309,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
-                            placeholder={getUnitLabel('length', unitMode)}
+                            placeholder="0"
                             unitMode={unitMode}
                             inputType="length"
                         />
@@ -369,7 +370,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                 <div className={`grid ${isDist ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pl-8`}>
                                     <div>
                                         <div className="text-[10px] text-slate-400 mb-0.5">
-                                            {isDist ? `a [${getUnitLabel('length', unitMode)}]` : `pos [${getUnitLabel('length', unitMode)}]`}
+                                            {isDist ? `${ja['card.beamMulti.loadRow.startA']} [${getUnitLabel('length', unitMode)}]` : `${ja['card.beamMulti.loadRow.posA']} [${getUnitLabel('length', unitMode)}]`}
                                         </div>
                                         <SmartInput
                                             cardId={card.id}
@@ -385,7 +386,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                     {isDist && (
                                         <div>
                                             <div className="text-[10px] text-slate-400 mb-0.5">
-                                                b [{getUnitLabel('length', unitMode)}]
+                                                {`${ja['card.beamMulti.loadRow.endB']} [${getUnitLabel('length', unitMode)}]`}
                                             </div>
                                             <SmartInput
                                                 cardId={card.id}
@@ -401,7 +402,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                     )}
                                     <div>
                                         <div className="text-[10px] text-slate-400 mb-0.5">
-                                            {getValLabel(loadTypeVal)} [{getUnitLabel(valUnitType, unitMode)}]
+                                            {`${getValLabelJa(loadTypeVal)} [${getUnitLabel(valUnitType, unitMode)}]`}
                                         </div>
                                         <SmartInput
                                             cardId={card.id}

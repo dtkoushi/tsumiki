@@ -57,6 +57,8 @@ export interface DynamicInputGroupConfig {
     minCount?: number;
     /** Add-row button label (default: 'Add') */
     addLabel?: string;
+    /** Short per-row label (e.g. '距離'). Renders as "{rowLabel} ({keyPrefix}_{idx}) [{unit}]" */
+    rowLabel?: string;
     /**
      * Derives a display index string from an output key (e.g. 'n_3' → '3').
      * Used by PinnedPanel to build chip labels for dynamic outputs.

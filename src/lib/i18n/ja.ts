@@ -69,7 +69,7 @@ export const ja = {
     'card.beam.load.uniform': '均等分布荷重',
     'card.beam.load.point': '集中荷重',
     'card.beam.load.moment': '集中モーメント',
-    'card.beam.inputs.span': 'スパン',
+    'card.beam.inputs.span': 'スパン (L)',
     'card.beam.inputs.loadW': '均等分布荷重 (w)',
     'card.beam.inputs.loadP': '集中荷重 (P)',
     'card.beam.inputs.loadPos': '荷重位置 (a)',
@@ -97,11 +97,12 @@ export const ja = {
     // ── Card: Couple ──────────────────────────────────────────────────────────
     'card.couple.title': '偶力変換',
     'card.couple.description': '曲げモーメントを偶力に変換します。',
-    'card.couple.inputs.moment': '曲げモーメント M',
+    'card.couple.inputs.moment': '曲げモーメント (M)',
     'card.couple.inputs.distance': '距離 d（NA から）',
     'card.couple.outputs.k': '比例係数 k',
     'card.couple.outputs.forceN': '偶力 N',
     'card.couple.addLabel': '追加',
+    'card.couple.dynamicRow.label': '距離',
 
     // ── Card: BeamMulti ───────────────────────────────────────────────────────
     'card.beamMulti.title': 'はり（多荷重）',
@@ -118,12 +119,19 @@ export const ja = {
     'card.beamMulti.loadType.dist': '分布荷重 (w)',
     'card.beamMulti.inputs.span': 'スパン (L)',
     'card.beamMulti.emptyLoads': '「荷重追加」ボタンで荷重を追加してください',
+    'card.beamMulti.loadRow.posA':  '位置 (a)',
+    'card.beamMulti.loadRow.startA': '始点 (a)',
+    'card.beamMulti.loadRow.endB':  '終点 (b)',
+    'card.beamMulti.loadRow.valP':  '荷重 (P)',
+    'card.beamMulti.loadRow.valM0': 'モーメント (M0)',
+    'card.beamMulti.loadRow.valW':  '強度 (w)',
 
     // ── Card: Diagram ─────────────────────────────────────────────────────────
     'card.diagram.title': '応力図',
     'card.diagram.description': 'BEAM または BEAM_MULTI の M/Q 分布図と検定位置の値。',
     'card.diagram.inputs.diagramModel': '応力図モデル',
     'card.diagram.checkLocations': '検定位置',
+    'card.diagram.checkLocations.rowLabel': '位置',
     'card.diagram.addLocation': '位置追加',
     'card.diagram.noModel': 'Beam または Beam(Multi) の diagramModel を参照してください',
 } as const;

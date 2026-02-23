@@ -211,7 +211,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 {/* Diagram Model Input */}
                 <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                     <span className="text-sm text-slate-600 truncate mr-2 font-medium">
-                        {ja['card.diagram.inputs.diagramModel']} <span className="text-xs text-slate-400 font-normal">(diagramModel)</span>
+                        {ja['card.diagram.inputs.diagramModel']}
                     </span>
                     <div className="w-24">
                         <SmartInput
@@ -248,26 +248,31 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                     )}
 
                     {xIndices.map(n => (
-                        <div key={n} className="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-100/50">
-                            <span className="text-[10px] font-bold text-slate-400 w-8 shrink-0">x{n}</span>
-                            <div className="flex-1">
-                                <SmartInput
-                                    cardId={card.id}
-                                    inputKey={`x_${n}`}
-                                    card={card}
-                                    actions={actions}
-                                    upstreamCards={upstreamCards}
-                                    placeholder={getUnitLabel('length', unitMode)}
-                                    unitMode={unitMode}
-                                    inputType="length"
-                                />
+                        <div key={n} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
+                            <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
+                                {ja['card.diagram.checkLocations.rowLabel']} (x_{n})
+                                <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('length', unitMode)}]</span>
+                            </span>
+                            <div className="flex items-center gap-1">
+                                <div className="w-24">
+                                    <SmartInput
+                                        cardId={card.id}
+                                        inputKey={`x_${n}`}
+                                        card={card}
+                                        actions={actions}
+                                        upstreamCards={upstreamCards}
+                                        placeholder="0"
+                                        unitMode={unitMode}
+                                        inputType="length"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => handleRemovePosition(n)}
+                                    className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
+                                >
+                                    <X size={14} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleRemovePosition(n)}
-                                className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
-                            >
-                                <X size={14} />
-                            </button>
                         </div>
                     ))}
                 </div>

@@ -33,25 +33,29 @@ const SelectInput = ({ name, config, card, actions }: { name: string, config: an
     </div>
 );
 
-const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { name: string, config: any, card: any, actions: any, upstreamCards: any, unitMode: UnitMode }) => (
-    <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
-        <span className="text-sm text-slate-600 truncate mr-2 font-medium" title={t(config.label)}>
-            {t(config.label)} <span className="text-xs text-slate-400 font-normal">({name})</span>
-        </span>
-        <div className="w-24">
-            <SmartInput
-                cardId={card.id}
-                inputKey={name}
-                card={card}
-                actions={actions}
-                upstreamCards={upstreamCards}
-                placeholder={config.unitType ? getUnitLabel(config.unitType, unitMode) : ''}
-                unitMode={unitMode}
-                inputType={config.unitType as any}
-            />
+const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { name: string, config: any, card: any, actions: any, upstreamCards: any, unitMode: UnitMode }) => {
+    const unitLabel = config.unitType ? getUnitLabel(config.unitType, unitMode) : '';
+    return (
+        <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
+            <span className="text-sm text-slate-600 truncate mr-2 font-medium" title={t(config.label)}>
+                {t(config.label)}
+                {unitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{unitLabel}]</span>}
+            </span>
+            <div className="w-24">
+                <SmartInput
+                    cardId={card.id}
+                    inputKey={name}
+                    card={card}
+                    actions={actions}
+                    upstreamCards={upstreamCards}
+                    placeholder={unitLabel ? '0' : ''}
+                    unitMode={unitMode}
+                    inputType={config.unitType as any}
+                />
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const DynamicGroupSection = ({
     config, card, actions, upstreamCards, unitMode
@@ -62,7 +66,7 @@ const DynamicGroupSection = ({
     upstreamCards: Card[];
     unitMode: UnitMode;
 }) => {
-    const { keyPrefix, inputLabel, inputUnitType, defaultValue = 0, minCount = 1, addLabel = '追加' } = config;
+    const { keyPrefix, inputLabel, inputUnitType, rowLabel, defaultValue = 0, minCount = 1, addLabel = '追加' } = config;
 
     const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
     const keys = Object.keys(card.inputs)
@@ -93,11 +97,12 @@ const DynamicGroupSection = ({
 
             {keys.map(key => {
                 const idx = key.split('_')[1];
+                const labelText = rowLabel ? `${rowLabel} (${keyPrefix}_${idx})` : `${keyPrefix}_${idx}`;
                 return (
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                         <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
-                            {keyPrefix}_{idx}
-                            <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>
+                            {labelText}
+                            {dUnitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>}
                         </span>
                         <div className="flex items-center gap-1">
                             <div className="w-24">
