@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import type { Card } from '../../types';
 import type { CardActions } from '../../lib/registry/types';
 import { formatOutput, INPUT_FACTORS } from '../../lib/utils/unitFormatter';
+import { ja } from '../../lib/i18n/ja';
 
 interface SmartInputProps {
     cardId: string;
@@ -152,7 +153,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                             ? "text-blue-500 hover:text-red-500 border-blue-200 bg-blue-50"
                             : "border-slate-200 bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
                     )}
-                    title={isReferencing ? `Linked to ${referencedCard?.alias || 'Unknown'}.${input.ref!.outputKey} (Click to unlink)` : "Link to variable"}
+                    title={isReferencing ? `${referencedCard?.alias || '?'}.${input.ref!.outputKey} にリンク中（クリックで解除）` : ja['ui.linkToVariable']}
                 >
                     {isReferencing ? <Unlink size={14} /> : <Link2 size={14} />}
                 </button>
@@ -160,18 +161,18 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
             {isInvalidInput && !isReferencing && (
                 <p className="text-[10px] text-red-500 mt-0.5 text-right" role="alert">
-                    Invalid number
+                    {ja['ui.invalidNumber']}
                 </p>
             )}
 
             {isPickerOpen && !isReferencing && (
                 <div className="absolute right-0 top-full mt-1 w-64 max-h-60 overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-2 border-b border-slate-100 bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wide sticky top-0">
-                        Select Source
+                        {ja['ui.selectSource']}
                     </div>
                     {upstreamCards.length === 0 ? (
                         <div className="p-4 text-xs text-slate-400 text-center">
-                            No upstream components available.
+                            {ja['ui.noUpstream']}
                         </div>
                     ) : (
                         <div className="p-1">

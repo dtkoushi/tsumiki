@@ -4,6 +4,7 @@ import type { Card } from '../../../types';
 import { useTsumikiStore } from '../../../store/useTsumikiStore';
 import { useSortableItem } from '../../stack/useSortableItem';
 import { clsx } from 'clsx';
+import { ja } from '../../../lib/i18n/ja';
 
 interface BaseCardProps {
     card: Card;
@@ -78,9 +79,9 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                         <button
                             onClick={() => updateCardUnit(card.id, unitMode === 'mm' ? 'm' : 'mm')}
                             className="text-[10px] font-bold px-2 py-1 rounded bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
-                            title="Toggle Units (mm, N ↔ m, kN)"
+                            title={ja['ui.toggleUnits']}
                         >
-                            {unitMode === 'mm' ? 'MM, N' : 'M, kN'}
+                            {unitMode === 'mm' ? ja['ui.unitMm'] : ja['ui.unitM']}
                         </button>
 
                         {/* Memo Toggle */}
@@ -108,7 +109,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                 {isMemoOpen && (
                     <textarea
                         rows={3}
-                        placeholder="メモ…"
+                        placeholder={ja['ui.memoPlaceholder']}
                         value={card.memo ?? ''}
                         onChange={(e) => updateCardMemo(card.id, e.target.value)}
                         className="w-full border-t border-slate-100 bg-slate-50 px-4 py-2 text-sm text-slate-600 resize-y focus:outline-none focus:ring-0"

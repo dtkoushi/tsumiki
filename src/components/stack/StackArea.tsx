@@ -5,6 +5,7 @@ import { GenericCard } from '../cards/common/GenericCard';
 import { PinnedPanel } from './PinnedPanel';
 
 import { Ghost } from 'lucide-react';
+import { ja } from '../../lib/i18n/ja';
 
 import {
     DndContext,
@@ -118,12 +119,12 @@ export const StackArea: React.FC = () => {
                     {cards.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                             <Ghost size={64} strokeWidth={1} className="mb-6 text-slate-300" />
-                            <p className="text-lg font-semibold text-slate-500 mb-4">Stack is empty</p>
+                            <p className="text-lg font-semibold text-slate-500 mb-4">{ja['ui.stackEmpty']}</p>
                             <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside text-left max-w-xs">
-                                <li>Add a <strong className="text-slate-600">Section</strong> card to define cross-section geometry</li>
-                                <li>Add a <strong className="text-slate-600">Material</strong> card to set steel grade and E</li>
-                                <li>Add a <strong className="text-slate-600">Beam</strong> card and link span, section, and load</li>
-                                <li>Add a <strong className="text-slate-600">Verify</strong> card to check stress ratios</li>
+                                <li><strong className="text-slate-600">{ja['card.section.title']}</strong> カードを追加して断面形状を定義</li>
+                                <li><strong className="text-slate-600">{ja['card.material.title']}</strong> カードを追加して鋼種とEを設定</li>
+                                <li><strong className="text-slate-600">{ja['card.beam.title']}</strong> カードを追加してスパン・断面・荷重をリンク</li>
+                                <li><strong className="text-slate-600">{ja['card.verify.title']}</strong> カードを追加して応力比を確認</li>
                             </ol>
                         </div>
                     )}

@@ -4,6 +4,7 @@ import { Calculator, Link } from 'lucide-react';
 import { all, create } from 'mathjs';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
+import { ja } from '../../lib/i18n/ja';
 
 const math = create(all, {});
 
@@ -32,9 +33,9 @@ const FormulaView: React.FC<CardComponentProps> = ({ card, actions }) => (
 
 export const CustomMapDef = createCardDefinition({
     type: 'CUSTOM_MAP',
-    title: 'Custom Map',
+    title: ja['card.custom.title.map'],
     icon: Calculator,
-    description: '各行の x に formula を適用 → y_1, y_2, … を出力。sqrt(x), x^2 など1変数変換向け。',
+    description: ja['card.custom.description.map'],
 
     defaultInputs: {
         formula: { value: 'x + 1' },
@@ -47,14 +48,14 @@ export const CustomMapDef = createCardDefinition({
 
     dynamicInputGroup: {
         keyPrefix:      'x',
-        inputLabel:     '変数 x',
+        inputLabel:     ja['card.custom.inputs.varX'],
         inputUnitType:  'none',
         outputKeyFn:    (key) => `y_${key.split('_')[1]}`,
-        outputLabel:    '結果 y',
+        outputLabel:    ja['card.custom.outputs.resultY'],
         outputUnitType: 'none',
         defaultValue:   0,
         minCount:       1,
-        addLabel:       '追加',
+        addLabel:       ja['card.custom.addLabel'],
         outputIndexFn:  (key) => { const m = key.match(/^y_(\d+)$/); return m ? m[1] : null; },
         // showOutputFn 省略 → 常に y_i 行を表示（デフォルト挙動）
     },
@@ -88,9 +89,9 @@ export const CustomMapDef = createCardDefinition({
 
 export const CustomCombineDef = createCardDefinition({
     type: 'CUSTOM_COMBINE',
-    title: 'Custom Combine',
+    title: ja['card.custom.title.combine'],
     icon: Link,
-    description: 'x_1, x_2, … を formula で合成し単一 result を出力。x_1 + x_2, x_1 * x_2 + 3 など多変数演算向け。',
+    description: ja['card.custom.description.combine'],
 
     defaultInputs: {
         formula: { value: 'x_1 + x_2' },
@@ -101,19 +102,19 @@ export const CustomCombineDef = createCardDefinition({
     inputConfig: {},
 
     outputConfig: {
-        result: { label: '結果', unitType: 'none' },
+        result: { label: ja['card.custom.outputs.result'], unitType: 'none' },
     },
 
     dynamicInputGroup: {
         keyPrefix:      'x',
-        inputLabel:     '変数 x',
+        inputLabel:     ja['card.custom.inputs.varX'],
         inputUnitType:  'none',
         outputKeyFn:    (key) => `y_${key.split('_')[1]}`,  // 使われないが型要件
-        outputLabel:    '結果 y',
+        outputLabel:    ja['card.custom.outputs.resultY'],
         outputUnitType: 'none',
         defaultValue:   0,
         minCount:       1,
-        addLabel:       '追加',
+        addLabel:       ja['card.custom.addLabel'],
         showOutputFn:   () => false,   // y_i 出力行を Results に表示しない
     },
 

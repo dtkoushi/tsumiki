@@ -5,6 +5,7 @@ import type { CardStrategy } from '../../lib/registry/types';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { calculateBeamMax, calculateBeamMultiMax, type BeamModel, type BeamMultiModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
 import { C_BEAM, C_POINT, C_DIST, C_MOMENT } from './common/beamSvgHelpers';
+import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
 
@@ -345,10 +346,10 @@ const calcMomentStrategy = (inputs: Record<string, number>, boundary: BoundaryTy
 const Strategies: CardStrategy<BeamOutputs>[] = [
     {
         id: 'simple_uniform',
-        label: 'Simple - Uniform',
+        label: ja['card.beam.strategies.simpleUniform'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            w: { label: 'Load (w)', unitType: 'load', default: 10 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'simple_uniform');
@@ -358,11 +359,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'simple_point',
-        label: 'Simple - Point',
+        label: ja['card.beam.strategies.simplePoint'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'simple_point');
@@ -373,20 +374,20 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'simple_moment',
-        label: 'Simple - Moment',
+        label: ja['card.beam.strategies.simpleMoment'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'simple'),
     },
     {
         id: 'cantilever_uniform',
-        label: 'Cantilever - Uniform',
+        label: ja['card.beam.strategies.cantileverUniform'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 2000 },
-            w: { label: 'Load (w)', unitType: 'load', default: 10 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
+            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'cantilever_uniform');
@@ -396,11 +397,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'cantilever_point',
-        label: 'Cantilever - Point',
+        label: ja['card.beam.strategies.cantileverPoint'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 2000 },
-            P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
+            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'cantilever_point');
@@ -411,20 +412,20 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'cantilever_moment',
-        label: 'Cantilever - Moment',
+        label: ja['card.beam.strategies.cantileverMoment'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 2000 },
-            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
+            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'cantilever'),
     },
     {
         id: 'fixed_fixed_uniform',
-        label: '両端固定 - 均等分布',
+        label: ja['card.beam.boundary.fixedFixed'] + ' - ' + ja['card.beam.load.uniform'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            w: { label: 'Load (w)', unitType: 'load', default: 10 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_fixed_uniform');
@@ -434,11 +435,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_fixed_point',
-        label: '両端固定 - 集中荷重',
+        label: ja['card.beam.boundary.fixedFixed'] + ' - ' + ja['card.beam.load.point'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_fixed_point');
@@ -449,20 +450,20 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_fixed_moment',
-        label: '両端固定 - 集中モーメント',
+        label: ja['card.beam.boundary.fixedFixed'] + ' - ' + ja['card.beam.load.moment'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_fixed'),
     },
     {
         id: 'fixed_pinned_uniform',
-        label: '片端固定・片端ピン - 均等分布',
+        label: ja['card.beam.boundary.fixedPinned'] + ' - ' + ja['card.beam.load.uniform'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            w: { label: 'Load (w)', unitType: 'load', default: 10 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_pinned_uniform');
@@ -472,11 +473,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_pinned_point',
-        label: '片端固定・片端ピン - 集中荷重',
+        label: ja['card.beam.boundary.fixedPinned'] + ' - ' + ja['card.beam.load.point'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            P: { label: 'Load (P)', unitType: 'force', default: 1000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_pinned_point');
@@ -487,11 +488,11 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_pinned_moment',
-        label: '片端固定・片端ピン - 集中モーメント',
+        label: ja['card.beam.boundary.fixedPinned'] + ' - ' + ja['card.beam.load.moment'],
         inputConfig: {
-            L: { label: 'Span', unitType: 'length', default: 4000 },
-            M0: { label: 'Moment (M0)', unitType: 'moment', default: 1000000 },
-            a: { label: 'Load Pos (a)', unitType: 'length', default: 2000 },
+            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
+            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
+            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_pinned'),
     },
@@ -502,28 +503,28 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
 
 export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     type: 'BEAM',
-    title: 'Beam',
+    title: ja['card.beam.title'],
     icon: Columns,
-    description: 'Calculate shear and moment for various beams.',
+    description: ja['card.beam.description'],
     strategyAxes: [
         {
             key: 'boundary',
-            label: 'Boundary',
+            label: ja['card.beam.axis.boundary'],
             options: [
-                { label: 'Simple Support', value: 'simple' },
-                { label: 'Cantilever', value: 'cantilever' },
-                { label: '両端固定', value: 'fixed_fixed' },
-                { label: '片端固定・片端ピン', value: 'fixed_pinned' },
+                { label: ja['card.beam.boundary.simple'], value: 'simple' },
+                { label: ja['card.beam.boundary.cantilever'], value: 'cantilever' },
+                { label: ja['card.beam.boundary.fixedFixed'], value: 'fixed_fixed' },
+                { label: ja['card.beam.boundary.fixedPinned'], value: 'fixed_pinned' },
             ],
             default: 'simple'
         },
         {
             key: 'load',
-            label: 'Load Condition',
+            label: ja['card.beam.axis.loadCondition'],
             options: [
-                { label: 'Uniform Load', value: 'uniform' },
-                { label: 'Point Load', value: 'point' },
-                { label: 'Moment Load', value: 'moment' },
+                { label: ja['card.beam.load.uniform'], value: 'uniform' },
+                { label: ja['card.beam.load.point'], value: 'point' },
+                { label: ja['card.beam.load.moment'], value: 'moment' },
             ],
             default: 'uniform'
         }

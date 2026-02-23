@@ -4,6 +4,7 @@ import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { registry } from '../../lib/registry';
 import { formatOutput, getUnitLabel } from '../../lib/utils/unitFormatter';
 import type { UnitMode } from '../../lib/utils/unitFormatter';
+import { ja } from '../../lib/i18n/ja';
 
 export const PinnedPanel: React.FC = () => {
     const cards = useTsumikiStore((state) => state.cards);
@@ -16,7 +17,7 @@ export const PinnedPanel: React.FC = () => {
         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl shadow-sm mb-4 px-4 py-3">
             <div className="flex items-center gap-2 mb-2">
                 <Pin size={11} className="text-amber-500" />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pinned</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{ja['ui.pinned']}</span>
             </div>
             <div className="flex flex-wrap gap-2">
                 {pinnedOutputs.map(({ cardId, outputKey }) => {
@@ -49,7 +50,7 @@ export const PinnedPanel: React.FC = () => {
                             <button
                                 onClick={() => unpinOutput(cardId, outputKey)}
                                 className="ml-1 text-slate-500 hover:text-slate-300 transition-colors"
-                                title="Unpin"
+                                title={ja['ui.unpin']}
                             >
                                 <X size={10} />
                             </button>

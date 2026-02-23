@@ -1,0 +1,131 @@
+export const ja = {
+    // ── App ──────────────────────────────────────────────────────────────────
+    'app.subtitle': '構造スタック',
+
+    // ── UI ───────────────────────────────────────────────────────────────────
+    'ui.workspace': 'ワークスペース',
+    'ui.components': 'コンポーネント',
+    'ui.import': '読み込み',
+    'ui.export': '書き出し',
+    'ui.share': '共有',
+    'ui.navigator': 'ナビゲーター',
+    'ui.pinned': 'ピン留め',
+    'ui.noCards': 'カードがありません',
+    'ui.results': '結果',
+    'ui.pinToPanel': 'パネルにピン留め',
+    'ui.unpin': 'ピン留め解除',
+    'ui.linkToVariable': '変数にリンク',
+    'ui.invalidNumber': '無効な数値',
+    'ui.selectSource': '参照先を選択',
+    'ui.noUpstream': '上流カードがありません',
+    'ui.toggleUnits': '単位切替 (mm, N ↔ m, kN)',
+    'ui.unitMm': 'mm, N',
+    'ui.unitM': 'm, kN',
+    'ui.memoPlaceholder': 'メモ…',
+    'ui.projectInfo': 'プロジェクト情報',
+    'ui.stackEmpty': 'スタックが空です',
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    'toast.importFailed': '読み込み失敗：ファイル形式が無効です',
+    'toast.readFailed': 'ファイルの読み込みに失敗しました',
+    'toast.loadConfirm': '読み込みますか？未保存の変更は失われます。',
+    'toast.linkCopied': 'リンクをクリップボードにコピーしました',
+    'toast.linkFailed': 'リンクのコピーに失敗しました',
+
+    // ── Card: Section ─────────────────────────────────────────────────────────
+    'card.section.title': '断面',
+    'card.section.description': '断面形状を定義します（矩形、H形鋼など）。',
+    'card.section.strategies.rect': '矩形',
+    'card.section.strategies.hBeam': 'H形鋼',
+    'card.section.strategies.circle': '円形',
+    'card.section.inputs.widthB': '幅 (B)',
+    'card.section.inputs.heightH': '高さ (H)',
+    'card.section.inputs.webTk': 'ウェブ厚 (tw)',
+    'card.section.inputs.flgTk': 'フランジ厚 (tf)',
+    'card.section.inputs.diameter': '直径 (D)',
+    'card.section.outputs.area': '断面積',
+
+    // ── Card: Material ────────────────────────────────────────────────────────
+    'card.material.title': '材料',
+    'card.material.description': '鋼種を選択して許容応力度を設定します。',
+    'card.material.outputs.designStrength': '設計強度 (F)',
+    'card.material.outputs.youngsModulus': 'ヤング率 (E)',
+
+    // ── Card: Beam ────────────────────────────────────────────────────────────
+    'card.beam.title': 'はり',
+    'card.beam.description': '各種はりの曲げ・せん断を計算します。',
+    'card.beam.axis.boundary': '境界条件',
+    'card.beam.axis.loadCondition': '荷重条件',
+    'card.beam.strategies.simpleUniform': '単純支持 - 均等分布',
+    'card.beam.strategies.simplePoint': '単純支持 - 集中荷重',
+    'card.beam.strategies.simpleMoment': '単純支持 - 集中モーメント',
+    'card.beam.strategies.cantileverUniform': '片持ち梁 - 均等分布',
+    'card.beam.strategies.cantileverPoint': '片持ち梁 - 集中荷重',
+    'card.beam.strategies.cantileverMoment': '片持ち梁 - 集中モーメント',
+    'card.beam.boundary.simple': '単純支持',
+    'card.beam.boundary.cantilever': '片持ち梁',
+    'card.beam.boundary.fixedFixed': '両端固定',
+    'card.beam.boundary.fixedPinned': '片端固定・片端ピン',
+    'card.beam.load.uniform': '均等分布荷重',
+    'card.beam.load.point': '集中荷重',
+    'card.beam.load.moment': '集中モーメント',
+    'card.beam.inputs.span': 'スパン',
+    'card.beam.inputs.loadW': '均等分布荷重 (w)',
+    'card.beam.inputs.loadP': '集中荷重 (P)',
+    'card.beam.inputs.loadPos': '荷重位置 (a)',
+    'card.beam.inputs.loadM': '集中モーメント (M0)',
+
+    // ── Card: Verify ──────────────────────────────────────────────────────────
+    'card.verify.title': '検定',
+    'card.verify.description': '値を許容値と比較します（比率 = |値| / 許容値）。',
+    'card.verify.inputs.value': '値',
+    'card.verify.inputs.allowable': '許容値',
+    'card.verify.outputs.ratio': '比率',
+    'card.verify.outputs.margin': '余裕',
+    'card.verify.outputs.status': '判定',
+
+    // ── Card: Custom ──────────────────────────────────────────────────────────
+    'card.custom.title.map': 'カスタム写像',
+    'card.custom.title.combine': 'カスタム合成',
+    'card.custom.description.map': '各行の x に formula を適用 → y_1, y_2, … を出力。',
+    'card.custom.description.combine': 'x_1, x_2, … を formula で合成し単一 result を出力。',
+    'card.custom.inputs.varX': '変数 x',
+    'card.custom.outputs.resultY': '結果 y',
+    'card.custom.outputs.result': '結果',
+    'card.custom.addLabel': '追加',
+
+    // ── Card: Couple ──────────────────────────────────────────────────────────
+    'card.couple.title': '偶力変換',
+    'card.couple.description': '曲げモーメントを偶力に変換します。',
+    'card.couple.inputs.moment': '曲げモーメント M',
+    'card.couple.inputs.distance': '距離 d（NA から）',
+    'card.couple.outputs.k': '比例係数 k',
+    'card.couple.outputs.forceN': '偶力 N',
+    'card.couple.addLabel': '追加',
+
+    // ── Card: BeamMulti ───────────────────────────────────────────────────────
+    'card.beamMulti.title': 'はり（多荷重）',
+    'card.beamMulti.description': '複数荷重の重ね合わせではりを計算します。',
+    'card.beamMulti.boundary': '境界条件',
+    'card.beamMulti.boundary.simple': '単純支持',
+    'card.beamMulti.boundary.fixedFixed': '両端固定',
+    'card.beamMulti.boundary.fixedPinned': '片端固定・片端ピン',
+    'card.beamMulti.boundary.cantilever': '片持ち梁',
+    'card.beamMulti.loads': '荷重',
+    'card.beamMulti.addLoad': '荷重追加',
+    'card.beamMulti.loadType.point': '集中荷重 (P)',
+    'card.beamMulti.loadType.moment': '集中モーメント (M0)',
+    'card.beamMulti.loadType.dist': '分布荷重 (w)',
+    'card.beamMulti.inputs.span': 'スパン (L)',
+    'card.beamMulti.emptyLoads': '「荷重追加」ボタンで荷重を追加してください',
+
+    // ── Card: Diagram ─────────────────────────────────────────────────────────
+    'card.diagram.title': '応力図',
+    'card.diagram.description': 'BEAM または BEAM_MULTI の M/Q 分布図と検定位置の値。',
+    'card.diagram.inputs.diagramModel': '応力図モデル',
+    'card.diagram.checkLocations': '検定位置',
+    'card.diagram.addLocation': '位置追加',
+    'card.diagram.noModel': 'Beam または Beam(Multi) の diagramModel を参照してください',
+} as const;
+
+export type JaKey = keyof typeof ja;
