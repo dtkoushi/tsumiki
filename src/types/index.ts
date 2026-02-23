@@ -1,4 +1,4 @@
-export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM' | 'COUPLE' | 'BEAM_MULTI' | 'DIAGRAM';
+export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM_MAP' | 'CUSTOM_COMBINE' | 'COUPLE' | 'BEAM_MULTI' | 'DIAGRAM';
 
 export interface CardInput {
     value: string | number;

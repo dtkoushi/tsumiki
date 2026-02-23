@@ -183,7 +183,9 @@ export const CoupleCardDef = createCardDefinition({
         M: { label: '曲げモーメント M', unitType: 'moment' },
     },
 
-    outputConfig: {},
+    outputConfig: {
+        k: { label: '比例係数 k', unitType: 'load' },
+    },
 
     dynamicInputGroup: {
         keyPrefix:      'd',
@@ -195,6 +197,7 @@ export const CoupleCardDef = createCardDefinition({
         defaultValue:   300,
         minCount:       1,
         addLabel:       '追加',
+        outputIndexFn:  (key) => { const m = key.match(/^n_(\d+)$/); return m ? m[1] : null; },
     },
 
     // 偶力の式: M = Σ(Ni × 2 × di), Ni = k × di → k = M / (2 × Σdi²)

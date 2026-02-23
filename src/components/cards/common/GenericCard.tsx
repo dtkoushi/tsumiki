@@ -59,7 +59,7 @@ const DynamicGroupSection = ({
     upstreamCards: Card[];
     unitMode: UnitMode;
 }) => {
-    const { keyPrefix, inputLabel, inputUnitType, outputKeyFn, outputLabel, outputUnitType, defaultValue = 0, minCount = 1, addLabel = 'Add' } = config;
+    const { keyPrefix, inputLabel, inputUnitType, defaultValue = 0, minCount = 1, addLabel = 'Add' } = config;
 
     const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
     const keys = Object.keys(card.inputs)
@@ -73,13 +73,12 @@ const DynamicGroupSection = ({
     };
 
     const dUnitLabel = getUnitLabel(inputUnitType, unitMode);
-    const nUnitLabel = getUnitLabel(outputUnitType, unitMode);
 
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    {inputLabel} → {outputLabel}
+                    {inputLabel}
                 </label>
                 <button
                     onClick={handleAdd}
@@ -89,41 +88,35 @@ const DynamicGroupSection = ({
                 </button>
             </div>
 
-            {keys.length > 0 && (
-                <div className="grid grid-cols-[1fr_12px_1fr_20px] gap-x-2 items-center px-1">
-                    <span className="text-[10px] text-slate-400">{inputLabel} [{dUnitLabel}]</span>
-                    <span />
-                    <span className="text-[10px] text-slate-400 text-right">{outputLabel} [{nUnitLabel}]</span>
-                    <span />
-                </div>
-            )}
-
             {keys.map(key => {
-                const outputKey = outputKeyFn(key);
-                const outputVal = card.outputs[outputKey] ?? 0;
+                const idx = key.split('_')[1];
                 return (
-                    <div key={key} className="grid grid-cols-[1fr_12px_1fr_20px] gap-x-2 items-center">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey={key}
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            inputType={inputUnitType as any}
-                            unitMode={unitMode}
-                            placeholder="0"
-                        />
-                        <span className="text-slate-300 text-xs text-center">→</span>
-                        <div className="text-right font-mono text-sm font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded px-2 py-1 truncate">
-                            {formatOutput(outputVal, outputUnitType, unitMode)}
+                    <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
+                        <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
+                            {keyPrefix}_{idx}
+                            <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>
+                        </span>
+                        <div className="flex items-center gap-1">
+                            <div className="w-24">
+                                <SmartInput
+                                    cardId={card.id}
+                                    inputKey={key}
+                                    card={card}
+                                    actions={actions}
+                                    upstreamCards={upstreamCards}
+                                    inputType={inputUnitType as any}
+                                    unitMode={unitMode}
+                                    placeholder="0"
+                                />
+                            </div>
+                            <button
+                                onClick={() => actions.removeInput(card.id, key)}
+                                className="text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center"
+                                disabled={keys.length <= minCount}
+                            >
+                                <X size={14} />
+                            </button>
                         </div>
-                        <button
-                            onClick={() => actions.removeInput(card.id, key)}
-                            className="text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center"
-                            disabled={keys.length <= minCount}
-                        >
-                            <X size={14} />
-                        </button>
                     </div>
                 );
             })}
@@ -214,7 +207,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                     </div>
                 )}
 
-                {/* Dynamic Input Group (paired input → output rows with add/remove) */}
+                {/* Dynamic Input Group (input rows with add/remove) */}
                 {def.dynamicInputGroup && (
                     <DynamicGroupSection
                         config={def.dynamicInputGroup}
@@ -240,11 +233,14 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 )}
 
                 {/* Outputs */}
-                {!card.error && def.outputConfig && Object.keys(def.outputConfig).length > 0 && (
+                {!card.error && (
+                    (def.outputConfig && Object.keys(def.outputConfig).length > 0) ||
+                    def.dynamicInputGroup
+                ) && (
                     <div className="space-y-2 pt-2 border-t border-slate-100">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Results</label>
                         <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => {
+                            {def.outputConfig && Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => {
                                 const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
                                 return (
                                     <OutputRow
@@ -258,6 +254,31 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                                     />
                                 );
                             })}
+                            {def.dynamicInputGroup &&
+                             (!def.dynamicInputGroup.showOutputFn || def.dynamicInputGroup.showOutputFn(card)) &&
+                             (() => {
+                                const { keyPrefix, outputKeyFn, outputLabel, outputUnitType } = def.dynamicInputGroup;
+                                const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
+                                const inputKeys = Object.keys(card.inputs)
+                                    .filter(k => pattern.test(k))
+                                    .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
+                                return inputKeys.map(inputKey => {
+                                    const outputKey = outputKeyFn(inputKey);
+                                    const idx = inputKey.split('_')[1];
+                                    const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === outputKey);
+                                    return (
+                                        <OutputRow
+                                            key={outputKey}
+                                            name={outputKey}
+                                            config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType }}
+                                            card={card}
+                                            unitMode={unitMode}
+                                            isPinned={isPinned}
+                                            onPinToggle={() => isPinned ? unpinOutput(card.id, outputKey) : pinOutput(card.id, outputKey)}
+                                        />
+                                    );
+                                });
+                            })()}
                         </div>
                     </div>
                 )}
