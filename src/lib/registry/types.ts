@@ -57,6 +57,12 @@ export interface DynamicInputGroupConfig {
     minCount?: number;
     /** Add-row button label (default: 'Add') */
     addLabel?: string;
+    /**
+     * Derives a display index string from an output key (e.g. 'n_3' → '3').
+     * Used by PinnedPanel to build chip labels for dynamic outputs.
+     * Returns null if the key does not match a dynamic output.
+     */
+    outputIndexFn?: (outputKey: string) => string | null;
 }
 
 export interface CardDefinition<TOutputs extends Record<string, number> = Record<string, number>> {
