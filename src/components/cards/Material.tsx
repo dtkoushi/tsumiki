@@ -55,7 +55,17 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
     title: ja['card.material.title'],
     icon: Hexagon,
     description: ja['card.material.description'],
-    strategyKey: 'grade',
+    strategyAxes: [{
+        key: 'grade',
+        label: ja['card.material.axis.grade'],
+        options: [
+            { label: 'SS400', value: 'ss400' },
+            { label: 'SN400B', value: 'sn400b' },
+            { label: 'SN490B', value: 'sn490b' },
+            { label: 'SM490', value: 'sm490' },
+        ],
+        default: 'ss400',
+    }],
     strategies: MaterialStrategies,
     outputConfig: {
         F: { label: ja['card.material.outputs.designStrength'], unitType: 'stress' },

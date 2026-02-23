@@ -422,7 +422,7 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_fixed_uniform',
-        label: ja['card.beam.boundary.fixedFixed'] + ' - ' + ja['card.beam.load.uniform'],
+        label: ja['card.beam.strategies.fixedFixedUniform'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
@@ -435,7 +435,7 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_fixed_point',
-        label: ja['card.beam.boundary.fixedFixed'] + ' - ' + ja['card.beam.load.point'],
+        label: ja['card.beam.strategies.fixedFixedPoint'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
@@ -450,7 +450,7 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_fixed_moment',
-        label: ja['card.beam.boundary.fixedFixed'] + ' - ' + ja['card.beam.load.moment'],
+        label: ja['card.beam.strategies.fixedFixedMoment'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
@@ -460,7 +460,7 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_pinned_uniform',
-        label: ja['card.beam.boundary.fixedPinned'] + ' - ' + ja['card.beam.load.uniform'],
+        label: ja['card.beam.strategies.fixedPinnedUniform'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
@@ -473,7 +473,7 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_pinned_point',
-        label: ja['card.beam.boundary.fixedPinned'] + ' - ' + ja['card.beam.load.point'],
+        label: ja['card.beam.strategies.fixedPinnedPoint'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
@@ -488,7 +488,7 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
     },
     {
         id: 'fixed_pinned_moment',
-        label: ja['card.beam.boundary.fixedPinned'] + ' - ' + ja['card.beam.load.moment'],
+        label: ja['card.beam.strategies.fixedPinnedMoment'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },

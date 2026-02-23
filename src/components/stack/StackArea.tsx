@@ -121,10 +121,10 @@ export const StackArea: React.FC = () => {
                             <Ghost size={64} strokeWidth={1} className="mb-6 text-slate-300" />
                             <p className="text-lg font-semibold text-slate-500 mb-4">{ja['ui.stackEmpty']}</p>
                             <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside text-left max-w-xs">
-                                <li><strong className="text-slate-600">{ja['card.section.title']}</strong> カードを追加して断面形状を定義</li>
-                                <li><strong className="text-slate-600">{ja['card.material.title']}</strong> カードを追加して鋼種とEを設定</li>
-                                <li><strong className="text-slate-600">{ja['card.beam.title']}</strong> カードを追加してスパン・断面・荷重をリンク</li>
-                                <li><strong className="text-slate-600">{ja['card.verify.title']}</strong> カードを追加して応力比を確認</li>
+                                <li><strong className="text-slate-600">{ja['card.section.title']}</strong> {ja['ui.onboarding.step1']}</li>
+                                <li><strong className="text-slate-600">{ja['card.material.title']}</strong> {ja['ui.onboarding.step2']}</li>
+                                <li><strong className="text-slate-600">{ja['card.beam.title']}</strong> {ja['ui.onboarding.step3']}</li>
+                                <li><strong className="text-slate-600">{ja['card.verify.title']}</strong> {ja['ui.onboarding.step4']}</li>
                             </ol>
                         </div>
                     )}

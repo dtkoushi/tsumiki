@@ -11,7 +11,8 @@ import { registry } from '../../../lib/registry';
 import { useTsumikiStore } from '../../../store/useTsumikiStore';
 import { ja, type JaKey } from '../../../lib/i18n/ja';
 
-const t = (key: string): string => ja[key as JaKey] ?? key;
+const isJaKey = (key: string): key is JaKey => key in ja;
+const t = (key: string): string => isJaKey(key) ? ja[key] : key;
 
 const SelectInput = ({ name, config, card, actions }: { name: string, config: any, card: any, actions: any }) => (
     <div className="flex flex-col gap-1 w-full">

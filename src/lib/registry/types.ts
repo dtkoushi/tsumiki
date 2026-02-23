@@ -55,7 +55,7 @@ export interface DynamicInputGroupConfig {
     defaultValue?: number;
     /** Minimum row count; remove button is disabled at this count (default: 1) */
     minCount?: number;
-    /** Add-row button label (default: 'Add') */
+    /** Add-row button label (default: '追加') */
     addLabel?: string;
     /** Short per-row label (e.g. '距離'). Renders as "{rowLabel} ({keyPrefix}_{idx}) [{unit}]" */
     rowLabel?: string;

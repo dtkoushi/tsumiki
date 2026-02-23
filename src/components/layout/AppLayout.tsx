@@ -123,7 +123,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">{ja['ui.projectInfo']}</h3>
                         <div className="px-1">
                             <div className="text-sm font-medium text-slate-700">{meta.title}</div>
-                            <div className="text-xs text-slate-500">by {meta.author}</div>
+                            <div className="text-xs text-slate-500">{ja['ui.author']}{meta.author}</div>
                         </div>
                     </div>
                 </div>
@@ -140,7 +140,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     <div className="flex items-center gap-2 text-sm text-slate-500">
                         <span className="font-medium text-slate-900">{ja['ui.workspace']}</span>
                         <span>/</span>
-                        <span>My Analysis</span>
+                        <span>{meta.title}</span>
                     </div>
                     <div className="flex gap-2">
                         <input
@@ -162,7 +162,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         <Button
                             onClick={() => setShowNavigator(v => !v)}
                             leftIcon={<PanelRight size={14} />}
-                            title={ja['ui.navigator']}
+                            title={ja['ui.toggleNavigator']}
                         >
                             {ja['ui.navigator']}
                         </Button>

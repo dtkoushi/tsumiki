@@ -153,7 +153,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                             ? "text-blue-500 hover:text-red-500 border-blue-200 bg-blue-50"
                             : "border-slate-200 bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
                     )}
-                    title={isReferencing ? `${referencedCard?.alias || '?'}.${input.ref!.outputKey} にリンク中（クリックで解除）` : ja['ui.linkToVariable']}
+                    title={isReferencing ? `${referencedCard?.alias || '?'}.${input.ref!.outputKey} ${ja['ui.linkedInfo']}` : ja['ui.linkToVariable']}
                 >
                     {isReferencing ? <Unlink size={14} /> : <Link2 size={14} />}
                 </button>

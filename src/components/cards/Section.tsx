@@ -241,7 +241,16 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
     title: ja['card.section.title'],
     icon: Square,
     description: ja['card.section.description'],
-    strategyKey: 'shape',
+    strategyAxes: [{
+        key: 'shape',
+        label: ja['card.section.axis.shape'],
+        options: [
+            { label: ja['card.section.strategies.rect'], value: 'rect' },
+            { label: ja['card.section.strategies.hBeam'], value: 'h_beam' },
+            { label: ja['card.section.strategies.circle'], value: 'circle' },
+        ],
+        default: 'rect',
+    }],
     strategies: [RectSectionStrategy, HSectionStrategy, CircleSectionStrategy],
     outputConfig: {
         A: { label: ja['card.section.outputs.area'], unitType: 'area' },

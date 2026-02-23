@@ -24,6 +24,13 @@ export const ja = {
     'ui.memoPlaceholder': 'メモ…',
     'ui.projectInfo': 'プロジェクト情報',
     'ui.stackEmpty': 'スタックが空です',
+    'ui.toggleNavigator': 'ナビゲーターを表示/非表示',
+    'ui.author': '作成者：',
+    'ui.linkedInfo': 'にリンク中（クリックで解除）',
+    'ui.onboarding.step1': 'カードを追加して断面形状を定義',
+    'ui.onboarding.step2': 'カードを追加して鋼種とEを設定',
+    'ui.onboarding.step3': 'カードを追加してスパン・断面・荷重をリンク',
+    'ui.onboarding.step4': 'カードを追加して応力比を確認',
 
     // ── Toast ─────────────────────────────────────────────────────────────────
     'toast.importFailed': '読み込み失敗：ファイル形式が無効です',
@@ -33,6 +40,7 @@ export const ja = {
     'toast.linkFailed': 'リンクのコピーに失敗しました',
 
     // ── Card: Section ─────────────────────────────────────────────────────────
+    'card.section.axis.shape': '断面形状',
     'card.section.title': '断面',
     'card.section.description': '断面形状を定義します（矩形、H形鋼など）。',
     'card.section.strategies.rect': '矩形',
@@ -46,6 +54,7 @@ export const ja = {
     'card.section.outputs.area': '断面積',
 
     // ── Card: Material ────────────────────────────────────────────────────────
+    'card.material.axis.grade': '鋼種',
     'card.material.title': '材料',
     'card.material.description': '鋼種を選択して許容応力度を設定します。',
     'card.material.outputs.designStrength': '設計強度 (F)',
@@ -62,6 +71,12 @@ export const ja = {
     'card.beam.strategies.cantileverUniform': '片持ち梁 - 均等分布',
     'card.beam.strategies.cantileverPoint': '片持ち梁 - 集中荷重',
     'card.beam.strategies.cantileverMoment': '片持ち梁 - 集中モーメント',
+    'card.beam.strategies.fixedFixedUniform': '両端固定 - 均等分布',
+    'card.beam.strategies.fixedFixedPoint': '両端固定 - 集中荷重',
+    'card.beam.strategies.fixedFixedMoment': '両端固定 - 集中モーメント',
+    'card.beam.strategies.fixedPinnedUniform': '片端固定・片端ピン - 均等分布',
+    'card.beam.strategies.fixedPinnedPoint': '片端固定・片端ピン - 集中荷重',
+    'card.beam.strategies.fixedPinnedMoment': '片端固定・片端ピン - 集中モーメント',
     'card.beam.boundary.simple': '単純支持',
     'card.beam.boundary.cantilever': '片持ち梁',
     'card.beam.boundary.fixedFixed': '両端固定',
