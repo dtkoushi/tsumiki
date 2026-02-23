@@ -145,6 +145,7 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
 
     removeCard: (id) => set((state) => ({
         cards: recalculateAll(state.cards.filter((c) => c.id !== id)),
+        pinnedOutputs: state.pinnedOutputs.filter(p => p.cardId !== id),
     })),
 
     updateCardAlias: (id, alias) => set((state) => ({
@@ -200,13 +201,22 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
     }),
 
     removeInput: (cardId, inputKey) => set((state) => {
+        const card = state.cards.find(c => c.id === cardId);
+        const def = card ? registry.get(card.type) : undefined;
+        const outputKey = def?.dynamicInputGroup?.outputKeyFn(inputKey);
+
         const newCards = state.cards.map((c) => {
             if (c.id !== cardId) return c;
             const newInputs = { ...c.inputs };
             delete newInputs[inputKey];
             return { ...c, inputs: newInputs };
         });
-        return { cards: recalculateAll(newCards) };
+
+        const newPinnedOutputs = outputKey
+            ? state.pinnedOutputs.filter(p => !(p.cardId === cardId && p.outputKey === outputKey))
+            : state.pinnedOutputs;
+
+        return { cards: recalculateAll(newCards), pinnedOutputs: newPinnedOutputs };
     }),
 
     removeReference: (cardId, inputKey) => set((state) => {
