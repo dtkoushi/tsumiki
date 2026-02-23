@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { registry } from '../../lib/registry';
+import { ja } from '../../lib/i18n/ja';
 
 export const CardNavigator: React.FC = () => {
     const cards = useTsumikiStore((state) => state.cards);
@@ -15,11 +16,11 @@ export const CardNavigator: React.FC = () => {
     return (
         <aside className="w-44 bg-white border-l border-slate-200 flex flex-col shrink-0 overflow-hidden">
             <div className="px-3 py-3 border-b border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navigator</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{ja['ui.navigator']}</span>
             </div>
             <div className="flex-1 overflow-y-auto py-1">
                 {cards.length === 0 ? (
-                    <p className="text-[10px] text-slate-400 text-center px-3 pt-6">No cards yet</p>
+                    <p className="text-[10px] text-slate-400 text-center px-3 pt-6">{ja['ui.noCards']}</p>
                 ) : (
                     cards.map((card) => {
                         const def = registry.get(card.type);

@@ -2,6 +2,7 @@
 import { Hexagon } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { ja } from '../../lib/i18n/ja';
 
 // --- Local Types ---
 
@@ -51,13 +52,23 @@ const MaterialStrategies: CardStrategy<MaterialOutputs>[] = [
 
 export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
     type: 'MATERIAL',
-    title: 'Material',
+    title: ja['card.material.title'],
     icon: Hexagon,
-    description: 'Select steel grade to determine allowable stress.',
-    strategyKey: 'grade',
+    description: ja['card.material.description'],
+    strategyAxes: [{
+        key: 'grade',
+        label: ja['card.material.axis.grade'],
+        options: [
+            { label: 'SS400', value: 'ss400' },
+            { label: 'SN400B', value: 'sn400b' },
+            { label: 'SN490B', value: 'sn490b' },
+            { label: 'SM490', value: 'sm490' },
+        ],
+        default: 'ss400',
+    }],
     strategies: MaterialStrategies,
     outputConfig: {
-        F: { label: 'Design Strength (F)', unitType: 'stress' },
-        E: { label: 'Young\'s Modulus (E)', unitType: 'stress' },
+        F: { label: ja['card.material.outputs.designStrength'], unitType: 'stress' },
+        E: { label: ja['card.material.outputs.youngsModulus'], unitType: 'stress' },
     },
 });

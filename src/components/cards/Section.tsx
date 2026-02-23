@@ -4,6 +4,7 @@ import { Square } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
+import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
 
@@ -175,10 +176,10 @@ const SectionVisualization = createVisualizationComponent({
 
 const RectSectionStrategy: CardStrategy<SectionOutputs> = {
     id: 'rect',
-    label: 'Rectangle',
+    label: ja['card.section.strategies.rect'],
     inputConfig: {
-        B: { label: 'Width (B)', unitType: 'length', default: 300 },
-        H: { label: 'Height (H)', unitType: 'length', default: 600 },
+        B: { label: ja['card.section.inputs.widthB'], unitType: 'length', default: 300 },
+        H: { label: ja['card.section.inputs.heightH'], unitType: 'length', default: 600 },
     },
     calculate: (inputs) => {
         const B = inputs['B'] || 0;
@@ -193,12 +194,12 @@ const RectSectionStrategy: CardStrategy<SectionOutputs> = {
 
 const HSectionStrategy: CardStrategy<SectionOutputs> = {
     id: 'h_beam',
-    label: 'H-Beam',
+    label: ja['card.section.strategies.hBeam'],
     inputConfig: {
-        H: { label: 'Height (H)', unitType: 'length', default: 200 },
-        B: { label: 'Width (B)', unitType: 'length', default: 100 },
-        tw: { label: 'Web Tk (tw)', unitType: 'length', default: 6 },
-        tf: { label: 'Flg Tk (tf)', unitType: 'length', default: 9 },
+        H: { label: ja['card.section.inputs.heightH'], unitType: 'length', default: 200 },
+        B: { label: ja['card.section.inputs.widthB'], unitType: 'length', default: 100 },
+        tw: { label: ja['card.section.inputs.webTk'], unitType: 'length', default: 6 },
+        tf: { label: ja['card.section.inputs.flgTk'], unitType: 'length', default: 9 },
     },
     calculate: (inputs) => {
         const H = inputs['H'] || 0;
@@ -218,9 +219,9 @@ const HSectionStrategy: CardStrategy<SectionOutputs> = {
 
 const CircleSectionStrategy: CardStrategy<SectionOutputs> = {
     id: 'circle',
-    label: 'Circle',
+    label: ja['card.section.strategies.circle'],
     inputConfig: {
-        D: { label: 'Diameter (D)', unitType: 'length', default: 100 },
+        D: { label: ja['card.section.inputs.diameter'], unitType: 'length', default: 100 },
     },
     calculate: (inputs) => {
         const D = inputs['D'] || 0;
@@ -237,13 +238,22 @@ const CircleSectionStrategy: CardStrategy<SectionOutputs> = {
 
 export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
     type: 'SECTION',
-    title: 'Section',
+    title: ja['card.section.title'],
     icon: Square,
-    description: 'Define section geometry (Rectangle, H-Beam, etc).',
-    strategyKey: 'shape',
+    description: ja['card.section.description'],
+    strategyAxes: [{
+        key: 'shape',
+        label: ja['card.section.axis.shape'],
+        options: [
+            { label: ja['card.section.strategies.rect'], value: 'rect' },
+            { label: ja['card.section.strategies.hBeam'], value: 'h_beam' },
+            { label: ja['card.section.strategies.circle'], value: 'circle' },
+        ],
+        default: 'rect',
+    }],
     strategies: [RectSectionStrategy, HSectionStrategy, CircleSectionStrategy],
     outputConfig: {
-        A: { label: 'Area', unitType: 'area' },
+        A: { label: ja['card.section.outputs.area'], unitType: 'area' },
         Ix: { label: 'I_x', unitType: 'inertia' },
         Iy: { label: 'I_y', unitType: 'inertia' },
         Z: { label: 'Z', unitType: 'modulus' },

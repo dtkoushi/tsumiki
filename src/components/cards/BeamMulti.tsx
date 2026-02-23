@@ -11,6 +11,7 @@ import { calculateBeamMultiMax, type BoundaryType, type LoadType } from '../../l
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport, C_BEAM, C_POINT, C_DIST, C_MOMENT } from './common/beamSvgHelpers';
+import { ja } from '../../lib/i18n/ja';
 
 // Subset of OutputUnitType that SmartInput accepts
 type SmartInputType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
@@ -33,16 +34,16 @@ interface BeamMultiOutputs {
 // --- Constants ---
 
 const LOAD_TYPE_OPTIONS: { value: LoadType; label: string }[] = [
-    { value: 'point', label: 'Point Load (P)' },
-    { value: 'moment', label: 'Moment (M0)' },
-    { value: 'dist', label: 'Dist. Load (w)' },
+    { value: 'point', label: ja['card.beamMulti.loadType.point'] },
+    { value: 'moment', label: ja['card.beamMulti.loadType.moment'] },
+    { value: 'dist', label: ja['card.beamMulti.loadType.dist'] },
 ];
 
 const BOUNDARY_OPTIONS: { value: BoundaryType; label: string }[] = [
-    { value: 'simple', label: '単純支持' },
-    { value: 'fixed_fixed', label: '両端固定' },
-    { value: 'fixed_pinned', label: '片端固定・片端ピン' },
-    { value: 'cantilever', label: '片持ち梁' },
+    { value: 'simple', label: ja['card.beamMulti.boundary.simple'] },
+    { value: 'fixed_fixed', label: ja['card.beamMulti.boundary.fixedFixed'] },
+    { value: 'fixed_pinned', label: ja['card.beamMulti.boundary.fixedPinned'] },
+    { value: 'cantilever', label: ja['card.beamMulti.boundary.cantilever'] },
 ];
 
 const getValUnitType = (type: LoadType): SmartInputType => {
@@ -51,10 +52,10 @@ const getValUnitType = (type: LoadType): SmartInputType => {
     return 'force';
 };
 
-const getValLabel = (type: LoadType): string => {
-    if (type === 'moment') return 'M0';
-    if (type === 'dist') return 'w';
-    return 'P';
+const getValLabelJa = (type: LoadType): string => {
+    if (type === 'moment') return ja['card.beamMulti.loadRow.valM0'];
+    if (type === 'dist') return ja['card.beamMulti.loadRow.valW'];
+    return ja['card.beamMulti.loadRow.valP'];
 };
 
 // --- Utilities ---
@@ -285,7 +286,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
 
                 {/* ── Boundary Condition ── */}
                 <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
-                    <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">Boundary</span>
+                    <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">{ja['card.beamMulti.boundary']}</span>
                     <div className="w-48">
                         <StyledSelect
                             value={boundary}
@@ -298,7 +299,8 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                 {/* ── Span ── */}
                 <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                     <span className="text-sm text-slate-600 truncate mr-2 font-medium">
-                        Span (L) <span className="text-xs text-slate-400 font-normal">(L)</span>
+                        {ja['card.beamMulti.inputs.span']}
+                        <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('length', unitMode)}]</span>
                     </span>
                     <div className="w-24">
                         <SmartInput
@@ -307,7 +309,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
-                            placeholder={getUnitLabel('length', unitMode)}
+                            placeholder="0"
                             unitMode={unitMode}
                             inputType="length"
                         />
@@ -318,19 +320,19 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                 <div className="space-y-1">
                     <div className="flex items-center justify-between pb-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Loads
+                            {ja['card.beamMulti.loads']}
                         </label>
                         <button
                             onClick={handleAddLoad}
                             className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
                         >
-                            <Plus size={12} /> Add Load
+                            <Plus size={12} /> {ja['card.beamMulti.addLoad']}
                         </button>
                     </div>
 
                     {loadIndices.length === 0 && (
                         <div className="text-xs text-slate-400 italic text-center py-2">
-                            Add Load ボタンで荷重を追加してください
+                            {ja['card.beamMulti.emptyLoads']}
                         </div>
                     )}
 
@@ -368,7 +370,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                 <div className={`grid ${isDist ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pl-8`}>
                                     <div>
                                         <div className="text-[10px] text-slate-400 mb-0.5">
-                                            {isDist ? `a [${getUnitLabel('length', unitMode)}]` : `pos [${getUnitLabel('length', unitMode)}]`}
+                                            {isDist ? `${ja['card.beamMulti.loadRow.startA']} [${getUnitLabel('length', unitMode)}]` : `${ja['card.beamMulti.loadRow.posA']} [${getUnitLabel('length', unitMode)}]`}
                                         </div>
                                         <SmartInput
                                             cardId={card.id}
@@ -384,7 +386,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                     {isDist && (
                                         <div>
                                             <div className="text-[10px] text-slate-400 mb-0.5">
-                                                b [{getUnitLabel('length', unitMode)}]
+                                                {`${ja['card.beamMulti.loadRow.endB']} [${getUnitLabel('length', unitMode)}]`}
                                             </div>
                                             <SmartInput
                                                 cardId={card.id}
@@ -400,7 +402,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                     )}
                                     <div>
                                         <div className="text-[10px] text-slate-400 mb-0.5">
-                                            {getValLabel(loadTypeVal)} [{getUnitLabel(valUnitType, unitMode)}]
+                                            {`${getValLabelJa(loadTypeVal)} [${getUnitLabel(valUnitType, unitMode)}]`}
                                         </div>
                                         <SmartInput
                                             cardId={card.id}
@@ -434,7 +436,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                 {/* ── Results ── */}
                 {!card.error && (
                     <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Results</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{ja['ui.results']}</label>
                         <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
                             {RESULT_FIELDS.map(({ key, label, unitType }) => {
                                 const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
@@ -448,7 +450,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                                     "p-0.5 rounded transition-colors",
                                                     isPinned ? "text-amber-400 hover:text-amber-300" : "text-slate-600 hover:text-slate-300"
                                                 )}
-                                                title={isPinned ? 'Unpin' : 'Pin to panel'}
+                                                title={isPinned ? ja['ui.unpin'] : ja['ui.pinToPanel']}
                                             >
                                                 <Pin size={10} />
                                             </button>
@@ -473,9 +475,9 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
 
 export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     type: 'BEAM_MULTI',
-    title: 'Beam (Multi-Load)',
+    title: ja['card.beamMulti.title'],
     icon: GitBranch,
-    description: 'Superposition of multiple loads on a beam.',
+    description: ja['card.beamMulti.description'],
 
     defaultInputs: {
         boundary: { value: 'simple' },

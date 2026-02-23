@@ -9,6 +9,10 @@ import type { CardComponentProps, CardActions, DynamicInputGroupConfig } from '.
 import type { Card } from '../../../types';
 import { registry } from '../../../lib/registry';
 import { useTsumikiStore } from '../../../store/useTsumikiStore';
+import { ja, type JaKey } from '../../../lib/i18n/ja';
+
+const isJaKey = (key: string): key is JaKey => key in ja;
+const t = (key: string): string => isJaKey(key) ? ja[key] : key;
 
 const SelectInput = ({ name, config, card, actions }: { name: string, config: any, card: any, actions: any }) => (
     <div className="flex flex-col gap-1 w-full">
@@ -30,25 +34,29 @@ const SelectInput = ({ name, config, card, actions }: { name: string, config: an
     </div>
 );
 
-const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { name: string, config: any, card: any, actions: any, upstreamCards: any, unitMode: UnitMode }) => (
-    <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
-        <span className="text-sm text-slate-600 truncate mr-2 font-medium" title={config.label}>
-            {config.label} <span className="text-xs text-slate-400 font-normal">({name})</span>
-        </span>
-        <div className="w-24">
-            <SmartInput
-                cardId={card.id}
-                inputKey={name}
-                card={card}
-                actions={actions}
-                upstreamCards={upstreamCards}
-                placeholder={config.unitType ? getUnitLabel(config.unitType, unitMode) : ''}
-                unitMode={unitMode}
-                inputType={config.unitType as any}
-            />
+const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { name: string, config: any, card: any, actions: any, upstreamCards: any, unitMode: UnitMode }) => {
+    const unitLabel = config.unitType ? getUnitLabel(config.unitType, unitMode) : '';
+    return (
+        <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
+            <span className="text-sm text-slate-600 truncate mr-2 font-medium" title={t(config.label)}>
+                {t(config.label)}
+                {unitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{unitLabel}]</span>}
+            </span>
+            <div className="w-24">
+                <SmartInput
+                    cardId={card.id}
+                    inputKey={name}
+                    card={card}
+                    actions={actions}
+                    upstreamCards={upstreamCards}
+                    placeholder={unitLabel ? '0' : ''}
+                    unitMode={unitMode}
+                    inputType={config.unitType as any}
+                />
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const DynamicGroupSection = ({
     config, card, actions, upstreamCards, unitMode
@@ -59,7 +67,7 @@ const DynamicGroupSection = ({
     upstreamCards: Card[];
     unitMode: UnitMode;
 }) => {
-    const { keyPrefix, inputLabel, inputUnitType, defaultValue = 0, minCount = 1, addLabel = 'Add' } = config;
+    const { keyPrefix, inputLabel, inputUnitType, rowLabel, defaultValue = 0, minCount = 1, addLabel = '追加' } = config;
 
     const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
     const keys = Object.keys(card.inputs)
@@ -84,17 +92,18 @@ const DynamicGroupSection = ({
                     onClick={handleAdd}
                     className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
                 >
-                    <Plus size={12} /> {addLabel}
+                    <Plus size={12} /> {t(addLabel)}
                 </button>
             </div>
 
             {keys.map(key => {
                 const idx = key.split('_')[1];
+                const labelText = rowLabel ? `${rowLabel} (${keyPrefix}_${idx})` : `${keyPrefix}_${idx}`;
                 return (
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                         <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
-                            {keyPrefix}_{idx}
-                            <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>
+                            {labelText}
+                            {dUnitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>}
                         </span>
                         <div className="flex items-center gap-1">
                             <div className="w-24">
@@ -123,7 +132,7 @@ const DynamicGroupSection = ({
 
             {keys.length === 0 && (
                 <div className="text-xs text-slate-400 italic text-center py-2">
-                    {addLabel} ボタンで行を追加してください
+                    「{t(addLabel)}」ボタンで行を追加してください
                 </div>
             )}
         </div>
@@ -148,11 +157,11 @@ const OutputRow = ({
                     "p-0.5 rounded transition-colors",
                     isPinned ? "text-amber-400 hover:text-amber-300" : "text-slate-600 hover:text-slate-300"
                 )}
-                title={isPinned ? 'Unpin' : 'Pin to panel'}
+                title={isPinned ? t('ui.unpin') : t('ui.pinToPanel')}
             >
                 <Pin size={10} />
             </button>
-            <span className="text-slate-400 text-xs">{config.label}:</span>
+            <span className="text-slate-400 text-xs">{t(config.label)}:</span>
         </div>
         <span className="truncate text-right w-full font-mono text-emerald-400" title={card.outputs[name]?.toString()}>
             {formatOutput(card.outputs[name], config.unitType, unitMode)}
@@ -238,7 +247,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                     def.dynamicInputGroup
                 ) && (
                     <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Results</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('ui.results')}</label>
                         <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
                             {def.outputConfig && Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => {
                                 const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);

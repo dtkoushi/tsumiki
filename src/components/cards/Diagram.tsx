@@ -11,6 +11,7 @@ import { evalDiagramAt, type DiagramModel, type BoundaryType } from '../../lib/m
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
+import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
 
@@ -210,7 +211,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 {/* Diagram Model Input */}
                 <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                     <span className="text-sm text-slate-600 truncate mr-2 font-medium">
-                        Diagram Model <span className="text-xs text-slate-400 font-normal">(diagramModel)</span>
+                        {ja['card.diagram.inputs.diagramModel']}
                     </span>
                     <div className="w-24">
                         <SmartInput
@@ -230,13 +231,13 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 <div className="space-y-1">
                     <div className="flex items-center justify-between pb-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Check Locations
+                            {ja['card.diagram.checkLocations']}
                         </label>
                         <button
                             onClick={handleAddPosition}
                             className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
                         >
-                            <Plus size={12} /> Add Location
+                            <Plus size={12} /> {ja['card.diagram.addLocation']}
                         </button>
                     </div>
 
@@ -247,26 +248,31 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                     )}
 
                     {xIndices.map(n => (
-                        <div key={n} className="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-100/50">
-                            <span className="text-[10px] font-bold text-slate-400 w-8 shrink-0">x{n}</span>
-                            <div className="flex-1">
-                                <SmartInput
-                                    cardId={card.id}
-                                    inputKey={`x_${n}`}
-                                    card={card}
-                                    actions={actions}
-                                    upstreamCards={upstreamCards}
-                                    placeholder={getUnitLabel('length', unitMode)}
-                                    unitMode={unitMode}
-                                    inputType="length"
-                                />
+                        <div key={n} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
+                            <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
+                                {ja['card.diagram.checkLocations.rowLabel']} (x_{n})
+                                <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('length', unitMode)}]</span>
+                            </span>
+                            <div className="flex items-center gap-1">
+                                <div className="w-24">
+                                    <SmartInput
+                                        cardId={card.id}
+                                        inputKey={`x_${n}`}
+                                        card={card}
+                                        actions={actions}
+                                        upstreamCards={upstreamCards}
+                                        placeholder="0"
+                                        unitMode={unitMode}
+                                        inputType="length"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => handleRemovePosition(n)}
+                                    className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
+                                >
+                                    <X size={14} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleRemovePosition(n)}
-                                className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
-                            >
-                                <X size={14} />
-                            </button>
                         </div>
                     ))}
                 </div>
@@ -305,7 +311,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                     </div>
                 ) : (
                     <div className="w-full bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-xs text-slate-400 italic" style={{ height: 80 }}>
-                        Beam または Beam(Multi) の diagramModel を参照してください
+                        {ja['card.diagram.noModel']}
                     </div>
                 )}
 
@@ -319,7 +325,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 {/* Results */}
                 {!card.error && resultFields.length > 0 && (
                     <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Results</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{ja['ui.results']}</label>
                         <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
                             {resultFields.map(({ key, label, unitType }) => {
                                 const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
@@ -333,7 +339,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                                                     'p-0.5 rounded transition-colors',
                                                     isPinned ? 'text-amber-400 hover:text-amber-300' : 'text-slate-600 hover:text-slate-300'
                                                 )}
-                                                title={isPinned ? 'Unpin' : 'Pin to panel'}
+                                                title={isPinned ? ja['ui.unpin'] : ja['ui.pinToPanel']}
                                             >
                                                 <Pin size={10} />
                                             </button>
@@ -358,9 +364,9 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
 
 export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     type: 'DIAGRAM',
-    title: 'Diagram',
+    title: ja['card.diagram.title'],
     icon: BarChart2,
-    description: 'M/Q distribution diagram from BEAM or BEAM_MULTI.',
+    description: ja['card.diagram.description'],
 
     defaultInputs: {
         diagramModel: { value: '' },
@@ -368,7 +374,7 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     inputConfig: {
-        diagramModel: { label: 'Diagram Model', unitType: 'none' },
+        diagramModel: { label: ja['card.diagram.inputs.diagramModel'], unitType: 'none' },
     },
 
     outputConfig: {},

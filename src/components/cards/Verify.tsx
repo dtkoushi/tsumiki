@@ -3,6 +3,7 @@ import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
+import { ja } from '../../lib/i18n/ja';
 
 // --- UI Component ---
 
@@ -50,9 +51,9 @@ interface VerifyOutputs {
 
 export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
     type: 'VERIFY',
-    title: 'Verify',
+    title: ja['card.verify.title'],
     icon: CheckCircle2,
-    description: 'Check value against allowable (ratio = |value| / allowable).',
+    description: ja['card.verify.description'],
 
     defaultInputs: {
         value: { value: 0 },
@@ -69,13 +70,13 @@ export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
     },
 
     inputConfig: {
-        value: { label: 'Value', unitType: 'none' },
-        allowable: { label: 'Allowable', unitType: 'none' },
+        value: { label: ja['card.verify.inputs.value'], unitType: 'none' },
+        allowable: { label: ja['card.verify.inputs.allowable'], unitType: 'none' },
     },
     outputConfig: {
-        ratio: { label: 'Ratio', unitType: 'ratio' },
-        margin: { label: 'Margin', unitType: 'ratio' },
-        isOk: { label: 'Status', unitType: 'none' },
+        ratio: { label: ja['card.verify.outputs.ratio'], unitType: 'ratio' },
+        margin: { label: ja['card.verify.outputs.margin'], unitType: 'ratio' },
+        isOk: { label: ja['card.verify.outputs.status'], unitType: 'none' },
     },
     visualization: VerifyUI,
 });

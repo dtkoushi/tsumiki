@@ -14,6 +14,7 @@ import { serializeProject, deserializeProject, compressToUrl } from '../../lib/u
 import { toast } from '../common/toast';
 import { Button } from '../common/Button';
 import { CardNavigator } from '../stack/CardNavigator';
+import { ja } from '../../lib/i18n/ja';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -48,16 +49,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             const text = event.target?.result as string;
             const data = deserializeProject(text);
             if (data) {
-                if (confirm('Load project? Current unsaved changes will be lost.')) {
+                if (confirm(ja['toast.loadConfirm'])) {
                     loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? []);
                 }
             } else {
-                toast('Failed to load project. Invalid file format.', 'error');
+                toast(ja['toast.importFailed'], 'error');
             }
             // Reset input
             if (fileInputRef.current) fileInputRef.current.value = '';
         };
-        reader.onerror = () => toast('Failed to read file', 'error');
+        reader.onerror = () => toast(ja['toast.readFailed'], 'error');
         reader.readAsText(file);
     };
 
@@ -65,21 +66,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         const hash = compressToUrl(meta, cards, pinnedOutputs);
         const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
         navigator.clipboard.writeText(url)
-            .then(() => toast('Link copied to clipboard!', 'success'))
-            .catch(() => toast('Failed to copy link', 'error'));
+            .then(() => toast(ja['toast.linkCopied'], 'success'))
+            .catch(() => toast(ja['toast.linkFailed'], 'error'));
     };
 
 
     const cardTypes: { type: CardType; label: string; desc: string }[] = [
-        { type: 'SECTION', label: 'Section', desc: 'Define cross-section geometry (rectangle, H-beam, circle)' },
-        { type: 'MATERIAL', label: 'Material', desc: 'Set steel grade and elastic modulus (JIS)' },
-        { type: 'BEAM', label: 'Beam', desc: 'Compute deflection, shear, and bending moment' },
-        { type: 'VERIFY', label: 'Verify', desc: 'Check stress ratio against allowable capacity' },
-        { type: 'CUSTOM_MAP',     label: 'Custom Map',     desc: 'Apply formula to each x row → y_1, y_2, …' },
-        { type: 'CUSTOM_COMBINE', label: 'Custom Combine', desc: 'Combine x_1, x_2, … with a formula → single result' },
-        { type: 'COUPLE', label: '偶力変換', desc: 'Convert bending moment to linearly distributed couple forces' },
-        { type: 'BEAM_MULTI', label: 'Beam (Multi)', desc: 'Superposition of multiple loads on a simply supported beam' },
-        { type: 'DIAGRAM', label: 'Diagram', desc: 'M/Q distribution diagram and values at check locations' },
+        { type: 'SECTION',        label: ja['card.section.title'],       desc: ja['card.section.description'] },
+        { type: 'MATERIAL',       label: ja['card.material.title'],      desc: ja['card.material.description'] },
+        { type: 'BEAM',           label: ja['card.beam.title'],          desc: ja['card.beam.description'] },
+        { type: 'VERIFY',         label: ja['card.verify.title'],        desc: ja['card.verify.description'] },
+        { type: 'CUSTOM_MAP',     label: ja['card.custom.title.map'],    desc: ja['card.custom.description.map'] },
+        { type: 'CUSTOM_COMBINE', label: ja['card.custom.title.combine'],desc: ja['card.custom.description.combine'] },
+        { type: 'COUPLE',         label: ja['card.couple.title'],        desc: ja['card.couple.description'] },
+        { type: 'BEAM_MULTI',     label: ja['card.beamMulti.title'],     desc: ja['card.beamMulti.description'] },
+        { type: 'DIAGRAM',        label: ja['card.diagram.title'],       desc: ja['card.diagram.description'] },
     ];
 
     return (
@@ -92,13 +93,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     </div>
                     <div>
                         <h1 className="font-bold text-lg leading-tight tracking-tight">Tsumiki</h1>
-                        <p className="text-[10px] text-slate-400 font-medium">Structural Stack</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{ja['app.subtitle']}</p>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
                     <div>
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Components</h3>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">{ja['ui.components']}</h3>
                         <div className="grid gap-2">
                             {cardTypes.map((item) => (
                                 <button
@@ -119,10 +120,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     </div>
 
                     <div>
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Project Info</h3>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">{ja['ui.projectInfo']}</h3>
                         <div className="px-1">
                             <div className="text-sm font-medium text-slate-700">{meta.title}</div>
-                            <div className="text-xs text-slate-500">by {meta.author}</div>
+                            <div className="text-xs text-slate-500">{ja['ui.author']}{meta.author}</div>
                         </div>
                     </div>
                 </div>
@@ -137,9 +138,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
                 <header className="h-14 bg-white/80 backdrop-blur-sm border-b border-slate-200 flex items-center px-6 justify-between shrink-0 z-10 sticky top-0">
                     <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span className="font-medium text-slate-900">Workspace</span>
+                        <span className="font-medium text-slate-900">{ja['ui.workspace']}</span>
                         <span>/</span>
-                        <span>My Analysis</span>
+                        <span>{meta.title}</span>
                     </div>
                     <div className="flex gap-2">
                         <input
@@ -150,20 +151,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             className="hidden"
                         />
                         <Button onClick={handleImportClick} leftIcon={<Upload size={14} />}>
-                            Import
+                            {ja['ui.import']}
                         </Button>
                         <Button onClick={handleExport} leftIcon={<Download size={14} />}>
-                            Export
+                            {ja['ui.export']}
                         </Button>
                         <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
-                            Share
+                            {ja['ui.share']}
                         </Button>
                         <Button
                             onClick={() => setShowNavigator(v => !v)}
                             leftIcon={<PanelRight size={14} />}
-                            title="Toggle card navigator"
+                            title={ja['ui.toggleNavigator']}
                         >
-                            Navigator
+                            {ja['ui.navigator']}
                         </Button>
                     </div>
                 </header>

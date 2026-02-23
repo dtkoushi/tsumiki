@@ -5,6 +5,7 @@ import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { formatOutput, type UnitMode } from '../../lib/utils/unitFormatter';
 import { resolveInput } from '../../lib/utils/cardHelpers';
+import { ja } from '../../lib/i18n/ja';
 
 // ─── SVG Visualization ────────────────────────────────────────────────────────
 //
@@ -168,9 +169,9 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
 
 export const CoupleCardDef = createCardDefinition({
     type: 'COUPLE',
-    title: '偶力変換',
+    title: ja['card.couple.title'],
     icon: Layers,
-    description: '曲げモーメントを偶力に変換する。各 d_i ごとに +d_i に +N_i、−d_i に −N_i が生じる（N_i × 2d_i の和 = M）。',
+    description: ja['card.couple.description'],
 
     // d_i: NA からの距離（正値）。+d_i に +Ni、-d_i に -Ni が自動で生じる。
     defaultInputs: {
@@ -180,23 +181,24 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     inputConfig: {
-        M: { label: '曲げモーメント M', unitType: 'moment' },
+        M: { label: ja['card.couple.inputs.moment'], unitType: 'moment' },
     },
 
     outputConfig: {
-        k: { label: '比例係数 k', unitType: 'load' },
+        k: { label: ja['card.couple.outputs.k'], unitType: 'load' },
     },
 
     dynamicInputGroup: {
         keyPrefix:      'd',
-        inputLabel:     '距離 d（NA から）',
+        inputLabel:     ja['card.couple.inputs.distance'],
+        rowLabel:       ja['card.couple.dynamicRow.label'],
         inputUnitType:  'length',
         outputKeyFn:    (key) => `n_${key.split('_')[1]}`,
-        outputLabel:    '偶力 N',
+        outputLabel:    ja['card.couple.outputs.forceN'],
         outputUnitType: 'force',
         defaultValue:   300,
         minCount:       1,
-        addLabel:       '追加',
+        addLabel:       ja['card.couple.addLabel'],
         outputIndexFn:  (key) => { const m = key.match(/^n_(\d+)$/); return m ? m[1] : null; },
     },
 
