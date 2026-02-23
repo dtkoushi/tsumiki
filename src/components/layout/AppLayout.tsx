@@ -75,12 +75,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         { type: 'SECTION',        label: ja['card.section.title'],       desc: ja['card.section.description'] },
         { type: 'MATERIAL',       label: ja['card.material.title'],      desc: ja['card.material.description'] },
         { type: 'BEAM',           label: ja['card.beam.title'],          desc: ja['card.beam.description'] },
+        { type: 'BEAM_MULTI',     label: ja['card.beamMulti.title'],     desc: ja['card.beamMulti.description'] },
+        { type: 'STRESS',         label: ja['card.stress.title'],        desc: ja['card.stress.description'] },
+        { type: 'DEFLECTION',     label: ja['card.deflection.title'],    desc: ja['card.deflection.description'] },
+        { type: 'COLUMN',         label: ja['card.column.title'],        desc: ja['card.column.description'] },
         { type: 'VERIFY',         label: ja['card.verify.title'],        desc: ja['card.verify.description'] },
+        { type: 'DIAGRAM',        label: ja['card.diagram.title'],       desc: ja['card.diagram.description'] },
         { type: 'CUSTOM_MAP',     label: ja['card.custom.title.map'],    desc: ja['card.custom.description.map'] },
         { type: 'CUSTOM_COMBINE', label: ja['card.custom.title.combine'],desc: ja['card.custom.description.combine'] },
         { type: 'COUPLE',         label: ja['card.couple.title'],        desc: ja['card.couple.description'] },
-        { type: 'BEAM_MULTI',     label: ja['card.beamMulti.title'],     desc: ja['card.beamMulti.description'] },
-        { type: 'DIAGRAM',        label: ja['card.diagram.title'],       desc: ja['card.diagram.description'] },
     ];
 
     return (

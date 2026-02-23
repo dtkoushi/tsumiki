@@ -149,6 +149,47 @@ export const ja = {
     'card.diagram.checkLocations.rowLabel': '位置',
     'card.diagram.addLocation': '位置追加',
     'card.diagram.noModel': 'Beam または Beam(Multi) の diagramModel を参照してください',
+
+    // ── Card: Stress ──────────────────────────────────────────────────────────
+    'card.stress.title': '断面応力',
+    'card.stress.description': '曲げ応力・せん断応力・合成応力を計算します。',
+    'card.stress.inputs.M': '曲げモーメント (M)',
+    'card.stress.inputs.V': 'せん断力 (V)',
+    'card.stress.inputs.Z': '断面係数 (Z)',
+    'card.stress.inputs.A': '断面積 (A)',
+    'card.stress.outputs.sigma_b': '曲げ応力 (σ_b)',
+    'card.stress.outputs.tau': 'せん断応力 (τ)',
+    'card.stress.outputs.sigma_eq': '合成応力 (σ_eq)',
+
+    // ── Card: Deflection ──────────────────────────────────────────────────────
+    'card.deflection.title': 'たわみ',
+    'card.deflection.description': 'はりの最大たわみと許容たわみを計算します。',
+    'card.deflection.inputs.diagramModel': '応力図モデル',
+    'card.deflection.inputs.E': 'ヤング率 (E)',
+    'card.deflection.inputs.I': '断面二次モーメント (I)',
+    'card.deflection.inputs.n_allow': '許容たわみ分母 (n)',
+    'card.deflection.outputs.delta_max': '最大たわみ (δ_max)',
+    'card.deflection.outputs.delta_allow': '許容たわみ (δ_allow)',
+    'card.deflection.outputs.ratio': 'たわみ比',
+    'card.deflection.noModel': 'Beam または Beam(Multi) の diagramModel を参照してください',
+
+    // ── Card: Column ──────────────────────────────────────────────────────────
+    'card.column.title': '柱・座屈',
+    'card.column.description': '細長比・オイラー座屈荷重・座屈応力を計算します。',
+    'card.column.axis.endCondition': '端末条件',
+    'card.column.endCondition.pinned_pinned': '両端ピン (k=1.0)',
+    'card.column.endCondition.fixed_free': '固定-自由 (k=2.0)',
+    'card.column.endCondition.fixed_pinned': '固定-ピン (k=0.7)',
+    'card.column.endCondition.fixed_fixed': '両端固定 (k=0.5)',
+    'card.column.inputs.L': '部材長さ (L)',
+    'card.column.inputs.E': 'ヤング率 (E)',
+    'card.column.inputs.A': '断面積 (A)',
+    'card.column.inputs.I': '断面二次モーメント (I)',
+    'card.column.outputs.Le': '有効座屈長 (Le)',
+    'card.column.outputs.i_gyration': '断面二次半径 (i)',
+    'card.column.outputs.lambda': '細長比 (λ)',
+    'card.column.outputs.N_cr': '座屈荷重 (Ncr)',
+    'card.column.outputs.sigma_cr': '座屈応力 (σ_cr)',
 } as const;
 
 export type JaKey = keyof typeof ja;

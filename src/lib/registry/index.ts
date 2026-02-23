@@ -7,6 +7,9 @@ import { CustomMapDef, CustomCombineDef } from '../../components/cards/Custom';
 import { CoupleCardDef } from '../../components/cards/Couple';
 import { BeamMultiCardDef } from '../../components/cards/BeamMulti';
 import { DiagramCardDef } from '../../components/cards/Diagram';
+import { StressCardDef } from '../../components/cards/Stress';
+import { DeflectionCardDef } from '../../components/cards/Deflection';
+import { ColumnCardDef } from '../../components/cards/Column';
 
 
 class CardRegistry {
@@ -40,6 +43,9 @@ registry.register(CustomCombineDef);
 registry.register(CoupleCardDef);
 registry.register(BeamMultiCardDef);
 registry.register(DiagramCardDef);
+registry.register(StressCardDef);
+registry.register(DeflectionCardDef);
+registry.register(ColumnCardDef);
 
 // Make types available
 export type { CardDefinition } from './types';
