@@ -254,7 +254,9 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                                     />
                                 );
                             })}
-                            {def.dynamicInputGroup && (() => {
+                            {def.dynamicInputGroup &&
+                             (!def.dynamicInputGroup.showOutputFn || def.dynamicInputGroup.showOutputFn(card)) &&
+                             (() => {
                                 const { keyPrefix, outputKeyFn, outputLabel, outputUnitType } = def.dynamicInputGroup;
                                 const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
                                 const inputKeys = Object.keys(card.inputs)

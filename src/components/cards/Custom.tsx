@@ -1,150 +1,138 @@
 
-import React, { useState, useEffect } from 'react';
-import { Calculator, X, Plus } from 'lucide-react';
+import React from 'react';
+import { Calculator, Link } from 'lucide-react';
 import { all, create } from 'mathjs';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 
-// Initialize mathjs
 const math = create(all, {});
 
-// --- UI Component ---
+// ─── 共有: Formula テキストエリア（visualization スロット）───────────────────
 
-const CustomUI: React.FC<CardComponentProps> = ({ card, actions }) => {
-    // Local state for variable management
-    const [variables, setVariables] = useState<string[]>([]);
-    const [formula, setFormula] = useState(card.inputs['formula']?.value || '');
+const FormulaView: React.FC<CardComponentProps> = ({ card, actions }) => (
+    <div className="w-full p-3 flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Formula{' '}
+            <span className="font-normal normal-case text-slate-400">
+                （変数: x, x_1, x_2, …）
+            </span>
+        </label>
+        <textarea
+            className="w-full bg-white border border-slate-200 rounded p-2 text-sm font-mono
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                       resize-none h-16"
+            value={card.inputs['formula']?.value || ''}
+            onChange={e => actions.updateInput(card.id, 'formula', e.target.value)}
+            placeholder="例: x^2 + 1  /  sqrt(x)  /  x_1 + x_2"
+        />
+    </div>
+);
 
-    // Initialize variables from inputs on mount
-    useEffect(() => {
-        const inputKeys = Object.keys(card.inputs).filter(k => k !== 'formula');
-        setVariables(inputKeys);
-        setFormula(card.inputs['formula']?.value || '');
-    }, [card.id]); // Only runs on mount or id change, not on input changes to avoid loop
+// ─── CUSTOM_MAP: 各行の x に formula を適用 → y_1, y_2, … ────────────────────
 
-    // But we need to sync formula when it changes from outside or initial load
-    useEffect(() => {
-        if (card.inputs['formula']?.value !== formula) {
-            setFormula(card.inputs['formula']?.value || '');
-        }
-    }, [card.inputs['formula']?.value]);
-
-    const handleAddVariable = () => {
-        const newVar = prompt('Enter variable name (e.g. x, y, width):');
-        if (newVar && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(newVar)) {
-            if (!variables.includes(newVar)) {
-                const newVars = [...variables, newVar];
-                setVariables(newVars);
-                actions.updateInput(card.id, newVar, 0); // Initialize with 0
-            }
-        }
-    };
-
-    const handleRemoveVariable = (key: string) => {
-        setVariables(prev => prev.filter(v => v !== key));
-        actions.removeInput(card.id, key);
-    };
-
-    const handleFormulaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newVal = e.target.value;
-        setFormula(newVal);
-        actions.updateInput(card.id, 'formula', newVal);
-    };
-
-    return (
-        <div className="w-full h-full p-4 flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Formula</label>
-                <textarea
-                    className="w-full bg-slate-50 border border-slate-200 rounded p-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none h-20"
-                    value={formula}
-                    onChange={handleFormulaChange}
-                    placeholder="e.g. a * b + 10"
-                />
-            </div>
-
-            <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Variables</label>
-                    <button
-                        onClick={handleAddVariable}
-                        className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                    >
-                        <Plus size={12} /> Add
-                    </button>
-                </div>
-
-                <div className="space-y-2">
-                    {variables.map(key => (
-                        <div key={key} className="flex items-center gap-2">
-                            <span className="font-mono text-xs text-slate-500 w-12 truncate" title={key}>{key}</span>
-                            <input
-                                type="number"
-                                className="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-right text-sm focus:outline-none focus:border-blue-500"
-                                value={card.inputs[key]?.value || 0}
-                                onChange={(e) => actions.updateInput(card.id, key, parseFloat(e.target.value))}
-                            />
-                            <button onClick={() => handleRemoveVariable(key)} className="text-slate-400 hover:text-rose-500">
-                                <X size={14} />
-                            </button>
-                        </div>
-                    ))}
-                    {variables.length === 0 && (
-                        <div className="text-xs text-slate-400 italic text-center py-2">No variables defined</div>
-                    )}
-                </div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 mt-auto">
-                <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500">Result</span>
-                    <span className="font-mono text-lg font-bold text-emerald-500">
-                        {card.outputs['result']?.toFixed(2) ?? '---'}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --- Definition ---
-
-export const CustomCardDef = createCardDefinition({
-    type: 'CUSTOM',
-    title: 'Custom Formula',
+export const CustomMapDef = createCardDefinition({
+    type: 'CUSTOM_MAP',
+    title: 'Custom Map',
     icon: Calculator,
-    description: 'Define your own variables and formula.',
+    description: '各行の x に formula を適用 → y_1, y_2, … を出力。sqrt(x), x^2 など1変数変換向け。',
+
     defaultInputs: {
-        formula: { value: 'a + b' },
-        a: { value: 1 },
-        b: { value: 2 },
+        formula: { value: 'x + 1' },
+        x_1: { value: 0 },
+        x_2: { value: 1 },
     },
-    // Custom logic for calculation using mathjs
+
+    inputConfig: {},
+    outputConfig: {},
+
+    dynamicInputGroup: {
+        keyPrefix:      'x',
+        inputLabel:     '変数 x',
+        inputUnitType:  'none',
+        outputKeyFn:    (key) => `y_${key.split('_')[1]}`,
+        outputLabel:    '結果 y',
+        outputUnitType: 'none',
+        defaultValue:   0,
+        minCount:       1,
+        addLabel:       '追加',
+        outputIndexFn:  (key) => { const m = key.match(/^y_(\d+)$/); return m ? m[1] : null; },
+        // showOutputFn 省略 → 常に y_i 行を表示（デフォルト挙動）
+    },
+
     calculate: (inputs, rawInputs) => {
+        const formula = rawInputs?.['formula']?.value;
+        if (typeof formula !== 'string' || !formula.trim()) return {};
+
+        const allX: Record<string, number> = {};
+        Object.entries(inputs)
+            .filter(([k]) => /^x_\d+$/.test(k))
+            .forEach(([k, v]) => { allX[k] = v as number; });
+
+        const outputs: Record<string, number> = {};
+        Object.entries(allX)
+            .sort(([a], [b]) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]))
+            .forEach(([key, xVal]) => {
+                const idx = key.split('_')[1];
+                try {
+                    const r = math.evaluate(formula, { x: xVal, ...allX });
+                    outputs[`y_${idx}`] = typeof r === 'number' && !isNaN(r) ? r : Number(r);
+                } catch { outputs[`y_${idx}`] = 0; }
+            });
+        return outputs;
+    },
+
+    visualization: FormulaView,
+});
+
+// ─── CUSTOM_COMBINE: 複数変数 x_1, x_2, … を formula で合成 → 単一 result ───
+
+export const CustomCombineDef = createCardDefinition({
+    type: 'CUSTOM_COMBINE',
+    title: 'Custom Combine',
+    icon: Link,
+    description: 'x_1, x_2, … を formula で合成し単一 result を出力。x_1 + x_2, x_1 * x_2 + 3 など多変数演算向け。',
+
+    defaultInputs: {
+        formula: { value: 'x_1 + x_2' },
+        x_1: { value: 0 },
+        x_2: { value: 1 },
+    },
+
+    inputConfig: {},
+
+    outputConfig: {
+        result: { label: '結果', unitType: 'none' },
+    },
+
+    dynamicInputGroup: {
+        keyPrefix:      'x',
+        inputLabel:     '変数 x',
+        inputUnitType:  'none',
+        outputKeyFn:    (key) => `y_${key.split('_')[1]}`,  // 使われないが型要件
+        outputLabel:    '結果 y',
+        outputUnitType: 'none',
+        defaultValue:   0,
+        minCount:       1,
+        addLabel:       '追加',
+        showOutputFn:   () => false,   // y_i 出力行を Results に表示しない
+    },
+
+    calculate: (inputs, rawInputs) => {
+        const formula = rawInputs?.['formula']?.value;
+        if (typeof formula !== 'string' || !formula.trim()) return { result: 0 };
+
+        const allX: Record<string, number> = {};
+        Object.entries(inputs)
+            .filter(([k]) => /^x_\d+$/.test(k))
+            .forEach(([k, v]) => { allX[k] = v as number; });
+
         try {
-            const formula = rawInputs?.['formula']?.value;
-            if (typeof formula !== 'string' || !formula) return {};
-
-            // Evaluate formula with inputs
-            const result = math.evaluate(formula, inputs);
-
-            // If result is valid number
-            if (typeof result === 'number' && !isNaN(result)) {
-                return { result };
-            } else if (typeof result === 'object') {
-                const outputs: Record<string, number> = {};
-                Object.entries(result).forEach(([k, v]) => {
-                    if (typeof v === 'number') outputs[k] = v;
-                });
-                return outputs;
-            }
-
-            return { result: Number(result) };
-        } catch (e) {
+            const r = math.evaluate(formula, allX);
+            return { result: typeof r === 'number' && !isNaN(r) ? r : Number(r) };
+        } catch {
             return { result: 0 };
         }
     },
-    inputConfig: {}, // Handled in Visualization
-    outputConfig: {}, // Handled in Visualization
-    visualization: CustomUI,
+
+    visualization: FormulaView,
 });
