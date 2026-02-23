@@ -93,7 +93,7 @@ const DynamicGroupSection = ({
                 return (
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                         <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
-                            {keyPrefix}{idx}
+                            {keyPrefix}_{idx}
                             <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>
                         </span>
                         <div className="flex items-center gap-1">
