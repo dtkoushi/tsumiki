@@ -12,6 +12,7 @@ interface SmartInputProps {
     card: Card; // Need the card itself to access inputs
     actions: CardActions;
     upstreamCards: Card[];
+    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>;
     placeholder?: string;
     className?: string;
     unitMode?: 'mm' | 'm';
@@ -24,6 +25,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     card,
     actions,
     upstreamCards,
+    upstreamInputConfigs,
     placeholder,
     className,
     unitMode = 'mm',
@@ -51,7 +53,12 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     const getDisplayValue = () => {
         if (isReferencing) {
             if (!referencedCard) return '';
-            const val = referencedCard.outputs[input.ref!.outputKey];
+            const ref = input.ref!;
+            if (ref.refType === 'input' && ref.inputKey) {
+                const val = referencedCard.resolvedInputs?.[ref.inputKey];
+                return typeof val === 'number' ? formatOutput(val, inputType as any, unitMode) : '-';
+            }
+            const val = referencedCard.outputs[ref.outputKey ?? ''];
             if (typeof val !== 'number') return '[Model]';
             return formatOutput(val, inputType as any, unitMode);
         }
@@ -90,6 +97,11 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     const handleSelectReference = (targetCard: Card, outputKey: string) => {
         actions.setReference(cardId, inputKey, targetCard.id, outputKey);
+        setIsPickerOpen(false);
+    };
+
+    const handleSelectInputReference = (targetCard: Card, targetInputKey: string) => {
+        actions.setInputReference(cardId, inputKey, targetCard.id, targetInputKey);
         setIsPickerOpen(false);
     };
 
@@ -138,7 +150,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
                                 <Link2 size={8} className="text-blue-200 shrink-0" />
                                 <span className="font-mono max-w-[150px] truncate relative z-10">
-                                    {referencedCard?.alias || '?'}.{input.ref!.outputKey}
+                                    {referencedCard?.alias || '?'}.{input.ref!.refType === 'input' ? `inputs.${input.ref!.inputKey}` : input.ref!.outputKey}
                                 </span>
                             </div>
                         </div>
@@ -153,7 +165,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                             ? "text-blue-500 hover:text-red-500 border-blue-200 bg-blue-50"
                             : "border-slate-200 bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
                     )}
-                    title={isReferencing ? `${referencedCard?.alias || '?'}.${input.ref!.outputKey} ${ja['ui.linkedInfo']}` : ja['ui.linkToVariable']}
+                    title={isReferencing
+                        ? `${referencedCard?.alias || '?'}.${input.ref!.refType === 'input' ? `inputs.${input.ref!.inputKey}` : input.ref!.outputKey} ${ja['ui.linkedInfo']}`
+                        : ja['ui.linkToVariable']}
                 >
                     {isReferencing ? <Unlink size={14} /> : <Link2 size={14} />}
                 </button>
@@ -178,7 +192,12 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                         <div className="p-1">
                             {upstreamCards.map(c => {
                                 const outputs = Object.entries(c.outputs);
-                                if (outputs.length === 0) return null;
+                                const inputCfgs = upstreamInputConfigs?.get(c.id) ?? {};
+                                const inputEntries = Object.entries(inputCfgs).filter(([key]) => {
+                                    const val = c.resolvedInputs?.[key];
+                                    return typeof val === 'number' && isFinite(val);
+                                });
+                                if (outputs.length === 0 && inputEntries.length === 0) return null;
 
                                 return (
                                     <div key={c.id} className="mb-1">
@@ -186,22 +205,59 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                                             <span className="text-[10px] bg-slate-200 rounded px-1 text-slate-500">{c.type}</span>
                                             {c.alias}
                                         </div>
-                                        <div className="pl-2">
-                                            {outputs.map(([key, val]) => (
-                                                <button
-                                                    key={key}
-                                                    onClick={() => handleSelectReference(c, key)}
-                                                    className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 rounded transition-colors group"
-                                                >
-                                                    <span className="font-mono text-slate-600 group-hover:text-blue-700">{key}</span>
-                                                    <span className="text-slate-400 group-hover:text-blue-500">
-                                                        {typeof val === 'number'
-                                                            ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                                                            : (typeof val === 'object' ? '[Model]' : val)}
-                                                    </span>
-                                                </button>
-                                            ))}
-                                        </div>
+
+                                        {/* 出力値セクション */}
+                                        {outputs.length > 0 && (
+                                            <>
+                                                <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                                                    {ja['ui.picker.outputs']}
+                                                </div>
+                                                <div className="pl-2">
+                                                    {outputs.map(([key, val]) => (
+                                                        <button
+                                                            key={key}
+                                                            onClick={() => handleSelectReference(c, key)}
+                                                            className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 rounded transition-colors group"
+                                                        >
+                                                            <span className="font-mono text-slate-600 group-hover:text-blue-700">{key}</span>
+                                                            <span className="text-slate-400 group-hover:text-blue-500">
+                                                                {typeof val === 'number'
+                                                                    ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                    : (typeof val === 'object' ? '[Model]' : val)}
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* 入力値セクション */}
+                                        {inputEntries.length > 0 && (
+                                            <>
+                                                <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                                                    {ja['ui.picker.inputs']}
+                                                </div>
+                                                <div className="pl-2">
+                                                    {inputEntries.map(([key]) => {
+                                                        const val = c.resolvedInputs?.[key];
+                                                        return (
+                                                            <button
+                                                                key={key}
+                                                                onClick={() => handleSelectInputReference(c, key)}
+                                                                className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-emerald-50 hover:text-emerald-700 rounded transition-colors group"
+                                                            >
+                                                                <span className="font-mono text-slate-600 group-hover:text-emerald-700">{key}</span>
+                                                                <span className="text-slate-400 group-hover:text-emerald-500">
+                                                                    {typeof val === 'number'
+                                                                        ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                        : '-'}
+                                                                </span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 );
                             })}

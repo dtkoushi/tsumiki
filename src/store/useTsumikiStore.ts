@@ -25,6 +25,7 @@ interface TsumikiState {
     updateCardAlias: (id: string, alias: string) => void;
     updateInput: (cardId: string, inputKey: string, value: string | number) => void;
     setInputRef: (cardId: string, inputKey: string, refCardId: string, refOutputKey: string) => void;
+    setInputInputRef: (cardId: string, inputKey: string, targetCardId: string, targetInputKey: string) => void;
     removeReference: (cardId: string, inputKey: string) => void;
     removeInput: (cardId: string, inputKey: string) => void;
     updateCardPosition: (id: string, x: number, y: number) => void;
@@ -53,10 +54,10 @@ const recalculateAll = (cards: Card[]): Card[] => {
         const def = registry.get(card.type);
         let outputs: Record<string, number> = {};
         let error: string | undefined;
+        let resolvedInputs: Record<string, number> = {};
 
         if (def && def.calculate) {
             // Resolve inputs using config to support defaults
-            const resolvedInputs: Record<string, number> = {};
 
             // Get dynamic config if available
             const dynamicConfig = def.getInputConfig ? def.getInputConfig(card) : {};
@@ -67,7 +68,11 @@ const recalculateAll = (cards: Card[]): Card[] => {
                 const input = card.inputs[key];
                 if (input && input.ref) {
                     const sourceCard = updatedCardsMap.get(input.ref.cardId);
-                    resolvedInputs[key] = sourceCard?.outputs[input.ref.outputKey] ?? 0;
+                    if (input.ref.refType === 'input' && input.ref.inputKey) {
+                        resolvedInputs[key] = sourceCard?.resolvedInputs?.[input.ref.inputKey] ?? 0;
+                    } else {
+                        resolvedInputs[key] = sourceCard?.outputs[input.ref.outputKey ?? ''] ?? 0;
+                    }
                 } else if (input && input.value !== undefined && input.value !== '') {
                     const val = parseFloat(String(input.value));
                     resolvedInputs[key] = isNaN(val) ? 0 : val;
@@ -84,7 +89,11 @@ const recalculateAll = (cards: Card[]): Card[] => {
 
                 if (input.ref) {
                     const sourceCard = updatedCardsMap.get(input.ref.cardId);
-                    resolvedInputs[key] = sourceCard?.outputs[input.ref.outputKey] ?? 0;
+                    if (input.ref.refType === 'input' && input.ref.inputKey) {
+                        resolvedInputs[key] = sourceCard?.resolvedInputs?.[input.ref.inputKey] ?? 0;
+                    } else {
+                        resolvedInputs[key] = sourceCard?.outputs[input.ref.outputKey ?? ''] ?? 0;
+                    }
                 } else {
                     const val = parseFloat(String(input.value));
                     resolvedInputs[key] = isNaN(val) ? 0 : val;
@@ -101,7 +110,7 @@ const recalculateAll = (cards: Card[]): Card[] => {
             }
         }
 
-        updatedCardsMap.set(id, { ...card, outputs, error });
+        updatedCardsMap.set(id, { ...card, outputs, error, resolvedInputs });
     });
 
     return cards.map(c => updatedCardsMap.get(c.id)!);
@@ -194,6 +203,23 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
                 inputs: {
                     ...c.inputs,
                     [inputKey]: { value: '', ref: { cardId: targetCardId, outputKey: targetOutputKey } },
+                },
+            };
+        });
+        return { cards: recalculateAll(newCards) };
+    }),
+
+    setInputInputRef: (cardId, inputKey, targetCardId, targetInputKey) => set((state) => {
+        const newCards = state.cards.map((c) => {
+            if (c.id !== cardId) return c;
+            return {
+                ...c,
+                inputs: {
+                    ...c.inputs,
+                    [inputKey]: {
+                        value: '',
+                        ref: { cardId: targetCardId, refType: 'input' as const, inputKey: targetInputKey },
+                    },
                 },
             };
         });

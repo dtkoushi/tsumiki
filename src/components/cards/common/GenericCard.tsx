@@ -34,7 +34,15 @@ const SelectInput = ({ name, config, card, actions }: { name: string, config: an
     </div>
 );
 
-const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { name: string, config: any, card: any, actions: any, upstreamCards: any, unitMode: UnitMode }) => {
+const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstreamInputConfigs }: {
+    name: string;
+    config: any;
+    card: any;
+    actions: any;
+    upstreamCards: any;
+    unitMode: UnitMode;
+    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>;
+}) => {
     const unitLabel = config.unitType ? getUnitLabel(config.unitType, unitMode) : '';
     return (
         <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
@@ -49,6 +57,7 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { na
                     card={card}
                     actions={actions}
                     upstreamCards={upstreamCards}
+                    upstreamInputConfigs={upstreamInputConfigs}
                     placeholder={unitLabel ? '0' : ''}
                     unitMode={unitMode}
                     inputType={config.unitType as any}
@@ -59,13 +68,14 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode }: { na
 };
 
 const DynamicGroupSection = ({
-    config, card, actions, upstreamCards, unitMode
+    config, card, actions, upstreamCards, unitMode, upstreamInputConfigs
 }: {
     config: DynamicInputGroupConfig;
     card: Card;
     actions: CardActions;
     upstreamCards: Card[];
     unitMode: UnitMode;
+    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>;
 }) => {
     const { keyPrefix, inputLabel, inputUnitType, rowLabel, defaultValue = 0, minCount = 1, addLabel = '追加' } = config;
 
@@ -113,6 +123,7 @@ const DynamicGroupSection = ({
                                     card={card}
                                     actions={actions}
                                     upstreamCards={upstreamCards}
+                                    upstreamInputConfigs={upstreamInputConfigs}
                                     inputType={inputUnitType as any}
                                     unitMode={unitMode}
                                     placeholder="0"
@@ -172,7 +183,7 @@ const OutputRow = ({
     </div>
 );
 
-const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
+const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const pinnedOutputs = useTsumikiStore(state => state.pinnedOutputs);
     const pinOutput = useTsumikiStore(state => state.pinOutput);
     const unpinOutput = useTsumikiStore(state => state.unpinOutput);
@@ -210,7 +221,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                         <div className="space-y-2">
                             {standardInputs.map(([key, config]) => {
                                 if (def.shouldRenderInput && !def.shouldRenderInput(card, key)) return null;
-                                return <InputRow key={key} name={key} config={config} card={card} actions={actions} upstreamCards={upstreamCards} unitMode={unitMode} />;
+                                return <InputRow key={key} name={key} config={config} card={card} actions={actions} upstreamCards={upstreamCards} unitMode={unitMode} upstreamInputConfigs={upstreamInputConfigs} />;
                             })}
                         </div>
                     </div>
@@ -224,6 +235,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                         actions={actions}
                         upstreamCards={upstreamCards}
                         unitMode={unitMode}
+                        upstreamInputConfigs={upstreamInputConfigs}
                     />
                 )}
 

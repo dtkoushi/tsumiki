@@ -5,6 +5,7 @@ import type { Card } from '../../types';
 export interface CardActions {
     updateInput: (cardId: string, key: string, value: any) => void;
     setReference: (cardId: string, inputKey: string, sourceCardId: string, outputKey: string) => void;
+    setInputReference: (cardId: string, inputKey: string, sourceCardId: string, sourceInputKey: string) => void;
     removeReference: (cardId: string, inputKey: string) => void;
     removeInput: (cardId: string, inputKey: string) => void;
     updateCardUnit: (cardId: string, mode: 'mm' | 'm') => void;
@@ -14,6 +15,7 @@ export interface CardComponentProps {
     card: Card;
     actions: CardActions;
     upstreamCards: Card[]; // For reference picker
+    upstreamInputConfigs: Map<string, Record<string, { label: string; unitType?: import('../../lib/utils/unitFormatter').OutputUnitType }>>;
 }
 
 // TOutputs is the interface for the card's calculation results.

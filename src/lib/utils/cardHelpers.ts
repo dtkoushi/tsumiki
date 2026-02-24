@@ -6,7 +6,10 @@ export function resolveInput(card: Card, key: string, upstreamCards: Card[]): nu
     if (!inp) return 0;
     if (inp.ref) {
         const src = upstreamCards.find(c => c.id === inp.ref!.cardId);
-        return src?.outputs[inp.ref!.outputKey] ?? 0;
+        if (inp.ref.refType === 'input' && inp.ref.inputKey) {
+            return src?.resolvedInputs?.[inp.ref.inputKey] ?? 0;
+        }
+        return src?.outputs[inp.ref.outputKey ?? ''] ?? 0;
     }
     return Number(inp.value ?? 0);
 }
