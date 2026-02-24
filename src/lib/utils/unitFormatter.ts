@@ -8,6 +8,8 @@ export type OutputUnitType = 'length' | 'area' | 'inertia' | 'force' | 'moment' 
 // Multiply display value by this factor to get SI value (used in SmartInput)
 export const INPUT_FACTORS: Partial<Record<OutputUnitType, number>> = {
     length: 1000,
+    area: 1_000_000,
+    inertia: 1_000_000_000_000,
     force: 1000,
     moment: 1_000_000,
     modulus: 1_000_000_000,

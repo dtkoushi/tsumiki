@@ -3,7 +3,7 @@ import { Link2, Unlink } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Card } from '../../types';
 import type { CardActions } from '../../lib/registry/types';
-import { formatOutput, INPUT_FACTORS } from '../../lib/utils/unitFormatter';
+import { formatOutput, INPUT_FACTORS, type OutputUnitType } from '../../lib/utils/unitFormatter';
 import { ja } from '../../lib/i18n/ja';
 
 interface SmartInputProps {
@@ -15,7 +15,7 @@ interface SmartInputProps {
     placeholder?: string;
     className?: string;
     unitMode?: 'mm' | 'm';
-    inputType?: 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
+    inputType?: OutputUnitType;
 }
 
 export const SmartInput: React.FC<SmartInputProps> = ({

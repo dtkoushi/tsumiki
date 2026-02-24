@@ -332,3 +332,70 @@ export function evalDiagramAt(model: DiagramModel, x: number): BeamResult {
     }
     return calculateBeamAt(model as BeamModel, x);
 }
+
+// --- Deflection via numerical double integration ---
+
+/**
+ * Computes the deflection profile y(x) for a beam using numerical double
+ * integration of the M/EI curvature diagram (trapezoidal rule).
+ *
+ * Boundary conditions:
+ *   - cantilever:    y(0)=0, y'(0)=0  → forward integration
+ *   - simple/fixed_fixed/fixed_pinned: y(0)=0, y(L)=0 with linear correction
+ *     (M(x) for fixed ends already encodes y'(0)=0; correction ≈ 0 for those cases)
+ *
+ * Returns array of {x, y} points in mm.
+ */
+export function calculateDeflectionProfile(
+    model: DiagramModel,
+    EI: number,
+    N = 200,
+): { x: number; y: number }[] {
+    if (EI <= 0 || model.L <= 0) return [];
+
+    const L = model.L;
+    const boundary: BoundaryType =
+        'type' in model && model.type === 'multi'
+            ? model.boundary
+            : (model as BeamModel).boundary;
+
+    const dx = L / N;
+
+    // Curvature κ(x) = M(x) / EI
+    const kappa: number[] = [];
+    for (let i = 0; i <= N; i++) {
+        const { M } = evalDiagramAt(model, i * dx);
+        kappa.push(M / EI);
+    }
+
+    const ys: number[] = new Array(N + 1).fill(0);
+
+    if (boundary === 'cantilever') {
+        const slopes: number[] = new Array(N + 1).fill(0);
+        for (let i = 1; i <= N; i++) {
+            slopes[i] = slopes[i - 1] + (kappa[i - 1] + kappa[i]) / 2 * dx;
+            ys[i] = ys[i - 1] + (slopes[i - 1] + slopes[i]) / 2 * dx;
+        }
+    } else {
+        const sTemp: number[] = [0];
+        const yTemp: number[] = [0];
+        for (let i = 1; i <= N; i++) {
+            const s = sTemp[i - 1] + (kappa[i - 1] + kappa[i]) / 2 * dx;
+            sTemp.push(s);
+            yTemp.push(yTemp[i - 1] + (sTemp[i - 1] + s) / 2 * dx);
+        }
+        const C = -yTemp[N] / L;
+        for (let i = 0; i <= N; i++) {
+            ys[i] = yTemp[i] + C * i * dx;
+        }
+    }
+
+    return ys.map((y, i) => ({ x: i * dx, y }));
+}
+
+/** Returns the maximum absolute deflection (mm) for the given model and EI. */
+export function calculateMaxDeflection(model: DiagramModel, EI: number): number {
+    const profile = calculateDeflectionProfile(model, EI, 500);
+    if (profile.length === 0) return 0;
+    return Math.max(...profile.map(p => Math.abs(p.y)));
+}
