@@ -75,7 +75,7 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
         { x: L / 2, y: 0 },
     );
     const maxXpx = toXpx(maxPt.x);
-    const maxYpx = toYpx(maxPt.y); // lowest SVG y (largest value)
+    const maxYpx = toYpx(maxPt.y); // SVG y coordinate of the max deflection point
 
     // Labels placed between the marker dot and the beam line (always toward center)
     const labelDir = maxYpx < beamY ? 1 : -1; // +1 for upward deflection, -1 for downward
@@ -150,7 +150,7 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
                 {/* x=0 label */}
                 <text x={beamX0} y={beamY + 24} textAnchor="middle" fontSize="9" fill="#94a3b8">x=0</text>
 
-                {/* Max deflection marker — dashed vertical + dot, labels above the dot */}
+                {/* Max deflection marker — dashed vertical + dot, labels between dot and beam line */}
                 {absMax > 1e-10 && (
                     <g>
                         <line x1={maxXpx} y1={beamY} x2={maxXpx} y2={maxYpx}
@@ -269,7 +269,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             upstreamCards={upstreamCards}
                             placeholder="0"
                             unitMode={unitMode}
-                            inputType="none"
+                            inputType="inertia"
                         />
                     </div>
                 </div>

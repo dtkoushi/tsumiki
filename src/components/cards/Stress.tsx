@@ -48,7 +48,9 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         // σ_b = M / Z  (bending stress, N/mm²)
         const sigma_b = Z > 0 ? M / Z : 0;
 
-        // τ = (3/2) · |V| / A  (rectangular approximation for max shear stress, N/mm²)
+        // τ = (3/2) · |V| / A  (max shear stress, N/mm²)
+        // NOTE: factor 3/2 assumes a rectangular cross-section. For other shapes
+        // (I-beam: ~1.0–1.2, circle: 4/3) the shear distribution differs.
         const tau = A > 0 ? 1.5 * Math.abs(V) / A : 0;
 
         // σ_eq = √(σ_b² + 3τ²)  (von Mises equivalent stress)
