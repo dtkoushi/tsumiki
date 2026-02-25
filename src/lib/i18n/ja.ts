@@ -16,6 +16,7 @@ export const ja = {
     'ui.unpin': 'ピン留め解除',
     'ui.linkToVariable': '変数にリンク',
     'ui.invalidNumber': '無効な数値',
+    'ui.invalidExpression': '無効な式です',
     'ui.selectSource': '参照先を選択',
     'ui.noUpstream': '上流カードがありません',
     'ui.toggleUnits': '単位切替 (mm, N ↔ m, kN)',

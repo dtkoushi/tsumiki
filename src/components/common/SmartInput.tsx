@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import type { Card } from '../../types';
 import type { CardActions } from '../../lib/registry/types';
 import { formatOutput, INPUT_FACTORS, type OutputUnitType } from '../../lib/utils/unitFormatter';
+import { applyExpression } from '../../lib/utils/cardHelpers';
 import { ja } from '../../lib/i18n/ja';
 
 interface SmartInputProps {
@@ -49,18 +50,36 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     // Resolve display value
     const rawValue = input?.value;
 
+    // 参照元の生値（expression 適用前）
+    const getRefRawValue = (): number | null => {
+        if (!referencedCard) return null;
+        const ref = input.ref!;
+        if (ref.refType === 'input' && ref.inputKey) {
+            const val = referencedCard.resolvedInputs?.[ref.inputKey];
+            return typeof val === 'number' ? val : null;
+        }
+        const val = referencedCard.outputs[ref.outputKey ?? ''];
+        return typeof val === 'number' ? val : null;
+    };
+    const refRawValue = isReferencing ? getRefRawValue() : null;
+    const expressionResult = isReferencing && refRawValue !== null
+        ? applyExpression(refRawValue, input.ref!.expression)
+        : refRawValue;
+    const hasExpressionError = isReferencing && refRawValue !== null
+        && !!input.ref?.expression && expressionResult === null;
+
     // Calculate the value to display when not focused (or when referenced)
     const getDisplayValue = () => {
         if (isReferencing) {
             if (!referencedCard) return '';
-            const ref = input.ref!;
-            if (ref.refType === 'input' && ref.inputKey) {
-                const val = referencedCard.resolvedInputs?.[ref.inputKey];
-                return typeof val === 'number' ? formatOutput(val, inputType as any, unitMode) : '-';
+            if (refRawValue === null) {
+                // diagramModel 等の非数値出力
+                const val = referencedCard.outputs[input.ref!.outputKey ?? ''];
+                return typeof val === 'object' ? '[Model]' : '-';
             }
-            const val = referencedCard.outputs[ref.outputKey ?? ''];
-            if (typeof val !== 'number') return '[Model]';
-            return formatOutput(val, inputType as any, unitMode);
+            if (hasExpressionError) return '';
+            const displayVal = expressionResult ?? refRawValue;
+            return formatOutput(displayVal, inputType as any, unitMode);
         }
 
         if (rawValue !== undefined && rawValue !== '' && !isNaN(Number(rawValue))) {
@@ -74,12 +93,18 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     const handleFocus = () => {
         setIsFocused(true);
-        setLocalValue(displayValue);
+        if (isReferencing) {
+            setLocalValue(input.ref!.expression || '');
+        } else {
+            setLocalValue(displayValue);
+        }
     };
 
     const handleBlur = () => {
         setIsFocused(false);
-        if (!isReferencing) {
+        if (isReferencing) {
+            actions.setRefExpression(cardId, inputKey, localValue);
+        } else {
             const val = localValue;
             if (val === '' || isNaN(Number(val))) {
                 actions.updateInput(cardId, inputKey, val);
@@ -92,7 +117,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setLocalValue(val);
-        setIsInvalidInput(val !== '' && isNaN(Number(val)));
+        if (!isReferencing) {
+            setIsInvalidInput(val !== '' && isNaN(Number(val)));
+        }
     };
 
     const handleSelectReference = (targetCard: Card, outputKey: string) => {
@@ -116,7 +143,13 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-
+    // Tooltip content
+    const refLabel = isReferencing
+        ? `${referencedCard?.alias || '?'}.${input.ref!.refType === 'input' ? `inputs.${input.ref!.inputKey}` : input.ref!.outputKey}`
+        : '';
+    const expressionTooltip = isReferencing && input.ref!.expression && !hasExpressionError && refRawValue !== null
+        ? ` → ${input.ref!.expression} → ${expressionResult?.toLocaleString(undefined, { maximumFractionDigits: 4 })}`
+        : '';
 
     return (
         <div className="relative flex flex-col group/smart-input" ref={pickerRef}>
@@ -127,7 +160,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                         className={clsx(
                             "w-full text-right text-sm border rounded-l px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none focus:z-10",
                             isReferencing
-                                ? "text-slate-800 font-medium bg-blue-50 border-blue-200 cursor-default"
+                                ? (isInvalidInput || hasExpressionError)
+                                    ? "text-slate-800 font-medium bg-red-50 border-red-400"
+                                    : "text-slate-800 font-medium bg-blue-50 border-blue-200"
                                 : isInvalidInput
                                     ? "bg-white border-red-400"
                                     : "bg-white border-slate-200",
@@ -137,8 +172,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                         onChange={handleChange}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
-                        placeholder={placeholder}
-                        readOnly={isReferencing}
+                        placeholder={isFocused && isReferencing ? 'v' : placeholder}
                     />
 
                     {/* Tooltip for Linked Variable */}
@@ -149,8 +183,8 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                                 <div className="absolute -bottom-1 left-3 w-2 h-2 bg-slate-800 rotate-45"></div>
 
                                 <Link2 size={8} className="text-blue-200 shrink-0" />
-                                <span className="font-mono max-w-[150px] truncate relative z-10">
-                                    {referencedCard?.alias || '?'}.{input.ref!.refType === 'input' ? `inputs.${input.ref!.inputKey}` : input.ref!.outputKey}
+                                <span className="font-mono max-w-[200px] truncate relative z-10">
+                                    {refLabel}{expressionTooltip}
                                 </span>
                             </div>
                         </div>
@@ -166,16 +200,22 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                             : "border-slate-200 bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
                     )}
                     title={isReferencing
-                        ? `${referencedCard?.alias || '?'}.${input.ref!.refType === 'input' ? `inputs.${input.ref!.inputKey}` : input.ref!.outputKey} ${ja['ui.linkedInfo']}`
+                        ? `${refLabel}${expressionTooltip} ${ja['ui.linkedInfo']}`
                         : ja['ui.linkToVariable']}
                 >
                     {isReferencing ? <Unlink size={14} /> : <Link2 size={14} />}
                 </button>
             </div>
 
-            {isInvalidInput && !isReferencing && (
+            {(isInvalidInput && !isReferencing) && (
                 <p className="text-[10px] text-red-500 mt-0.5 text-right" role="alert">
                     {ja['ui.invalidNumber']}
+                </p>
+            )}
+
+            {hasExpressionError && (
+                <p className="text-[10px] text-red-500 mt-0.5 text-right" role="alert">
+                    {ja['ui.invalidExpression']}
                 </p>
             )}
 

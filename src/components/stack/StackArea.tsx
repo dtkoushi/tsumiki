@@ -33,6 +33,7 @@ export const StackArea: React.FC = () => {
     const updateInput = useTsumikiStore((state) => state.updateInput);
     const setInputRef = useTsumikiStore((state) => state.setInputRef);
     const setInputInputRef = useTsumikiStore((state) => state.setInputInputRef);
+    const setRefExpression = useTsumikiStore((state) => state.setRefExpression);
     const removeReference = useTsumikiStore((state) => state.removeReference);
     const removeInput = useTsumikiStore((state) => state.removeInput);
     const updateCardUnit = useTsumikiStore((state) => state.updateCardUnit);
@@ -55,10 +56,11 @@ export const StackArea: React.FC = () => {
         updateInput,
         setReference: setInputRef,
         setInputReference: setInputInputRef,
+        setRefExpression,
         removeReference,
         removeInput,
         updateCardUnit
-    }), [updateInput, setInputRef, setInputInputRef, removeReference, removeInput, updateCardUnit]);
+    }), [updateInput, setInputRef, setInputInputRef, setRefExpression, removeReference, removeInput, updateCardUnit]);
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);

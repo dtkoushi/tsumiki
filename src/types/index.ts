@@ -7,6 +7,7 @@ export interface CardInput {
         outputKey?: string;           // 出力参照（既存。後方互換のためオプション化）
         refType?: 'output' | 'input'; // 新フィールド。省略時は 'output' として扱う
         inputKey?: string;            // 入力参照時のキー名
+        expression?: string;          // 例: 'v/2', 'v*1.2', 'v+100'。v = 参照値
     };
 }
 

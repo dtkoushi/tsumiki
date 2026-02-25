@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Card, CardType } from '../types';
 import { topologicalSort } from '../lib/engine/graph';
 import { registry } from '../lib/registry';
+import { applyExpression } from '../lib/utils/cardHelpers';
 
 interface ProjectMeta {
     title: string;
@@ -26,6 +27,7 @@ interface TsumikiState {
     updateInput: (cardId: string, inputKey: string, value: string | number) => void;
     setInputRef: (cardId: string, inputKey: string, refCardId: string, refOutputKey: string) => void;
     setInputInputRef: (cardId: string, inputKey: string, targetCardId: string, targetInputKey: string) => void;
+    setRefExpression: (cardId: string, inputKey: string, expression: string) => void;
     removeReference: (cardId: string, inputKey: string) => void;
     removeInput: (cardId: string, inputKey: string) => void;
     updateCardPosition: (id: string, x: number, y: number) => void;
@@ -68,11 +70,10 @@ const recalculateAll = (cards: Card[]): Card[] => {
                 const input = card.inputs[key];
                 if (input && input.ref) {
                     const sourceCard = updatedCardsMap.get(input.ref.cardId);
-                    if (input.ref.refType === 'input' && input.ref.inputKey) {
-                        resolvedInputs[key] = sourceCard?.resolvedInputs?.[input.ref.inputKey] ?? 0;
-                    } else {
-                        resolvedInputs[key] = sourceCard?.outputs[input.ref.outputKey ?? ''] ?? 0;
-                    }
+                    const rawVal = (input.ref.refType === 'input' && input.ref.inputKey)
+                        ? sourceCard?.resolvedInputs?.[input.ref.inputKey] ?? 0
+                        : sourceCard?.outputs[input.ref.outputKey ?? ''] ?? 0;
+                    resolvedInputs[key] = applyExpression(rawVal, input.ref.expression) ?? rawVal;
                 } else if (input && input.value !== undefined && input.value !== '') {
                     const val = parseFloat(String(input.value));
                     resolvedInputs[key] = isNaN(val) ? 0 : val;
@@ -89,11 +90,10 @@ const recalculateAll = (cards: Card[]): Card[] => {
 
                 if (input.ref) {
                     const sourceCard = updatedCardsMap.get(input.ref.cardId);
-                    if (input.ref.refType === 'input' && input.ref.inputKey) {
-                        resolvedInputs[key] = sourceCard?.resolvedInputs?.[input.ref.inputKey] ?? 0;
-                    } else {
-                        resolvedInputs[key] = sourceCard?.outputs[input.ref.outputKey ?? ''] ?? 0;
-                    }
+                    const rawVal = (input.ref.refType === 'input' && input.ref.inputKey)
+                        ? sourceCard?.resolvedInputs?.[input.ref.inputKey] ?? 0
+                        : sourceCard?.outputs[input.ref.outputKey ?? ''] ?? 0;
+                    resolvedInputs[key] = applyExpression(rawVal, input.ref.expression) ?? rawVal;
                 } else {
                     const val = parseFloat(String(input.value));
                     resolvedInputs[key] = isNaN(val) ? 0 : val;
@@ -219,6 +219,25 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
                     [inputKey]: {
                         value: '',
                         ref: { cardId: targetCardId, refType: 'input' as const, inputKey: targetInputKey },
+                    },
+                },
+            };
+        });
+        return { cards: recalculateAll(newCards) };
+    }),
+
+    setRefExpression: (cardId, inputKey, expression) => set((state) => {
+        const newCards = state.cards.map((c) => {
+            if (c.id !== cardId) return c;
+            const currentInput = c.inputs[inputKey];
+            if (!currentInput?.ref) return c;
+            return {
+                ...c,
+                inputs: {
+                    ...c.inputs,
+                    [inputKey]: {
+                        ...currentInput,
+                        ref: { ...currentInput.ref, expression: expression || undefined },
                     },
                 },
             };

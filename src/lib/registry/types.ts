@@ -6,6 +6,7 @@ export interface CardActions {
     updateInput: (cardId: string, key: string, value: any) => void;
     setReference: (cardId: string, inputKey: string, sourceCardId: string, outputKey: string) => void;
     setInputReference: (cardId: string, inputKey: string, sourceCardId: string, sourceInputKey: string) => void;
+    setRefExpression: (cardId: string, inputKey: string, expression: string) => void;
     removeReference: (cardId: string, inputKey: string) => void;
     removeInput: (cardId: string, inputKey: string) => void;
     updateCardUnit: (cardId: string, mode: 'mm' | 'm') => void;
