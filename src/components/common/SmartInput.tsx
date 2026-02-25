@@ -77,7 +77,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                 const val = referencedCard.outputs[input.ref!.outputKey ?? ''];
                 return typeof val === 'object' ? '[Model]' : '-';
             }
-            if (hasExpressionError) return '';
+            // 式エラー時は生値を表示（計算エンジンもフォールバックで生値を使う）
             const displayVal = expressionResult ?? refRawValue;
             return formatOutput(displayVal, inputType as any, unitMode);
         }
@@ -131,6 +131,11 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         actions.setInputReference(cardId, inputKey, targetCard.id, targetInputKey);
         setIsPickerOpen(false);
     };
+
+    // 参照モードに切替わったときに isInvalidInput をリセット
+    useEffect(() => {
+        if (isReferencing) setIsInvalidInput(false);
+    }, [isReferencing]);
 
     // Click outside
     useEffect(() => {

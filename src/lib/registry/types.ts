@@ -16,7 +16,7 @@ export interface CardComponentProps {
     card: Card;
     actions: CardActions;
     upstreamCards: Card[]; // For reference picker
-    upstreamInputConfigs: Map<string, Record<string, { label: string; unitType?: import('../../lib/utils/unitFormatter').OutputUnitType }>>;
+    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: import('../../lib/utils/unitFormatter').OutputUnitType }>>;
 }
 
 // TOutputs is the interface for the card's calculation results.

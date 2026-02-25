@@ -3,6 +3,7 @@ import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { registry } from '../../lib/registry';
 import { GenericCard } from '../cards/common/GenericCard';
 import { PinnedPanel } from './PinnedPanel';
+import type { OutputUnitType } from '../../lib/utils/unitFormatter';
 
 import { Ghost } from 'lucide-react';
 import { ja } from '../../lib/i18n/ja';
@@ -81,7 +82,7 @@ export const StackArea: React.FC = () => {
         const upstreamCards = cards.slice(0, index);
         const def = registry.get(card.type);
 
-        const upstreamInputConfigs = new Map<string, Record<string, { label: string; unitType?: any }>>();
+        const upstreamInputConfigs = new Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>();
         upstreamCards.forEach(c => {
             const cDef = registry.get(c.type);
             if (!cDef) return;
