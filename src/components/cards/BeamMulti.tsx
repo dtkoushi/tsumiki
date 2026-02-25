@@ -228,7 +228,7 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
 
 // ─── Custom Card Component ─────────────────────────────────────────────────────
 
-const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
+const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const pinnedOutputs = useTsumikiStore(state => state.pinnedOutputs);
     const pinOutput = useTsumikiStore(state => state.pinOutput);
@@ -309,6 +309,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
+                            upstreamInputConfigs={upstreamInputConfigs}
                             placeholder="0"
                             unitMode={unitMode}
                             inputType="length"
@@ -378,6 +379,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                             card={card}
                                             actions={actions}
                                             upstreamCards={upstreamCards}
+                                            upstreamInputConfigs={upstreamInputConfigs}
                                             placeholder="0"
                                             unitMode={unitMode}
                                             inputType="length"
@@ -394,6 +396,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                                 card={card}
                                                 actions={actions}
                                                 upstreamCards={upstreamCards}
+                                                upstreamInputConfigs={upstreamInputConfigs}
                                                 placeholder="0"
                                                 unitMode={unitMode}
                                                 inputType="length"
@@ -410,6 +413,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                             card={card}
                                             actions={actions}
                                             upstreamCards={upstreamCards}
+                                            upstreamInputConfigs={upstreamInputConfigs}
                                             placeholder="0"
                                             unitMode={unitMode}
                                             inputType={valUnitType}

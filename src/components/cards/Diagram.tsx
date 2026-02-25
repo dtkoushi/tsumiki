@@ -166,7 +166,7 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
 
 // --- Custom Card Component ---
 
-const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
+const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const [tab, setTab] = useState<'M' | 'Q'>('M');
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
@@ -220,6 +220,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
+                            upstreamInputConfigs={upstreamInputConfigs}
                             placeholder="ref"
                             unitMode={unitMode}
                             inputType="none"
@@ -261,6 +262,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                                         card={card}
                                         actions={actions}
                                         upstreamCards={upstreamCards}
+                                        upstreamInputConfigs={upstreamInputConfigs}
                                         placeholder="0"
                                         unitMode={unitMode}
                                         inputType="length"

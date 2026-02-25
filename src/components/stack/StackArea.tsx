@@ -3,6 +3,7 @@ import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { registry } from '../../lib/registry';
 import { GenericCard } from '../cards/common/GenericCard';
 import { PinnedPanel } from './PinnedPanel';
+import type { OutputUnitType } from '../../lib/utils/unitFormatter';
 
 import { Ghost } from 'lucide-react';
 import { ja } from '../../lib/i18n/ja';
@@ -32,6 +33,8 @@ export const StackArea: React.FC = () => {
     // Actions
     const updateInput = useTsumikiStore((state) => state.updateInput);
     const setInputRef = useTsumikiStore((state) => state.setInputRef);
+    const setInputInputRef = useTsumikiStore((state) => state.setInputInputRef);
+    const setRefExpression = useTsumikiStore((state) => state.setRefExpression);
     const removeReference = useTsumikiStore((state) => state.removeReference);
     const removeInput = useTsumikiStore((state) => state.removeInput);
     const updateCardUnit = useTsumikiStore((state) => state.updateCardUnit);
@@ -53,10 +56,12 @@ export const StackArea: React.FC = () => {
     const actions = useMemo(() => ({
         updateInput,
         setReference: setInputRef,
+        setInputReference: setInputInputRef,
+        setRefExpression,
         removeReference,
         removeInput,
         updateCardUnit
-    }), [updateInput, setInputRef, removeReference, removeInput, updateCardUnit]);
+    }), [updateInput, setInputRef, setInputInputRef, setRefExpression, removeReference, removeInput, updateCardUnit]);
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
@@ -77,10 +82,32 @@ export const StackArea: React.FC = () => {
         const upstreamCards = cards.slice(0, index);
         const def = registry.get(card.type);
 
+        const upstreamInputConfigs = new Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>();
+        upstreamCards.forEach(c => {
+            const cDef = registry.get(c.type);
+            if (!cDef) return;
+            const dynCfg = cDef.getInputConfig ? cDef.getInputConfig(c) : {};
+            const merged = { ...(cDef.inputConfig || {}), ...dynCfg };
+            const filtered = Object.fromEntries(
+                Object.entries(merged)
+                    .filter(([key, cfg]) => {
+                        if (cfg.type === 'select') return false;
+                        if (cDef.dynamicInputGroup) {
+                            const { keyPrefix } = cDef.dynamicInputGroup;
+                            if (new RegExp(`^${keyPrefix}_\\d+$`).test(key)) return false;
+                        }
+                        return true;
+                    })
+                    .map(([key, cfg]) => [key, { label: cfg.label, unitType: cfg.unitType }])
+            );
+            upstreamInputConfigs.set(c.id, filtered);
+        });
+
         const props = {
             card,
             actions,
-            upstreamCards
+            upstreamCards,
+            upstreamInputConfigs,
         };
 
         if (def) {

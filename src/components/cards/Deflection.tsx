@@ -183,7 +183,7 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
 
 // --- Custom Card Component ---
 
-const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards }) => {
+const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
 
@@ -227,6 +227,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
+                            upstreamInputConfigs={upstreamInputConfigs}
                             placeholder="ref"
                             unitMode={unitMode}
                             inputType="none"
@@ -247,6 +248,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
+                            upstreamInputConfigs={upstreamInputConfigs}
                             placeholder="205"
                             unitMode={unitMode}
                             inputType="modulus"
@@ -267,6 +269,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
+                            upstreamInputConfigs={upstreamInputConfigs}
                             placeholder="0"
                             unitMode={unitMode}
                             inputType="inertia"
@@ -286,6 +289,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             card={card}
                             actions={actions}
                             upstreamCards={upstreamCards}
+                            upstreamInputConfigs={upstreamInputConfigs}
                             placeholder="300"
                             unitMode={unitMode}
                             inputType="none"

@@ -13,9 +13,10 @@ interface ProjectData {
  * Serialize project state to JSON string
  */
 export const serializeProject = (meta: ProjectData['meta'], cards: Card[], pinnedOutputs: PinnedOutput[] = []): string => {
+    const serializableCards = cards.map(({ resolvedInputs: _ri, ...rest }) => rest) as Card[];
     const data: ProjectData = {
         meta,
-        cards,
+        cards: serializableCards,
         pinnedOutputs,
         version: '1.0.0',
     };
@@ -42,7 +43,8 @@ export const deserializeProject = (jsonStr: string): ProjectData | null => {
  * Compress state to Base64 string for URL sharing
  */
 export const compressToUrl = (meta: ProjectData['meta'], cards: Card[], pinnedOutputs: PinnedOutput[] = []): string => {
-    const jsonStr = JSON.stringify({ meta, cards, pinnedOutputs, v: '1' });
+    const serializableCards = cards.map(({ resolvedInputs: _ri, ...rest }) => rest) as Card[];
+    const jsonStr = JSON.stringify({ meta, cards: serializableCards, pinnedOutputs, v: '1' });
     const compressed = pako.deflate(jsonStr);
     const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)));
     return encodeURIComponent(base64);
