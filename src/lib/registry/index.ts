@@ -29,6 +29,11 @@ class CardRegistry {
     getAll(): CardDefinition[] {
         return Array.from(this.definitions.values());
     }
+
+    /** Returns all registered type IDs. Useful for validation and autocomplete. */
+    getTypes(): string[] {
+        return Array.from(this.definitions.keys());
+    }
 }
 
 export const registry = new CardRegistry();

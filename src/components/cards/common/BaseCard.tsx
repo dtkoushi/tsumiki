@@ -63,7 +63,18 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                         </div>
 
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{card.type}</span>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">{card.type}</span>
+                                {card.error && (
+                                    <span
+                                        className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[8px] font-bold leading-none cursor-help shrink-0"
+                                        title={card.error}
+                                        aria-label="計算エラー"
+                                    >
+                                        !
+                                    </span>
+                                )}
+                            </div>
                             <input
                                 type="text"
                                 value={card.alias}

@@ -390,7 +390,7 @@ export const DeflectionCardDef = createCardDefinition({
     inputConfig: {
         diagramModel: { label: ja['card.deflection.inputs.diagramModel'], unitType: 'none' },
         E: { label: ja['card.deflection.inputs.E'], unitType: 'modulus' },
-        I: { label: ja['card.deflection.inputs.I'], unitType: 'none' },
+        I: { label: ja['card.deflection.inputs.I'], unitType: 'inertia' },
         n_allow: { label: ja['card.deflection.inputs.n_allow'], unitType: 'none' },
     },
 

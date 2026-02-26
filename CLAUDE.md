@@ -34,7 +34,7 @@ Each card type is defined as a `CardDefinition` in `src/lib/registry/index.ts`. 
 - An optional SVG visualization strategy
 - For multi-strategy cards (Section, Beam): a strategy selector that picks among sub-definitions
 
-Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM` | `COUPLE` | `BEAM_MULTI` | `DIAGRAM` | `STRESS` | `DEFLECTION` | `COLUMN`
+Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM_MAP` | `CUSTOM_COMBINE` | `COUPLE` | `BEAM_MULTI` | `DIAGRAM` | `STRESS` | `DEFLECTION` | `COLUMN`
 
 **Section** supports strategies: Rectangle, H-Beam, Circle
 **Beam** uses a 2-axis strategy grid: Boundary (Simple | Cantilever) × Load (Uniform | Point)
@@ -60,29 +60,88 @@ Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM` | `COUPLE` | `
 
 ### Adding a New Card Type
 
-1. Define a `CardDefinition` using `createCardDefinition` (fixed inputs) or `createStrategyDefinition` (strategy-switched inputs) from `strategyHelper.ts`.
-2. Register it in `src/lib/registry/index.ts`.
-3. Add the new type literal to `src/types/index.ts`.
-4. Add a sidebar entry to the `cardTypes` array in `src/components/layout/AppLayout.tsx`.
-5. `GenericCard` handles rendering automatically. Use `visualization` for an SVG diagram, `dynamicInputGroup` for variable-count paired input→output rows.
+Minimum viable new card requires editing **2 files**:
 
-**`dynamicInputGroup`**: declare in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. See `src/components/cards/Couple.tsx` for a working example.
+1. **Create** `src/components/cards/MyCard.tsx` — define the card using `createCardDefinition`.
+2. **Register** in `src/lib/registry/index.ts` — add `import` + `registry.register(MyCardDef)`.
+   - The sidebar entry is declared in the definition itself (`sidebar: { category: ... }`).
+   - `CardType` is now `string` — no `src/types/index.ts` edit needed.
+   - Labels can be direct Japanese strings — no `src/lib/i18n/ja.ts` edit needed for card fields.
+
+#### Minimal card template
+
+```typescript
+// src/components/cards/MyCard.tsx
+import { Ruler } from 'lucide-react';
+import { createCardDefinition } from '../../lib/registry/strategyHelper';
+
+interface MyOutputs { result: number }
+
+export const MyCardDef = createCardDefinition<MyOutputs>({
+  type: 'MY_CARD',
+  title: '私のカード',
+  description: '簡単な計算',
+  icon: Ruler,
+  sidebar: { category: 'analysis' },
+
+  defaultInputs: { x: { value: 0 } },
+  inputConfig: {
+    x: { label: '入力値', unitType: 'length' },
+  },
+  outputConfig: {
+    result: { label: '結果', unitType: 'length' },
+  },
+  calculate: ({ x }) => ({ result: x * 2 }),
+});
+```
+
+Then in `src/lib/registry/index.ts`:
+```typescript
+import { MyCardDef } from '../../components/cards/MyCard';
+// ...
+registry.register(MyCardDef);
+```
+
+**`dynamicInputGroup`** / **`dynamicInputGroups`**: declare in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. Use `dynamicInputGroups` (array) when you need more than one variable-length group. See `src/components/cards/Couple.tsx` for a working example.
+
+**`dynamicInputGroup` key points**:
+- `outputKeyFn` maps input key → output key (e.g. `'d_1'` → `'n_1'`). Use **identical logic** in `calculate()` to avoid silent mismatch.
+- `outputIndexFn` must be set to enable pin-to-panel for dynamic outputs. Omit it and pins silently don't work.
+- Dynamic outputs must NOT be listed in `outputConfig` (they are generated at runtime by GenericCard).
+- `minCount` sets the minimum rows; the remove button is disabled at that count.
+- Initial rows come from `defaultInputs` (not from `minCount`). Seed them explicitly: `defaultInputs: { d_1: { value: 500 } }`.
 
 **Custom component**: set `component` in `CardDefinition` to replace `GenericCard` entirely. The component must wrap content in `BaseCard`. Use this only when layout cannot be expressed via `GenericCard` + `visualization` + `dynamicInputGroup`.
 
 **`calculate(inputs, rawInputs)`**: `inputs` contains resolved numbers (refs resolved, defaults applied). `rawInputs` is `card.inputs` as-is — use it when you need raw string values (e.g. CustomCard formula strings), since `parseFloat` converts strings to `0`.
 
+**Error display**: if `calculate()` throws, `card.error` is set. GenericCard shows an inline error block; BaseCard shows a red badge in the header (visible even when collapsed).
+
 ### Unit System
 
 Each card tracks its own `unitMode` ('mm' or 'm'). `unitFormatter` converts between these display modes and the SI base values stored in state. Unit-type keys are declared in card field configs and drive the formatter.
 
-Valid `inputType` / `unitType` values for `SmartInput` and field configs:
-`'length'` | `'force'` | `'moment'` | `'load'` | `'stress'` | `'modulus'` | `'none'`
-**Note**: `'area'`, `'inertia'`, `'ratio'` are **not** valid SmartInput inputType values.
+Valid `inputType` / `unitType` values for `SmartInput` and field configs (`SmartInputUnitType`):
+`'length'` | `'area'` | `'inertia'` | `'force'` | `'moment'` | `'load'` | `'stress'` | `'modulus'` | `'none'`
+
+`'area'` and `'inertia'` are fully supported for SmartInput display conversion (mm²↔m², mm⁴↔m⁴).
+`'ratio'` is output-only (`OutputUnitType`) and cannot be used as SmartInput `inputType`.
+
+Output-only types (`OutputUnitType` but not `SmartInputUnitType`): `'ratio'`.
 
 ### i18n
 
-All UI strings are in `src/lib/i18n/ja.ts` as `export const ja = { ... } as const`. Components import `ja` directly and access keys as `ja['key.name']`. `export type JaKey = keyof typeof ja` provides the key union type. To add a new string, append a key to `ja` — TypeScript will enforce usage at call sites.
+All shared UI strings are in `src/lib/i18n/ja.ts` as `export const ja = { ... } as const`. Components import `ja` directly and access keys as `ja['key.name']`. `export type JaKey = keyof typeof ja` provides the key union type.
+
+**Card labels do NOT require editing `ja.ts`**: `inputConfig.label`, `outputConfig.label`, and `dynamicInputGroup` labels can be direct Japanese strings. GenericCard's `t()` function falls back to the raw string if the value is not a `JaKey`. Existing cards use `ja['key']` references for historical reasons, but new cards can write labels inline:
+
+```typescript
+inputConfig: {
+  L: { label: 'スパン長', unitType: 'length' },   // ← direct string, no ja.ts edit needed
+}
+```
+
+Only add to `ja.ts` for strings shared across multiple components (button labels, tooltips, toasts).
 
 ### Reference System
 
@@ -98,6 +157,8 @@ After selecting a reference, the user can type an **expression** (e.g. `v/2`, `v
 ### Strategy ID Composition
 
 For `createStrategyDefinition`, strategy IDs are formed by joining axis values with `_`. Example: `boundary='fixed_fixed'` + `load='uniform'` → strategy ID `'fixed_fixed_uniform'`. When parsing in custom components (e.g. BeamMulti), split on the **last** `_` to recover the final axis.
+
+**Warning**: Only the **last** axis's option values may contain `_`. All earlier axis option values must be `_`-free. A DEV-mode warning is logged when this rule is violated. Violating it creates ambiguous strategy IDs.
 
 ### State Mutations
 

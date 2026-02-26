@@ -3,10 +3,10 @@ import type { Card } from '../../types';
 import type { OutputUnitType } from '../utils/unitFormatter';
 
 /**
- * Unit types that SmartInput can actually convert (subset of OutputUnitType).
- * Do NOT use 'area', 'inertia', or 'ratio' here — SmartInput has no conversion for them.
+ * Unit types that SmartInput can convert between mm-mode and m-mode.
+ * All OutputUnitType values are supported except 'ratio' (always dimensionless).
  */
-export type SmartInputUnitType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
+export type SmartInputUnitType = 'length' | 'area' | 'inertia' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
 
 // Actions passed to components (Decoupled from Store)
 export interface CardActions {
@@ -123,8 +123,18 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     // Returns a Record of numbers (outputs) based on inputs
     calculate: (inputs: Record<string, number>, rawInputs?: Record<string, any>) => TOutputs;
 
-    // Variable-length paired (input → output) rows rendered by GenericCard
+    /**
+     * Variable-length paired (input → output) rows rendered by GenericCard.
+     * @deprecated Use `dynamicInputGroups` (array) for new cards. This single-group
+     *   shorthand is still supported and internally treated as `[dynamicInputGroups[0]]`.
+     */
     dynamicInputGroup?: DynamicInputGroupConfig;
+
+    /**
+     * Multiple variable-length row groups rendered sequentially by GenericCard.
+     * Supersedes `dynamicInputGroup`. When both are set, `dynamicInputGroups` takes precedence.
+     */
+    dynamicInputGroups?: DynamicInputGroupConfig[];
 
     // React Component for UI (Legacy override or GenericCard default)
     component?: React.FC<CardComponentProps>;

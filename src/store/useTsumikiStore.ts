@@ -248,7 +248,17 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
     removeInput: (cardId, inputKey) => set((state) => {
         const card = state.cards.find(c => c.id === cardId);
         const def = card ? registry.get(card.type) : undefined;
-        const outputKey = def?.dynamicInputGroup?.outputKeyFn(inputKey);
+
+        // Find the output key from any matching dynamic group
+        const allGroups = def?.dynamicInputGroups ?? (def?.dynamicInputGroup ? [def.dynamicInputGroup] : []);
+        let outputKey: string | undefined;
+        for (const group of allGroups) {
+            const pattern = new RegExp(`^${group.keyPrefix}_\\d+$`);
+            if (pattern.test(inputKey)) {
+                outputKey = group.outputKeyFn(inputKey);
+                break;
+            }
+        }
 
         const newCards = state.cards.map((c) => {
             if (c.id !== cardId) return c;

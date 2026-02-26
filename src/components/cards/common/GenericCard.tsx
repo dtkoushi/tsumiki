@@ -227,17 +227,18 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                     </div>
                 )}
 
-                {/* Dynamic Input Group (input rows with add/remove) */}
-                {def.dynamicInputGroup && (
+                {/* Dynamic Input Groups (input rows with add/remove) */}
+                {(def.dynamicInputGroups ?? (def.dynamicInputGroup ? [def.dynamicInputGroup] : [])).map((groupCfg, i) => (
                     <DynamicGroupSection
-                        config={def.dynamicInputGroup}
+                        key={groupCfg.keyPrefix ?? i}
+                        config={groupCfg}
                         card={card}
                         actions={actions}
                         upstreamCards={upstreamCards}
                         unitMode={unitMode}
                         upstreamInputConfigs={upstreamInputConfigs}
                     />
-                )}
+                ))}
 
                 {/* Visualization Area */}
                 {def.visualization && (
@@ -254,55 +255,57 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 )}
 
                 {/* Outputs */}
-                {!card.error && (
-                    (def.outputConfig && Object.keys(def.outputConfig).length > 0) ||
-                    def.dynamicInputGroup
-                ) && (
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('ui.results')}</label>
-                        <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {def.outputConfig && Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => {
-                                const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
-                                return (
-                                    <OutputRow
-                                        key={key}
-                                        name={key}
-                                        config={config}
-                                        card={card}
-                                        unitMode={unitMode}
-                                        isPinned={isPinned}
-                                        onPinToggle={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}
-                                    />
-                                );
-                            })}
-                            {def.dynamicInputGroup &&
-                             (!def.dynamicInputGroup.showOutputFn || def.dynamicInputGroup.showOutputFn(card)) &&
-                             (() => {
-                                const { keyPrefix, outputKeyFn, outputLabel, outputUnitType } = def.dynamicInputGroup;
-                                const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
-                                const inputKeys = Object.keys(card.inputs)
-                                    .filter(k => pattern.test(k))
-                                    .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
-                                return inputKeys.map(inputKey => {
-                                    const outputKey = outputKeyFn(inputKey);
-                                    const idx = inputKey.split('_')[1];
-                                    const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === outputKey);
+                {(() => {
+                    const allGroups = def.dynamicInputGroups ?? (def.dynamicInputGroup ? [def.dynamicInputGroup] : []);
+                    const hasOutputs = (def.outputConfig && Object.keys(def.outputConfig).length > 0) || allGroups.length > 0;
+                    if (card.error || !hasOutputs) return null;
+                    return (
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('ui.results')}</label>
+                            <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
+                                {def.outputConfig && Object.entries(def.outputConfig).filter(([, config]) => !config.hidden).map(([key, config]) => {
+                                    const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
                                     return (
                                         <OutputRow
-                                            key={outputKey}
-                                            name={outputKey}
-                                            config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType }}
+                                            key={key}
+                                            name={key}
+                                            config={config}
                                             card={card}
                                             unitMode={unitMode}
                                             isPinned={isPinned}
-                                            onPinToggle={() => isPinned ? unpinOutput(card.id, outputKey) : pinOutput(card.id, outputKey)}
+                                            onPinToggle={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}
                                         />
                                     );
-                                });
-                            })()}
+                                })}
+                                {allGroups.map(group =>
+                                    (!group.showOutputFn || group.showOutputFn(card)) && (() => {
+                                        const { keyPrefix, outputKeyFn, outputLabel, outputUnitType } = group;
+                                        const pattern = new RegExp(`^${keyPrefix}_\\d+$`);
+                                        const inputKeys = Object.keys(card.inputs)
+                                            .filter(k => pattern.test(k))
+                                            .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
+                                        return inputKeys.map(inputKey => {
+                                            const outputKey = outputKeyFn(inputKey);
+                                            const idx = inputKey.split('_')[1];
+                                            const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === outputKey);
+                                            return (
+                                                <OutputRow
+                                                    key={outputKey}
+                                                    name={outputKey}
+                                                    config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType }}
+                                                    card={card}
+                                                    unitMode={unitMode}
+                                                    isPinned={isPinned}
+                                                    onPinToggle={() => isPinned ? unpinOutput(card.id, outputKey) : pinOutput(card.id, outputKey)}
+                                                />
+                                            );
+                                        });
+                                    })()
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
         </BaseCard>
     );

@@ -75,8 +75,8 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     commonInputConfig: {
         L: { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000 },
         E: { label: ja['card.column.inputs.E'],  unitType: 'modulus' as const, default: 205000 },
-        A: { label: ja['card.column.inputs.A'],  unitType: 'none'    as const, default: 5000 },
-        I: { label: ja['card.column.inputs.I'],  unitType: 'none'    as const, default: 1e7 },
+        A: { label: ja['card.column.inputs.A'],  unitType: 'area'    as const, default: 5000 },
+        I: { label: ja['card.column.inputs.I'],  unitType: 'inertia' as const, default: 1e7 },
     },
 
     outputConfig: {

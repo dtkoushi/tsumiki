@@ -1,4 +1,10 @@
-export type CardType = 'SECTION' | 'MATERIAL' | 'BEAM' | 'VERIFY' | 'CUSTOM_MAP' | 'CUSTOM_COMBINE' | 'COUPLE' | 'BEAM_MULTI' | 'DIAGRAM' | 'STRESS' | 'DEFLECTION' | 'COLUMN';
+/**
+ * CardType is a string alias for the unique type ID of a card.
+ * It is intentionally widened to `string` so that new card types registered
+ * via `registry.register()` do not require a manual union update here.
+ * The registry is the single source of truth for valid card type IDs.
+ */
+export type CardType = string;
 
 export interface CardInput {
     value: string | number;
