@@ -193,6 +193,11 @@ export const ja = {
     'card.column.outputs.lambda': '細長比 (λ)',
     'card.column.outputs.N_cr': '座屈荷重 (Ncr)',
     'card.column.outputs.sigma_cr': '座屈応力 (σ_cr)',
+    // ── Sidebar Categories ────────────────────────────────────────────
+    'sidebar.category.geometry': '断面・材料',
+    'sidebar.category.loads':    '荷重・はり',
+    'sidebar.category.analysis': '解析・出力',
+    'sidebar.category.verify':   '検証・ユーティリティ',
 } as const;
 
 export type JaKey = keyof typeof ja;

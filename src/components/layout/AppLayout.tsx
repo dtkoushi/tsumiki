@@ -6,7 +6,9 @@ import {
     Upload,
     Github,
     Share2,
-    PanelRight
+    PanelRight,
+    ChevronDown,
+    ChevronRight
 } from 'lucide-react';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import type { CardType } from '../../types';
@@ -24,6 +26,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const { meta, cards, pinnedOutputs, addCard, loadProject } = useTsumikiStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showNavigator, setShowNavigator] = useState(false);
+    const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+    const toggleCategory = (id: string) => {
+        setCollapsedCategories(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    };
 
     const handleExport = () => {
         const jsonString = serializeProject(meta, cards, pinnedOutputs);
@@ -71,19 +81,46 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
 
 
-    const cardTypes: { type: CardType; label: string; desc: string }[] = [
-        { type: 'SECTION',        label: ja['card.section.title'],       desc: ja['card.section.description'] },
-        { type: 'MATERIAL',       label: ja['card.material.title'],      desc: ja['card.material.description'] },
-        { type: 'BEAM',           label: ja['card.beam.title'],          desc: ja['card.beam.description'] },
-        { type: 'BEAM_MULTI',     label: ja['card.beamMulti.title'],     desc: ja['card.beamMulti.description'] },
-        { type: 'STRESS',         label: ja['card.stress.title'],        desc: ja['card.stress.description'] },
-        { type: 'DEFLECTION',     label: ja['card.deflection.title'],    desc: ja['card.deflection.description'] },
-        { type: 'COLUMN',         label: ja['card.column.title'],        desc: ja['card.column.description'] },
-        { type: 'VERIFY',         label: ja['card.verify.title'],        desc: ja['card.verify.description'] },
-        { type: 'DIAGRAM',        label: ja['card.diagram.title'],       desc: ja['card.diagram.description'] },
-        { type: 'CUSTOM_MAP',     label: ja['card.custom.title.map'],    desc: ja['card.custom.description.map'] },
-        { type: 'CUSTOM_COMBINE', label: ja['card.custom.title.combine'],desc: ja['card.custom.description.combine'] },
-        { type: 'COUPLE',         label: ja['card.couple.title'],        desc: ja['card.couple.description'] },
+    interface CardItem { type: CardType; label: string; desc: string }
+    interface CategoryDef { id: string; label: string; items: CardItem[] }
+
+    const cardCategories: CategoryDef[] = [
+        {
+            id: 'geometry',
+            label: ja['sidebar.category.geometry'],
+            items: [
+                { type: 'SECTION',  label: ja['card.section.title'],  desc: ja['card.section.description'] },
+                { type: 'MATERIAL', label: ja['card.material.title'], desc: ja['card.material.description'] },
+            ],
+        },
+        {
+            id: 'loads',
+            label: ja['sidebar.category.loads'],
+            items: [
+                { type: 'BEAM',       label: ja['card.beam.title'],      desc: ja['card.beam.description'] },
+                { type: 'BEAM_MULTI', label: ja['card.beamMulti.title'], desc: ja['card.beamMulti.description'] },
+                { type: 'COUPLE',     label: ja['card.couple.title'],    desc: ja['card.couple.description'] },
+            ],
+        },
+        {
+            id: 'analysis',
+            label: ja['sidebar.category.analysis'],
+            items: [
+                { type: 'DIAGRAM',    label: ja['card.diagram.title'],    desc: ja['card.diagram.description'] },
+                { type: 'STRESS',     label: ja['card.stress.title'],     desc: ja['card.stress.description'] },
+                { type: 'DEFLECTION', label: ja['card.deflection.title'], desc: ja['card.deflection.description'] },
+                { type: 'COLUMN',     label: ja['card.column.title'],     desc: ja['card.column.description'] },
+            ],
+        },
+        {
+            id: 'verify',
+            label: ja['sidebar.category.verify'],
+            items: [
+                { type: 'VERIFY',         label: ja['card.verify.title'],         desc: ja['card.verify.description'] },
+                { type: 'CUSTOM_MAP',     label: ja['card.custom.title.map'],     desc: ja['card.custom.description.map'] },
+                { type: 'CUSTOM_COMBINE', label: ja['card.custom.title.combine'], desc: ja['card.custom.description.combine'] },
+            ],
+        },
     ];
 
     return (
@@ -100,27 +137,46 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                    <div>
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">{ja['ui.components']}</h3>
-                        <div className="grid gap-2">
-                            {cardTypes.map((item) => (
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {cardCategories.map((category) => {
+                        const isCollapsed = collapsedCategories.has(category.id);
+                        return (
+                            <div key={category.id}>
                                 <button
-                                    key={item.type}
-                                    onClick={() => addCard(item.type)}
-                                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm transition-all text-left group bg-white"
+                                    onClick={() => toggleCategory(category.id)}
+                                    aria-expanded={!isCollapsed}
+                                    className="w-full flex items-center justify-between px-1 mb-2 group"
                                 >
-                                    <div className="bg-slate-100 p-1.5 rounded text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                                        <Plus size={16} />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-semibold text-slate-700 group-hover:text-blue-700">{item.label}</div>
-                                        <div className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</div>
-                                    </div>
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        {category.label}
+                                    </h3>
+                                    {isCollapsed
+                                        ? <ChevronRight size={12} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                                        : <ChevronDown  size={12} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
+                                    }
                                 </button>
-                            ))}
-                        </div>
-                    </div>
+                                {!isCollapsed && (
+                                    <div className="grid gap-2">
+                                        {category.items.map((item) => (
+                                            <button
+                                                key={item.type}
+                                                onClick={() => addCard(item.type)}
+                                                className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm transition-all text-left group bg-white"
+                                            >
+                                                <div className="bg-slate-100 p-1.5 rounded text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                                    <Plus size={16} />
+                                                </div>
+                                                <div>
+                                                    <div className="text-sm font-semibold text-slate-700 group-hover:text-blue-700">{item.label}</div>
+                                                    <div className="text-[10px] text-slate-400 leading-tight mt-0.5">{item.desc}</div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
 
                     <div>
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">{ja['ui.projectInfo']}</h3>
