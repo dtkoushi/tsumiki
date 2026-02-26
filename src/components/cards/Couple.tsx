@@ -233,4 +233,5 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     visualization: CoupleSvg,
+    sidebar: { category: 'loads', order: 3 },
 });

@@ -14,21 +14,12 @@ interface ColumnOutputs {
     sigma_cr: number;
 }
 
-// --- Shared input config for all strategies ---
-
-const columnInputConfig = {
-    L:  { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000 },
-    E:  { label: ja['card.column.inputs.E'],  unitType: 'modulus' as const, default: 205000 },
-    A:  { label: ja['card.column.inputs.A'],  unitType: 'area'    as const, default: 5000 },
-    I:  { label: ja['card.column.inputs.I'],  unitType: 'inertia' as const, default: 1e7 },
-};
-
 // Factory that creates a column strategy for the given end-condition (by k factor)
 function makeColumnStrategy(id: string, label: string, k: number): CardStrategy<ColumnOutputs> {
     return {
         id,
         label,
-        inputConfig: columnInputConfig,
+        inputConfig: {},
         calculate: (inputs) => {
             const L  = inputs['L']  || 0;
             const E  = inputs['E']  || 0;
@@ -78,6 +69,15 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     ],
 
     strategies: Strategies,
+
+    sidebar: { category: 'analysis', order: 4 },
+
+    commonInputConfig: {
+        L: { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000 },
+        E: { label: ja['card.column.inputs.E'],  unitType: 'modulus' as const, default: 205000 },
+        A: { label: ja['card.column.inputs.A'],  unitType: 'none'    as const, default: 5000 },
+        I: { label: ja['card.column.inputs.I'],  unitType: 'none'    as const, default: 1e7 },
+    },
 
     outputConfig: {
         Le:         { label: ja['card.column.outputs.Le'],          unitType: 'length' },

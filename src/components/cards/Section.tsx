@@ -252,6 +252,7 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
         default: 'rect',
     }],
     strategies: [RectSectionStrategy, HSectionStrategy, CircleSectionStrategy],
+    sidebar: { category: 'geometry', order: 1 },
     outputConfig: {
         A: { label: ja['card.section.outputs.area'], unitType: 'area' },
         Ix: { label: 'I_x', unitType: 'inertia' },

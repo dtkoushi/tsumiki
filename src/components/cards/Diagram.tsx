@@ -401,4 +401,5 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     component: DiagramComponent,
+    sidebar: { category: 'analysis', order: 1 },
 });

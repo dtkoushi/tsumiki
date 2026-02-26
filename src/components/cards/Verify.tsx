@@ -79,4 +79,5 @@ export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
         isOk: { label: ja['card.verify.outputs.status'], unitType: 'none' },
     },
     visualization: VerifyUI,
+    sidebar: { category: 'verify', order: 1 },
 });

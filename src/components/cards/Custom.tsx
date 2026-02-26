@@ -83,6 +83,7 @@ export const CustomMapDef = createCardDefinition({
     },
 
     visualization: FormulaView,
+    sidebar: { category: 'verify', order: 2 },
 });
 
 // ─── CUSTOM_COMBINE: 複数変数 x_1, x_2, … を formula で合成 → 単一 result ───
@@ -136,4 +137,5 @@ export const CustomCombineDef = createCardDefinition({
     },
 
     visualization: FormulaView,
+    sidebar: { category: 'verify', order: 3 },
 });

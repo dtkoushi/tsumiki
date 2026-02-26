@@ -30,7 +30,7 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         M: { label: ja['card.stress.inputs.M'], unitType: 'moment' },
         V: { label: ja['card.stress.inputs.V'], unitType: 'force' },
         Z: { label: ja['card.stress.inputs.Z'], unitType: 'modulus' },
-        A: { label: ja['card.stress.inputs.A'], unitType: 'area' },
+        A: { label: ja['card.stress.inputs.A'], unitType: 'none' },
     },
 
     outputConfig: {
@@ -38,6 +38,8 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         tau:     { label: ja['card.stress.outputs.tau'],     unitType: 'stress' },
         sigma_eq:{ label: ja['card.stress.outputs.sigma_eq'],unitType: 'stress' },
     },
+
+    sidebar: { category: 'analysis', order: 2 },
 
     calculate: (inputs) => {
         const M = inputs['M'] || 0;

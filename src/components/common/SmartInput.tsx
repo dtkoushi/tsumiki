@@ -3,7 +3,8 @@ import { Link2, Unlink } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Card } from '../../types';
 import type { CardActions } from '../../lib/registry/types';
-import { formatOutput, INPUT_FACTORS, type OutputUnitType } from '../../lib/utils/unitFormatter';
+import { formatOutput, INPUT_FACTORS } from '../../lib/utils/unitFormatter';
+import type { SmartInputUnitType } from '../../lib/registry/types';
 import { applyExpression } from '../../lib/utils/cardHelpers';
 import { ja } from '../../lib/i18n/ja';
 
@@ -13,11 +14,11 @@ interface SmartInputProps {
     card: Card; // Need the card itself to access inputs
     actions: CardActions;
     upstreamCards: Card[];
-    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>;
+    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: import('../../lib/utils/unitFormatter').OutputUnitType }>>;
     placeholder?: string;
     className?: string;
     unitMode?: 'mm' | 'm';
-    inputType?: OutputUnitType;
+    inputType?: SmartInputUnitType;
 }
 
 export const SmartInput: React.FC<SmartInputProps> = ({
@@ -45,7 +46,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     const referencedCard = isReferencing ? upstreamCards.find(c => c.id === input.ref!.cardId) : null;
 
     // Conversion factor: display value * factor = SI value
-    const factor = unitMode === 'm' ? (INPUT_FACTORS[inputType] ?? 1) : 1;
+    const factor = unitMode === 'm' ? (INPUT_FACTORS[inputType as keyof typeof INPUT_FACTORS] ?? 1) : 1;
 
     // Resolve display value
     const rawValue = input?.value;
@@ -79,7 +80,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             }
             // 式エラー時は生値を表示（計算エンジンもフォールバックで生値を使う）
             const displayVal = expressionResult ?? refRawValue;
-            return formatOutput(displayVal, inputType as any, unitMode);
+            return formatOutput(displayVal, inputType, unitMode);
         }
 
         if (rawValue !== undefined && rawValue !== '' && !isNaN(Number(rawValue))) {

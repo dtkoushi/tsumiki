@@ -1,5 +1,12 @@
 import React from 'react';
 import type { Card } from '../../types';
+import type { OutputUnitType } from '../utils/unitFormatter';
+
+/**
+ * Unit types that SmartInput can actually convert (subset of OutputUnitType).
+ * Do NOT use 'area', 'inertia', or 'ratio' here — SmartInput has no conversion for them.
+ */
+export type SmartInputUnitType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
 
 // Actions passed to components (Decoupled from Store)
 export interface CardActions {
@@ -28,7 +35,7 @@ export interface CardStrategy<TOutputs extends Record<string, number> = Record<s
     // Inputs specific to this strategy
     inputConfig: Record<string, {
         label: string;
-        unitType?: import('../../lib/utils/unitFormatter').OutputUnitType;
+        unitType?: SmartInputUnitType;
         default?: any;
     }>;
 
@@ -86,7 +93,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     // Legacy static input config (will be merged with dynamic if present)
     inputConfig?: Record<string, {
         label: string;
-        unitType?: import('../../lib/utils/unitFormatter').OutputUnitType;
+        unitType?: SmartInputUnitType;
         default?: any;
         type?: 'number' | 'text' | 'select';
         options?: { label: string; value: string | number }[];
@@ -95,7 +102,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     // Dynamic input config based on card state (Strategy Pattern)
     getInputConfig?: (card: import('../../types').Card) => Record<string, {
         label: string;
-        unitType?: import('../../lib/utils/unitFormatter').OutputUnitType;
+        unitType?: SmartInputUnitType;
         default?: any;
         type?: 'number' | 'text' | 'select';
         options?: { label: string; value: string | number }[];
@@ -124,4 +131,14 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
 
     // Optional visualization component (renders in the visual area of GenericCard)
     visualization?: React.FC<CardComponentProps>;
+
+    /**
+     * Sidebar registration. When present, this card appears in the sidebar under
+     * the specified category. Cards without this field are hidden from the sidebar.
+     */
+    sidebar?: {
+        category: 'geometry' | 'loads' | 'analysis' | 'verify';
+        /** Display order within the category (lower = earlier). Defaults to registration order. */
+        order?: number;
+    };
 }
