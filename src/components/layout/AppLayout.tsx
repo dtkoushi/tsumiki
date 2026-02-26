@@ -145,6 +145,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                                 <button
                                     onClick={() => toggleCategory(category.id)}
                                     aria-expanded={!isCollapsed}
+                                    aria-label={isCollapsed ? 'Expand category' : 'Collapse category'}
                                     className="w-full flex items-center justify-between px-1 mb-2 group"
                                 >
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
