@@ -60,12 +60,12 @@ Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM_MAP` | `CUSTOM_
 
 ### Adding a New Card Type
 
-Minimum viable new card requires editing **2 files**:
+Minimum viable new card requires editing **1 file**:
 
-1. **Create** `src/components/cards/MyCard.tsx` — define the card using `createCardDefinition`.
-2. **Register** in `src/lib/registry/index.ts` — add `import` + `registry.register(MyCardDef)`.
+1. **Create** `src/components/cards/MyCard.tsx` — define the card and call `registry.register()` at the end.
+   - `registry/index.ts` auto-loads all `src/components/cards/*.tsx` via `import.meta.glob` — no manual registration needed.
    - The sidebar entry is declared in the definition itself (`sidebar: { category: ... }`).
-   - `CardType` is now `string` — no `src/types/index.ts` edit needed.
+   - `CardType` is `string` — no `src/types/index.ts` edit needed.
    - Labels can be direct Japanese strings — no `src/lib/i18n/ja.ts` edit needed for card fields.
 
 #### Minimal card template
@@ -95,25 +95,23 @@ export const MyCardDef = createCardDefinition<MyOutputs>({
 });
 ```
 
-Then in `src/lib/registry/index.ts`:
+Self-registration at the end of the card file:
 ```typescript
-import { MyCardDef } from '../../components/cards/MyCard';
-// ...
+import { registry } from '../../lib/registry';
 registry.register(MyCardDef);
 ```
 
-**`dynamicInputGroup`** / **`dynamicInputGroups`**: declare in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. Use `dynamicInputGroups` (array) when you need more than one variable-length group. See `src/components/cards/Couple.tsx` for a working example.
+**`dynamicInputGroups`**: declare an array of `DynamicInputGroupConfig` in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. See `src/components/cards/Couple.tsx` for a working example.
 
-**`dynamicInputGroup` key points**:
+**`dynamicInputGroups` key points**:
 - `outputKeyFn` maps input key → output key (e.g. `'d_1'` → `'n_1'`). Use **identical logic** in `calculate()` to avoid silent mismatch.
 - `outputIndexFn` must be set to enable pin-to-panel for dynamic outputs. Omit it and pins silently don't work.
 - Dynamic outputs must NOT be listed in `outputConfig` (they are generated at runtime by GenericCard).
-- `minCount` sets the minimum rows; the remove button is disabled at that count.
-- Initial rows come from `defaultInputs` (not from `minCount`). Seed them explicitly: `defaultInputs: { d_1: { value: 500 } }`.
+- `minCount` sets the minimum rows; the remove button is disabled at that count. Rows are auto-seeded to `minCount` on initial mount — no `defaultInputs` seed needed.
 
-**Custom component**: set `component` in `CardDefinition` to replace `GenericCard` entirely. The component must wrap content in `BaseCard`. Use this only when layout cannot be expressed via `GenericCard` + `visualization` + `dynamicInputGroup`.
+**Custom component**: set `component` in `CardDefinition` to replace `GenericCard` entirely. The component must wrap content in `BaseCard`. Use this only when layout cannot be expressed via `GenericCard` + `visualization` + `dynamicInputGroups`.
 
-**`calculate(inputs, rawInputs)`**: `inputs` contains resolved numbers (refs resolved, defaults applied). `rawInputs` is `card.inputs` as-is — use it when you need raw string values (e.g. CustomCard formula strings), since `parseFloat` converts strings to `0`.
+**`calculate(inputs, rawInputs, dynamicGroups)`**: `inputs` contains resolved numbers. `rawInputs` is `card.inputs` as-is — use it when you need raw string values (e.g. CustomCard formula strings). `dynamicGroups` is a pre-computed `Record<keyPrefix, Array<{inputKey, outputKey, value}>>` — use it instead of filtering `inputs` manually.
 
 **Error display**: if `calculate()` throws, `card.error` is set. GenericCard shows an inline error block; BaseCard shows a red badge in the header (visible even when collapsed).
 
@@ -133,7 +131,7 @@ Output-only types (`OutputUnitType` but not `SmartInputUnitType`): `'ratio'`.
 
 All shared UI strings are in `src/lib/i18n/ja.ts` as `export const ja = { ... } as const`. Components import `ja` directly and access keys as `ja['key.name']`. `export type JaKey = keyof typeof ja` provides the key union type.
 
-**Card labels do NOT require editing `ja.ts`**: `inputConfig.label`, `outputConfig.label`, and `dynamicInputGroup` labels can be direct Japanese strings. GenericCard's `t()` function falls back to the raw string if the value is not a `JaKey`. Existing cards use `ja['key']` references for historical reasons, but new cards can write labels inline:
+**Card labels do NOT require editing `ja.ts`**: `inputConfig.label`, `outputConfig.label`, and `dynamicInputGroups` labels can be direct Japanese strings. GenericCard's `t()` function falls back to the raw string if the value is not a `JaKey`. Existing cards use `ja['key']` references for historical reasons, but new cards can write labels inline:
 
 ```typescript
 inputConfig: {

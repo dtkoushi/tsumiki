@@ -188,7 +188,7 @@ export const CoupleCardDef = createCardDefinition({
         k: { label: ja['card.couple.outputs.k'], unitType: 'load' },
     },
 
-    dynamicInputGroup: {
+    dynamicInputGroups: [{
         keyPrefix:      'd',
         inputLabel:     ja['card.couple.inputs.distance'],
         rowLabel:       ja['card.couple.dynamicRow.label'],
@@ -200,7 +200,7 @@ export const CoupleCardDef = createCardDefinition({
         minCount:       1,
         addLabel:       ja['card.couple.addLabel'],
         outputIndexFn:  (key) => { const m = key.match(/^n_(\d+)$/); return m ? m[1] : null; },
-    },
+    }],
 
     // 偶力の式: M = Σ(Ni × 2 × di), Ni = k × di → k = M / (2 × Σdi²)
     // d_i は正値（NA からの距離）として扱う

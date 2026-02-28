@@ -92,9 +92,8 @@ export const StackArea: React.FC = () => {
                 Object.entries(merged)
                     .filter(([key, cfg]) => {
                         if (cfg.type === 'select') return false;
-                        if (cDef.dynamicInputGroup) {
-                            const { keyPrefix } = cDef.dynamicInputGroup;
-                            if (new RegExp(`^${keyPrefix}_\\d+$`).test(key)) return false;
+                        for (const dg of (cDef.dynamicInputGroups ?? [])) {
+                            if (new RegExp(`^${dg.keyPrefix}_\\d+$`).test(key)) return false;
                         }
                         return true;
                     })

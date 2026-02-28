@@ -129,17 +129,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
         dynamicGroups?: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>>
     ) => TOutputs;
 
-    /**
-     * Variable-length paired (input → output) rows rendered by GenericCard.
-     * @deprecated Use `dynamicInputGroups` (array) for new cards. This single-group
-     *   shorthand is still supported and internally treated as `[dynamicInputGroups[0]]`.
-     */
-    dynamicInputGroup?: DynamicInputGroupConfig;
-
-    /**
-     * Multiple variable-length row groups rendered sequentially by GenericCard.
-     * Supersedes `dynamicInputGroup`. When both are set, `dynamicInputGroups` takes precedence.
-     */
+    /** Variable-length paired (input → output) row groups rendered by GenericCard. */
     dynamicInputGroups?: DynamicInputGroupConfig[];
 
     // React Component for UI (Legacy override or GenericCard default)

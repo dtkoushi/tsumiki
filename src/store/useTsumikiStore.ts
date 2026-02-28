@@ -101,7 +101,7 @@ const recalculateAll = (cards: Card[]): Card[] => {
             });
 
             // Build dynamicGroups arg: pre-computed entries for each dynamic group
-            const allGroups = def.dynamicInputGroups ?? (def.dynamicInputGroup ? [def.dynamicInputGroup] : []);
+            const allGroups = def.dynamicInputGroups ?? [];
             const dynamicGroupsArg: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>> = {};
             for (const group of allGroups) {
                 const pattern = new RegExp(`^${group.keyPrefix}_\\d+$`);
@@ -265,7 +265,7 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
         const def = card ? registry.get(card.type) : undefined;
 
         // Find the output key from any matching dynamic group
-        const allGroups = def?.dynamicInputGroups ?? (def?.dynamicInputGroup ? [def.dynamicInputGroup] : []);
+        const allGroups = def?.dynamicInputGroups ?? [];
         let outputKey: string | undefined;
         for (const group of allGroups) {
             const pattern = new RegExp(`^${group.keyPrefix}_\\d+$`);

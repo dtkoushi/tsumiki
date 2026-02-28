@@ -241,7 +241,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 )}
 
                 {/* Dynamic Input Groups (input rows with add/remove) */}
-                {(def.dynamicInputGroups ?? (def.dynamicInputGroup ? [def.dynamicInputGroup] : [])).map((groupCfg, i) => (
+                {(def.dynamicInputGroups ?? []).map((groupCfg, i) => (
                     <DynamicGroupSection
                         key={groupCfg.keyPrefix ?? i}
                         config={groupCfg}
@@ -269,7 +269,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
 
                 {/* Outputs */}
                 {(() => {
-                    const allGroups = def.dynamicInputGroups ?? (def.dynamicInputGroup ? [def.dynamicInputGroup] : []);
+                    const allGroups = def.dynamicInputGroups ?? [];
                     const hasOutputs = (def.outputConfig && Object.keys(def.outputConfig).length > 0) || allGroups.length > 0;
                     if (card.error || !hasOutputs) return null;
                     return (
