@@ -81,3 +81,6 @@ export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
     visualization: VerifyUI,
     sidebar: { category: 'verify', order: 1 },
 });
+
+import { registry } from '../../lib/registry';
+registry.register(VerifyCardDef);

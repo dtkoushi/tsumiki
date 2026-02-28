@@ -120,8 +120,14 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     shouldRenderInput?: (card: import('../../types').Card, key: string) => boolean;
 
     // Pure calculation logic
-    // Returns a Record of numbers (outputs) based on inputs
-    calculate: (inputs: Record<string, number>, rawInputs?: Record<string, any>) => TOutputs;
+    // Returns a Record of numbers (outputs) based on inputs.
+    // dynamicGroups: pre-computed rows for each dynamic group (keyed by keyPrefix),
+    //   so calculate() doesn't need to filter inputs manually.
+    calculate: (
+        inputs: Record<string, number>,
+        rawInputs?: Record<string, any>,
+        dynamicGroups?: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>>
+    ) => TOutputs;
 
     /**
      * Variable-length paired (input → output) rows rendered by GenericCard.

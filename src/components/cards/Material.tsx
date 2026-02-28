@@ -73,3 +73,6 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
         E: { label: ja['card.material.outputs.youngsModulus'], unitType: 'stress' },
     },
 });
+
+import { registry } from '../../lib/registry';
+registry.register(MaterialCardDef);

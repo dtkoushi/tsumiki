@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Plus, X, Pin } from 'lucide-react';
 import { clsx } from 'clsx';
 import { BaseCard } from './BaseCard';
@@ -85,10 +85,23 @@ const DynamicGroupSection = ({
         .sort((a, b) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]));
 
     const handleAdd = () => {
-        const nums = keys.map(k => parseInt(k.split('_')[1]));
+        const nums = keys.map(k => parseInt(k.split('_').pop()!));
         const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
         actions.updateInput(card.id, `${keyPrefix}_${next}`, defaultValue);
     };
+
+    // Auto-seed rows to meet minCount on initial mount
+    useEffect(() => {
+        const needed = minCount - keys.length;
+        if (needed <= 0) return;
+        const existingNums = keys.map(k => parseInt(k.split('_').pop()!));
+        let next = existingNums.length > 0 ? Math.max(...existingNums) : 0;
+        for (let i = 0; i < needed; i++) {
+            next++;
+            actions.updateInput(card.id, `${keyPrefix}_${next}`, defaultValue);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const dUnitLabel = getUnitLabel(inputUnitType, unitMode);
 

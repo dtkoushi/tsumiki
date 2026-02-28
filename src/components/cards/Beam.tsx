@@ -537,3 +537,6 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     },
     visualization: BeamVisualization,
 });
+
+import { registry } from '../../lib/registry';
+registry.register(BeamCardDef);

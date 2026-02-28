@@ -87,3 +87,6 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
         sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],    unitType: 'stress' },
     },
 });
+
+import { registry } from '../../lib/registry';
+registry.register(ColumnCardDef);

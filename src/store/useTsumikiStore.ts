@@ -100,9 +100,24 @@ const recalculateAll = (cards: Card[]): Card[] => {
                 }
             });
 
-            // Pass resolved inputs AND raw inputs (for CustomCard formula)
+            // Build dynamicGroups arg: pre-computed entries for each dynamic group
+            const allGroups = def.dynamicInputGroups ?? (def.dynamicInputGroup ? [def.dynamicInputGroup] : []);
+            const dynamicGroupsArg: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>> = {};
+            for (const group of allGroups) {
+                const pattern = new RegExp(`^${group.keyPrefix}_\\d+$`);
+                dynamicGroupsArg[group.keyPrefix] = Object.keys(card.inputs)
+                    .filter(k => pattern.test(k))
+                    .sort((a, b) => parseInt(a.split('_').pop()!) - parseInt(b.split('_').pop()!))
+                    .map(inputKey => ({
+                        inputKey,
+                        outputKey: group.outputKeyFn(inputKey),
+                        value: resolvedInputs[inputKey] ?? 0,
+                    }));
+            }
+
+            // Pass resolved inputs, raw inputs (for CustomCard), and dynamicGroups
             try {
-                outputs = def.calculate(resolvedInputs, card.inputs);
+                outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg);
             } catch (err) {
                 const message = err instanceof Error ? err.message : String(err);
                 if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);

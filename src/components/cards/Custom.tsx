@@ -139,3 +139,7 @@ export const CustomCombineDef = createCardDefinition({
     visualization: FormulaView,
     sidebar: { category: 'verify', order: 3 },
 });
+
+import { registry } from '../../lib/registry';
+registry.register(CustomMapDef);
+registry.register(CustomCombineDef);

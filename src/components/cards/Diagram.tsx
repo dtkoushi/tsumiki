@@ -403,3 +403,6 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     component: DiagramComponent,
     sidebar: { category: 'analysis', order: 1 },
 });
+
+import { registry } from '../../lib/registry';
+registry.register(DiagramCardDef);

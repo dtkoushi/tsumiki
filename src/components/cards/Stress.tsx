@@ -61,3 +61,6 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         return { sigma_b, tau, sigma_eq };
     },
 });
+
+import { registry } from '../../lib/registry';
+registry.register(StressCardDef);
