@@ -426,5 +426,5 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     sidebar: { category: 'loads', order: 2 },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(BeamMultiCardDef);

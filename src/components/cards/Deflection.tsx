@@ -423,5 +423,5 @@ export const DeflectionCardDef = createCardDefinition({
     sidebar: { category: 'analysis', order: 3 },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(DeflectionCardDef);

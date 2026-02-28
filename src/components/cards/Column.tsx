@@ -88,5 +88,5 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(ColumnCardDef);

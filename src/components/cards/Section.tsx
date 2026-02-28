@@ -262,5 +262,5 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
     visualization: SectionVisualization,
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(SectionCardDef);

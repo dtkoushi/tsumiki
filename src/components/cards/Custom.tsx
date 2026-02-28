@@ -140,6 +140,6 @@ export const CustomCombineDef = createCardDefinition({
     sidebar: { category: 'verify', order: 3 },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(CustomMapDef);
 registry.register(CustomCombineDef);

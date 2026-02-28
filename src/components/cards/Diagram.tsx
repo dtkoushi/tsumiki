@@ -404,5 +404,5 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     sidebar: { category: 'analysis', order: 1 },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(DiagramCardDef);

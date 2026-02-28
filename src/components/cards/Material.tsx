@@ -74,5 +74,5 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
     },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(MaterialCardDef);

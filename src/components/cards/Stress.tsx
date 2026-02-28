@@ -62,5 +62,5 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
     },
 });
 
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(StressCardDef);
