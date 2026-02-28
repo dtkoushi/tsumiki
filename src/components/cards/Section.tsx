@@ -166,7 +166,7 @@ const CircleSectionVisual: VisualizationStrategy = {
 };
 
 const SectionVisualization = createVisualizationComponent({
-    strategyKey: 'shape',
+    strategyAxes: [{ key: 'shape', default: 'rect' }],
     strategies: [RectSectionVisual, HSectionVisual, CircleSectionVisual],
     height: 240,
     padding: 40
