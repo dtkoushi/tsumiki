@@ -4,7 +4,10 @@ import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { calculateBeamMax, calculateBeamMultiMax, type BeamModel, type BeamMultiModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
-import { C_BEAM, C_POINT, C_DIST, C_MOMENT } from './common/beamSvgHelpers';
+import {
+    getBeamBounds, drawScaledBeamAndSupports, drawScaledDistLoad,
+    drawScaledPointLoad, drawScaledMomentLoad, type BoundaryDraw,
+} from './common/beamSvgHelpers';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
@@ -14,290 +17,33 @@ interface BeamOutputs {
     V_max: number;
 }
 
-// --- Support drawing helpers (world coordinates, scale = px per world unit) ---
+// --- Visualization Strategies ---
 
-type BoundaryDraw = 'simple' | 'cantilever' | 'fixed_fixed' | 'fixed_pinned';
-
-const drawFixedSupport = (x: number, scale: number, side: 'left' | 'right') => {
-    const h = 14 / scale;
-    const dir = side === 'left' ? -1 : 1;
-    return (
-        <g>
-            <line x1={x} y1={-h} x2={x} y2={h} stroke={C_BEAM} strokeWidth={2 / scale} />
-            {[-h, -h / 2, 0, h / 2, h].map((dy, i) => (
-                <line
-                    key={i}
-                    x1={x} y1={dy}
-                    x2={x + dir * 8 / scale} y2={dy + 6 / scale}
-                    stroke={C_BEAM}
-                    strokeWidth={1 / scale}
-                />
-            ))}
-        </g>
-    );
-};
-
-const drawPinSupport = (x: number, scale: number) => {
-    const ms = 8 / scale;
-    return (
-        <g>
-            <polygon
-                points={`${x - ms},${ms * 2} ${x + ms},${ms * 2} ${x},0`}
-                fill="none" stroke={C_BEAM} strokeWidth={1.5 / scale}
-            />
-            <line
-                x1={x - ms - 4 / scale} y1={ms * 2}
-                x2={x + ms + 4 / scale} y2={ms * 2}
-                stroke={C_BEAM} strokeWidth={1.5 / scale}
-            />
-        </g>
-    );
-};
-
-const drawRollerSupport = (x: number, scale: number) => {
-    const ms = 8 / scale;
-    return (
-        <g>
-            <circle cx={x} cy={ms} r={ms} fill="none" stroke={C_BEAM} strokeWidth={1.5 / scale} />
-            <line
-                x1={x - ms - 4 / scale} y1={ms * 2}
-                x2={x + ms + 4 / scale} y2={ms * 2}
-                stroke={C_BEAM} strokeWidth={1.5 / scale}
-            />
-        </g>
-    );
-};
-
-const drawBeamAndSupports = (L: number, scale: number, boundary: BoundaryDraw) => {
-    return (
-        <g>
-            <line x1={0} y1={0} x2={L} y2={0}
-                stroke={C_BEAM} strokeWidth={3 / scale} strokeLinecap="round" />
-            {(boundary === 'cantilever' || boundary === 'fixed_fixed' || boundary === 'fixed_pinned')
-                ? drawFixedSupport(0, scale, 'left')
-                : drawPinSupport(0, scale)
-            }
-            {boundary === 'simple' && drawRollerSupport(L, scale)}
-            {boundary === 'fixed_fixed' && drawFixedSupport(L, scale, 'right')}
-            {boundary === 'fixed_pinned' && drawPinSupport(L, scale)}
-            <text x={0} y={24 / scale}
-                textAnchor="middle" fontSize={9 / scale} fill="#94a3b8">
-                x=0
-            </text>
-        </g>
-    );
-};
-
-// --- Standard Bounds ---
-
-const getBeamBounds = (L: number) => {
-    const VU = L / 20;
+const makeBeamVisual = (id: string, boundary: BoundaryDraw, defaultL: number): VisualizationStrategy => {
+    const [, load] = id.split('::');
     return {
-        minX: -VU * 4,
-        maxX: L + VU * 2,
-        minY: -VU * 6,
-        maxY: VU * 4,
+        id,
+        getBounds: (inputs) => getBeamBounds(inputs['L'] || defaultL),
+        draw: (inputs, scale) => {
+            const L = inputs['L'] || defaultL;
+            const a = inputs['a'] ?? (load === 'point' && boundary === 'cantilever' ? L : L / 2);
+            const beam = drawScaledBeamAndSupports(L, scale, boundary);
+            if (load === 'uniform') return <>{beam}{drawScaledDistLoad(0, L, scale, inputs['w'] ?? 1, 'w')}</>;
+            if (load === 'point')   return <>{beam}{drawScaledPointLoad(a, scale, inputs['P'] ?? 1, 'P')}</>;
+            return <>{beam}{drawScaledMomentLoad(a, scale, inputs['M0'] ?? 1, 'M0')}</>;
+        }
     };
 };
 
-// --- Load drawing helpers ---
-
-const drawUniformLoad = (L: number, scale: number, w: number = 1) => {
-    const ms = 8 / scale;
-    const loadH = ms * 5;
-    const numArrows = 7;
-    const s = w >= 0 ? -1 : 1; // -1: above beam (positive), +1: below beam (negative)
-    const farY = s * loadH;
-    return (
-        <g>
-            <rect x={0} y={Math.min(farY, 0)} width={L} height={loadH}
-                fill={C_DIST} fillOpacity={0.08} stroke="none" />
-            <line x1={0} y1={farY} x2={L} y2={farY}
-                stroke={C_DIST} strokeWidth={1.5 / scale} />
-            <line x1={0} y1={farY} x2={0} y2={0}
-                stroke={C_DIST} strokeWidth={1 / scale} />
-            <line x1={L} y1={farY} x2={L} y2={0}
-                stroke={C_DIST} strokeWidth={1 / scale} />
-            {Array.from({ length: numArrows }, (_, i) => {
-                const tx = (i / (numArrows - 1)) * L;
-                return (
-                    <g key={i}>
-                        <line x1={tx} y1={farY - s * 2 / scale} x2={tx} y2={s / scale}
-                            stroke={C_DIST} strokeWidth={1 / scale} />
-                        <polygon
-                            points={`${tx - 4 / scale},${s * ms} ${tx + 4 / scale},${s * ms} ${tx},0`}
-                            fill={C_DIST}
-                        />
-                    </g>
-                );
-            })}
-            <text x={L / 2} y={s < 0 ? farY - 4 / scale : farY + 12 / scale}
-                textAnchor="middle" fontSize={10 / scale} fill={C_DIST} fontWeight="600">
-                w
-            </text>
-        </g>
-    );
-};
-
-const drawPointLoad = (a: number, scale: number, P: number = 1) => {
-    const ms = 8 / scale;
-    const loadH = ms * 5;
-    const s = P >= 0 ? -1 : 1; // -1: above beam (positive), +1: below beam (negative)
-    const farY = s * loadH;
-    return (
-        <g>
-            <line x1={a} y1={farY} x2={a} y2={s / scale}
-                stroke={C_POINT} strokeWidth={2 / scale} />
-            <polygon
-                points={`${a - 5 / scale},${s * (ms + 2 / scale)} ${a + 5 / scale},${s * (ms + 2 / scale)} ${a},0`}
-                fill={C_POINT}
-            />
-            <text x={a} y={s < 0 ? farY - 4 / scale : farY + 12 / scale}
-                textAnchor="middle" fontSize={10 / scale} fill={C_POINT} fontWeight="600">
-                P
-            </text>
-        </g>
-    );
-};
-
-const drawMomentLoad = (a: number, scale: number, val: number = 1) => {
-    const r = 16 / scale;
-    const clockwise = val >= 0;
-    const N_pts = 20;
-    const pts = Array.from({ length: N_pts + 1 }, (_, i) => {
-        const angle = (i / N_pts) * (3 * Math.PI / 2);
-        // clockwise (positive): arc goes below beam first (y = +r·sin)
-        // counter-clockwise (negative): arc goes above beam first (y = -r·sin)
-        const y = clockwise ? r * Math.sin(angle) : -r * Math.sin(angle);
-        return `${a + r * Math.cos(angle)},${y}`;
-    });
-    // Arrowhead at angle=3π/2: tangent always points right, end y flips
-    const ey = clockwise ? -r : r;
-    const aw = 4 / scale;
-    const al = 7 / scale;
-    return (
-        <g>
-            <polyline points={pts.join(' ')} fill="none" stroke={C_MOMENT} strokeWidth={1.5 / scale} />
-            <polygon
-                points={`${a - al},${ey - aw} ${a + aw * 1.2},${ey} ${a - al},${ey + aw}`}
-                fill={C_MOMENT}
-            />
-            <text x={a + r + 4 / scale} y={4 / scale}
-                textAnchor="start" fontSize={10 / scale} fill={C_MOMENT} fontWeight="600">
-                M0
-            </text>
-        </g>
-    );
-};
-
-// --- Visualization Strategies ---
-
-const BeamVisuals: Record<string, VisualizationStrategy> = {
-    'simple::uniform': {
-        id: 'simple::uniform',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawUniformLoad(L, scale, inputs['w'])}</>;
-        }
-    },
-    'simple::point': {
-        id: 'simple::point',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawPointLoad(a, scale, inputs['P'])}</>;
-        }
-    },
-    'simple::moment': {
-        id: 'simple::moment',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'simple')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
-        }
-    },
-    'cantilever::uniform': {
-        id: 'cantilever::uniform',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 2000;
-            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawUniformLoad(L, scale, inputs['w'])}</>;
-        }
-    },
-    'cantilever::point': {
-        id: 'cantilever::point',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 2000;
-            const a = inputs['a'] ?? L;
-            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawPointLoad(a, scale, inputs['P'])}</>;
-        }
-    },
-    'cantilever::moment': {
-        id: 'cantilever::moment',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 2000;
-            const a = inputs['a'] ?? L;
-            return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
-        }
-    },
-    'fixed_fixed::uniform': {
-        id: 'fixed_fixed::uniform',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawUniformLoad(L, scale, inputs['w'])}</>;
-        }
-    },
-    'fixed_fixed::point': {
-        id: 'fixed_fixed::point',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawPointLoad(a, scale, inputs['P'])}</>;
-        }
-    },
-    'fixed_fixed::moment': {
-        id: 'fixed_fixed::moment',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
-        }
-    },
-    'fixed_pinned::uniform': {
-        id: 'fixed_pinned::uniform',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawUniformLoad(L, scale, inputs['w'])}</>;
-        }
-    },
-    'fixed_pinned::point': {
-        id: 'fixed_pinned::point',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawPointLoad(a, scale, inputs['P'])}</>;
-        }
-    },
-    'fixed_pinned::moment': {
-        id: 'fixed_pinned::moment',
-        getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
-        draw: (inputs, scale) => {
-            const L = inputs['L'] || 4000;
-            const a = inputs['a'] ?? L / 2;
-            return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
-        }
-    },
-};
+const BeamVisuals: Record<string, VisualizationStrategy> = Object.fromEntries(
+    (['simple', 'cantilever', 'fixed_fixed', 'fixed_pinned'] as BoundaryDraw[]).flatMap(boundary => {
+        const defaultL = (boundary === 'simple' || boundary === 'fixed_fixed' || boundary === 'fixed_pinned') ? 4000 : 2000;
+        return ['uniform', 'point', 'moment'].map(load => {
+            const id = `${boundary}::${load}`;
+            return [id, makeBeamVisual(id, boundary, defaultL)];
+        });
+    })
+);
 
 
 // --- Beam Visualization Component ---
