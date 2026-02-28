@@ -54,30 +54,6 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         throw new Error(`Card ${type} must have at least one strategy.`);
     }
 
-    // DEV: validate that each strategy ID matches the expected composed axis values
-    if (process.env.NODE_ENV === 'development') {
-        strategies.forEach(s => {
-            const expectedId = axes.map(axis => {
-                // Find the axis value that matches this strategy's id portion
-                return axis.options.find(o => s.id.startsWith(o.value) || s.id.endsWith(o.value))?.value ?? '';
-            }).join('_');
-            if (axes.length > 1 && s.id !== expectedId) {
-                // Only warn for multi-axis; single axis IDs don't need to match a composition
-            }
-            // Warn if any axis value (except the last axis) contains '_'
-            axes.slice(0, -1).forEach((axis, i) => {
-                axis.options.forEach(o => {
-                    if (o.value.includes('_')) {
-                        console.warn(
-                            `Card ${type}: axis '${axis.key}' option value '${o.value}' contains '_'. ` +
-                            `Only the last axis may have values containing '_' to avoid ambiguous ID composition.`
-                        );
-                    }
-                });
-            });
-        });
-    }
-
     // Construct default inputs for all axes
     const axisDefaults: Record<string, any> = {};
     axes.forEach(axis => {
@@ -99,10 +75,9 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
             return String(val || axes[0].default);
         }
 
-        // Multi-axis: compose by joining axis values with '_'
-        // NOTE: axis values must not contain '_' except for the last axis
+        // Multi-axis: compose by joining axis values with '::'
         const parts = axes.map(axis => String(inputs[axis.key]?.value || axis.default));
-        return parts.join('_');
+        return parts.join('::');
     };
 
     return {

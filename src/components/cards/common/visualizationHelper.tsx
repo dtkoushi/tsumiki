@@ -77,7 +77,7 @@ export function createVisualizationComponent(options: CreateVisualizationOptions
         if (strategyAxes) {
             // Composite Mode
             const parts = strategyAxes.map(axis => String(rawInputs[axis.key]?.value || axis.default));
-            selection = parts.join('_');
+            selection = parts.join('::');
         } else {
             // Legacy / Single Mode
             const key = strategyKey || 'strategy'; // Fallback

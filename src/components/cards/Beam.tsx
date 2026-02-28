@@ -193,16 +193,16 @@ const drawMomentLoad = (a: number, scale: number, val: number = 1) => {
 // --- Visualization Strategies ---
 
 const BeamVisuals: Record<string, VisualizationStrategy> = {
-    'simple_uniform': {
-        id: 'simple_uniform',
+    'simple::uniform': {
+        id: 'simple::uniform',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
             return <>{drawBeamAndSupports(L, scale, 'simple')}{drawUniformLoad(L, scale, inputs['w'])}</>;
         }
     },
-    'simple_point': {
-        id: 'simple_point',
+    'simple::point': {
+        id: 'simple::point',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
@@ -210,8 +210,8 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'simple')}{drawPointLoad(a, scale, inputs['P'])}</>;
         }
     },
-    'simple_moment': {
-        id: 'simple_moment',
+    'simple::moment': {
+        id: 'simple::moment',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
@@ -219,16 +219,16 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'simple')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
-    'cantilever_uniform': {
-        id: 'cantilever_uniform',
+    'cantilever::uniform': {
+        id: 'cantilever::uniform',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 2000;
             return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawUniformLoad(L, scale, inputs['w'])}</>;
         }
     },
-    'cantilever_point': {
-        id: 'cantilever_point',
+    'cantilever::point': {
+        id: 'cantilever::point',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 2000;
@@ -236,8 +236,8 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawPointLoad(a, scale, inputs['P'])}</>;
         }
     },
-    'cantilever_moment': {
-        id: 'cantilever_moment',
+    'cantilever::moment': {
+        id: 'cantilever::moment',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 2000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 2000;
@@ -245,16 +245,16 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'cantilever')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
-    'fixed_fixed_uniform': {
-        id: 'fixed_fixed_uniform',
+    'fixed_fixed::uniform': {
+        id: 'fixed_fixed::uniform',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
             return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawUniformLoad(L, scale, inputs['w'])}</>;
         }
     },
-    'fixed_fixed_point': {
-        id: 'fixed_fixed_point',
+    'fixed_fixed::point': {
+        id: 'fixed_fixed::point',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
@@ -262,8 +262,8 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawPointLoad(a, scale, inputs['P'])}</>;
         }
     },
-    'fixed_fixed_moment': {
-        id: 'fixed_fixed_moment',
+    'fixed_fixed::moment': {
+        id: 'fixed_fixed::moment',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
@@ -271,16 +271,16 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'fixed_fixed')}{drawMomentLoad(a, scale, inputs['M0'])}</>;
         }
     },
-    'fixed_pinned_uniform': {
-        id: 'fixed_pinned_uniform',
+    'fixed_pinned::uniform': {
+        id: 'fixed_pinned::uniform',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
             return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawUniformLoad(L, scale, inputs['w'])}</>;
         }
     },
-    'fixed_pinned_point': {
-        id: 'fixed_pinned_point',
+    'fixed_pinned::point': {
+        id: 'fixed_pinned::point',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
@@ -288,8 +288,8 @@ const BeamVisuals: Record<string, VisualizationStrategy> = {
             return <>{drawBeamAndSupports(L, scale, 'fixed_pinned')}{drawPointLoad(a, scale, inputs['P'])}</>;
         }
     },
-    'fixed_pinned_moment': {
-        id: 'fixed_pinned_moment',
+    'fixed_pinned::moment': {
+        id: 'fixed_pinned::moment',
         getBounds: (inputs) => getBeamBounds(inputs['L'] || 4000),
         draw: (inputs, scale) => {
             const L = inputs['L'] || 4000;
@@ -316,9 +316,7 @@ const BeamVisualization = createVisualizationComponent({
 // --- Calculation Strategies ---
 
 const createModel = (inputs: Record<string, number>, id: string): BeamModel => {
-    const parts = id.split('_');
-    const load = parts[parts.length - 1] as BeamModel['load'];
-    const boundary = parts.slice(0, -1).join('_') as BeamModel['boundary'];
+    const [boundary, load] = id.split('::') as [BeamModel['boundary'], BeamModel['load']];
     return {
         boundary,
         load,
@@ -345,20 +343,20 @@ const calcMomentStrategy = (inputs: Record<string, number>, boundary: BoundaryTy
 
 const Strategies: CardStrategy<BeamOutputs>[] = [
     {
-        id: 'simple_uniform',
+        id: 'simple::uniform',
         label: ja['card.beam.strategies.simpleUniform'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'simple_uniform');
+            const model = createModel(inputs, 'simple::uniform');
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'simple_point',
+        id: 'simple::point',
         label: ja['card.beam.strategies.simplePoint'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
@@ -366,14 +364,14 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
             a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'simple_point');
+            const model = createModel(inputs, 'simple::point');
             model.x_loc = inputs['a'] || model.L / 2;
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'simple_moment',
+        id: 'simple::moment',
         label: ja['card.beam.strategies.simpleMoment'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
@@ -383,20 +381,20 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         calculate: (inputs) => calcMomentStrategy(inputs, 'simple'),
     },
     {
-        id: 'cantilever_uniform',
+        id: 'cantilever::uniform',
         label: ja['card.beam.strategies.cantileverUniform'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
             w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'cantilever_uniform');
+            const model = createModel(inputs, 'cantilever::uniform');
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'cantilever_point',
+        id: 'cantilever::point',
         label: ja['card.beam.strategies.cantileverPoint'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
@@ -404,14 +402,14 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
             a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'cantilever_point');
+            const model = createModel(inputs, 'cantilever::point');
             model.x_loc = inputs['a'] || model.L;
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'cantilever_moment',
+        id: 'cantilever::moment',
         label: ja['card.beam.strategies.cantileverMoment'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
@@ -421,20 +419,20 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         calculate: (inputs) => calcMomentStrategy(inputs, 'cantilever'),
     },
     {
-        id: 'fixed_fixed_uniform',
+        id: 'fixed_fixed::uniform',
         label: ja['card.beam.strategies.fixedFixedUniform'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'fixed_fixed_uniform');
+            const model = createModel(inputs, 'fixed_fixed::uniform');
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'fixed_fixed_point',
+        id: 'fixed_fixed::point',
         label: ja['card.beam.strategies.fixedFixedPoint'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
@@ -442,14 +440,14 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
             a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'fixed_fixed_point');
+            const model = createModel(inputs, 'fixed_fixed::point');
             model.x_loc = inputs['a'] || model.L / 2;
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'fixed_fixed_moment',
+        id: 'fixed_fixed::moment',
         label: ja['card.beam.strategies.fixedFixedMoment'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
@@ -459,20 +457,20 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_fixed'),
     },
     {
-        id: 'fixed_pinned_uniform',
+        id: 'fixed_pinned::uniform',
         label: ja['card.beam.strategies.fixedPinnedUniform'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
             w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'fixed_pinned_uniform');
+            const model = createModel(inputs, 'fixed_pinned::uniform');
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'fixed_pinned_point',
+        id: 'fixed_pinned::point',
         label: ja['card.beam.strategies.fixedPinnedPoint'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
@@ -480,14 +478,14 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
             a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
         },
         calculate: (inputs) => {
-            const model = createModel(inputs, 'fixed_pinned_point');
+            const model = createModel(inputs, 'fixed_pinned::point');
             model.x_loc = inputs['a'] || model.L / 2;
             const { M_max, V_max } = calculateBeamMax(model);
             return { M_max, V_max, diagramModel: model };
         }
     },
     {
-        id: 'fixed_pinned_moment',
+        id: 'fixed_pinned::moment',
         label: ja['card.beam.strategies.fixedPinnedMoment'],
         inputConfig: {
             L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
