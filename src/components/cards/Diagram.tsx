@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
-import { BarChart2, Plus, X, Pin } from 'lucide-react';
+import { BarChart2, Plus, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
-import { SmartInput } from '../common/SmartInput';
-import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/utils/unitFormatter';
+import { CardProvider } from './common/CardContext';
+import { CardSmartInput } from './common/CardSmartInput';
+import { getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/utils/unitFormatter';
 import { evalDiagramAt, type DiagramModel, type BoundaryType } from '../../lib/mechanics/beam';
-import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
+import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
@@ -169,7 +170,6 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
 const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const [tab, setTab] = useState<'M' | 'Q'>('M');
     const unitMode = (card.unitMode || 'mm') as UnitMode;
-    const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
 
     // Resolve diagramModel from upstream
     const diagramRef = card.inputs['diagramModel']?.ref;
@@ -204,8 +204,11 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
         { key: `Qx_${n}`, label: `Qx_${n}`, unitType: 'force' as OutputUnitType },
     ]);
 
+    const ctxValue = { cardId: card.id, card, actions, upstreamCards, upstreamInputConfigs, unitMode };
+
     return (
         <BaseCard card={card} icon={<BarChart2 size={18} />} color="border-teal-400">
+            <CardProvider value={ctxValue}>
             <div className="flex flex-col gap-4">
 
                 {/* Diagram Model Input */}
@@ -214,17 +217,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                         {ja['card.diagram.inputs.diagramModel']}
                     </span>
                     <div className="w-24">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey="diagramModel"
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            upstreamInputConfigs={upstreamInputConfigs}
-                            placeholder="ref"
-                            unitMode={unitMode}
-                            inputType="none"
-                        />
+                        <CardSmartInput inputKey="diagramModel" inputType="none" placeholder="ref" />
                     </div>
                 </div>
 
@@ -256,17 +249,7 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
                             </span>
                             <div className="flex items-center gap-1">
                                 <div className="w-24">
-                                    <SmartInput
-                                        cardId={card.id}
-                                        inputKey={`x_${n}`}
-                                        card={card}
-                                        actions={actions}
-                                        upstreamCards={upstreamCards}
-                                        upstreamInputConfigs={upstreamInputConfigs}
-                                        placeholder="0"
-                                        unitMode={unitMode}
-                                        inputType="length"
-                                    />
+                                    <CardSmartInput inputKey={`x_${n}`} inputType="length" placeholder="0" />
                                 </div>
                                 <button
                                     onClick={() => handleRemovePosition(n)}
@@ -326,38 +309,10 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
 
                 {/* Results */}
                 {!card.error && resultFields.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{ja['ui.results']}</label>
-                        <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {resultFields.map(({ key, label, unitType }) => {
-                                const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
-                                const value = card.outputs[key];
-                                return (
-                                    <div key={key} className="flex justify-between items-center gap-2 border-b border-slate-700/50 last:border-0 pb-1 last:pb-0">
-                                        <div className="flex items-center gap-1 shrink-0">
-                                            <button
-                                                onClick={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}
-                                                className={clsx(
-                                                    'p-0.5 rounded transition-colors',
-                                                    isPinned ? 'text-amber-400 hover:text-amber-300' : 'text-slate-600 hover:text-slate-300'
-                                                )}
-                                                title={isPinned ? ja['ui.unpin'] : ja['ui.pinToPanel']}
-                                            >
-                                                <Pin size={10} />
-                                            </button>
-                                            <span className="text-slate-400 text-xs">{label}:</span>
-                                        </div>
-                                        <span className="truncate text-right w-full font-mono text-emerald-400" title={value?.toString()}>
-                                            {formatOutput(value, unitType, unitMode)}
-                                            <span className="text-slate-500 ml-1 text-[10px]">{getUnitLabel(unitType, unitMode)}</span>
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <ResultsPanel cardId={card.id} outputs={card.outputs} fields={resultFields} unitMode={unitMode} />
                 )}
             </div>
+            </CardProvider>
         </BaseCard>
     );
 };

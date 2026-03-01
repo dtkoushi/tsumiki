@@ -93,11 +93,8 @@ export const MyCardDef = createCardDefinition<MyOutputs>({
   },
   calculate: ({ x }) => ({ result: x * 2 }),
 });
-```
 
-Self-registration at the end of the card file:
-```typescript
-import { registry } from '../../lib/registry';
+import { registry } from '../../lib/registry/registry';
 registry.register(MyCardDef);
 ```
 
@@ -108,6 +105,10 @@ registry.register(MyCardDef);
 - `outputIndexFn` must be set to enable pin-to-panel for dynamic outputs. **Omitting it silently disables pinning** — no error is thrown, the pin icon just does nothing.
 - Dynamic outputs must NOT be listed in `outputConfig` (they are generated at runtime by GenericCard).
 - `minCount` sets the minimum rows; the remove button is disabled at that count. Rows are auto-seeded to `minCount` on initial mount — `defaultInputs` is not required for seeding. You can optionally pre-populate values in `defaultInputs` for better initial UX (e.g. `Couple.tsx`: `defaultInputs: { d_1: { value: 500 }, d_2: { value: 300 } }`).
+
+**`outputConfig.hidden`**: set `hidden: true` on an output field to hide it from the UI results panel while keeping it available as a reference target for other cards. Used by BEAM/BEAM_MULTI for `diagramModel` outputs.
+
+**`shouldRenderInput`**: optional function `(card, key) => boolean` on `CardDefinition`. When provided, GenericCard calls it for each standard input and skips rendering if it returns `false`. Useful for conditionally showing inputs based on card state (e.g. showing different fields per strategy).
 
 **Custom component**: set `component` in `CardDefinition` to replace `GenericCard` entirely. The component must wrap content in `BaseCard`.
 
@@ -194,9 +195,9 @@ After selecting a reference, the user can type an **expression** (e.g. `v/2`, `v
 
 ### Strategy ID Composition
 
-For `createStrategyDefinition`, strategy IDs are formed by joining axis values with `_`. Example: `boundary='fixed_fixed'` + `load='uniform'` → strategy ID `'fixed_fixed_uniform'`. When parsing in custom components (e.g. BeamMulti), split on the **last** `_` to recover the final axis.
+For `createStrategyDefinition`, strategy IDs are formed by joining axis values with `::`. Example: `boundary='fixed_fixed'` + `load='uniform'` → strategy ID `'fixed_fixed::uniform'`. When parsing in custom components (e.g. BeamMulti), split on `::` to recover the axes.
 
-**Warning**: Only the **last** axis's option values may contain `_`. All earlier axis option values must be `_`-free. A DEV-mode warning is logged when this rule is violated. Violating it creates ambiguous strategy IDs.
+Axis option values may freely contain `_` (e.g. `fixed_fixed`, `pinned_pinned`) since `::` is the separator.
 
 ### State Mutations
 

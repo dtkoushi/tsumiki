@@ -1,20 +1,20 @@
 
 import React from 'react';
-import { GitBranch, Plus, X, Pin } from 'lucide-react';
-import { clsx } from 'clsx';
+import { GitBranch, Plus, X } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
-import { SmartInput } from '../common/SmartInput';
-import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/utils/unitFormatter';
+import { CardProvider } from './common/CardContext';
+import { CardSmartInput } from './common/CardSmartInput';
+import { getUnitLabel, type UnitMode } from '../../lib/utils/unitFormatter';
 import { calculateBeamMultiMax, type BoundaryType, type LoadType } from '../../lib/mechanics/beam';
-import { useTsumikiStore } from '../../store/useTsumikiStore';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import {
     getBeamBounds, drawScaledBeamAndSupports, drawScaledDistLoad,
     drawScaledPointLoad, drawScaledMomentLoad, type BoundaryDraw,
 } from './common/beamSvgHelpers';
 import { AutoFitSvg } from './common/AutoFitSvg';
+import { ResultsPanel, type ResultField } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
 
 // Subset of OutputUnitType that SmartInput accepts
@@ -127,9 +127,6 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
 
 const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const unitMode = (card.unitMode || 'mm') as UnitMode;
-    const pinnedOutputs = useTsumikiStore(state => state.pinnedOutputs);
-    const pinOutput = useTsumikiStore(state => state.pinOutput);
-    const unpinOutput = useTsumikiStore(state => state.unpinOutput);
 
     const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
@@ -149,9 +146,9 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
         actions.removeInput(card.id, `val_${n}`);
     };
 
-    const RESULT_FIELDS = [
-        { key: 'M_max', label: 'M_max', unitType: 'moment' as OutputUnitType },
-        { key: 'V_max', label: 'V_max', unitType: 'force' as OutputUnitType },
+    const RESULT_FIELDS: ResultField[] = [
+        { key: 'M_max', label: 'M_max', unitType: 'moment' },
+        { key: 'V_max', label: 'V_max', unitType: 'force' },
     ];
 
     const StyledSelect = ({ value, onChange, options }: {
@@ -177,8 +174,11 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
         </div>
     );
 
+    const ctxValue = { cardId: card.id, card, actions, upstreamCards, upstreamInputConfigs, unitMode };
+
     return (
         <BaseCard card={card} icon={<GitBranch size={18} />} color="border-purple-400">
+            <CardProvider value={ctxValue}>
             <div className="flex flex-col gap-4">
 
                 {/* ── Boundary Condition ── */}
@@ -200,17 +200,7 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                         <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('length', unitMode)}]</span>
                     </span>
                     <div className="w-24">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey="L"
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            upstreamInputConfigs={upstreamInputConfigs}
-                            placeholder="0"
-                            unitMode={unitMode}
-                            inputType="length"
-                        />
+                        <CardSmartInput inputKey="L" inputType="length" placeholder="0" />
                     </div>
                 </div>
 
@@ -270,51 +260,21 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                                         <div className="text-[10px] text-slate-400 mb-0.5">
                                             {isDist ? `${ja['card.beamMulti.loadRow.startA']} [${getUnitLabel('length', unitMode)}]` : `${ja['card.beamMulti.loadRow.posA']} [${getUnitLabel('length', unitMode)}]`}
                                         </div>
-                                        <SmartInput
-                                            cardId={card.id}
-                                            inputKey={`a_${n}`}
-                                            card={card}
-                                            actions={actions}
-                                            upstreamCards={upstreamCards}
-                                            upstreamInputConfigs={upstreamInputConfigs}
-                                            placeholder="0"
-                                            unitMode={unitMode}
-                                            inputType="length"
-                                        />
+                                        <CardSmartInput inputKey={`a_${n}`} inputType="length" placeholder="0" />
                                     </div>
                                     {isDist && (
                                         <div>
                                             <div className="text-[10px] text-slate-400 mb-0.5">
                                                 {`${ja['card.beamMulti.loadRow.endB']} [${getUnitLabel('length', unitMode)}]`}
                                             </div>
-                                            <SmartInput
-                                                cardId={card.id}
-                                                inputKey={`b_${n}`}
-                                                card={card}
-                                                actions={actions}
-                                                upstreamCards={upstreamCards}
-                                                upstreamInputConfigs={upstreamInputConfigs}
-                                                placeholder="0"
-                                                unitMode={unitMode}
-                                                inputType="length"
-                                            />
+                                            <CardSmartInput inputKey={`b_${n}`} inputType="length" placeholder="0" />
                                         </div>
                                     )}
                                     <div>
                                         <div className="text-[10px] text-slate-400 mb-0.5">
                                             {`${getValLabelJa(loadTypeVal)} [${getUnitLabel(valUnitType, unitMode)}]`}
                                         </div>
-                                        <SmartInput
-                                            cardId={card.id}
-                                            inputKey={`val_${n}`}
-                                            card={card}
-                                            actions={actions}
-                                            upstreamCards={upstreamCards}
-                                            upstreamInputConfigs={upstreamInputConfigs}
-                                            placeholder="0"
-                                            unitMode={unitMode}
-                                            inputType={valUnitType}
-                                        />
+                                        <CardSmartInput inputKey={`val_${n}`} inputType={valUnitType} placeholder="0" />
                                     </div>
                                 </div>
                             </div>
@@ -336,38 +296,10 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
 
                 {/* ── Results ── */}
                 {!card.error && (
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{ja['ui.results']}</label>
-                        <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {RESULT_FIELDS.map(({ key, label, unitType }) => {
-                                const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
-                                const value = card.outputs[key];
-                                return (
-                                    <div key={key} className="flex justify-between items-center gap-2 border-b border-slate-700/50 last:border-0 pb-1 last:pb-0">
-                                        <div className="flex items-center gap-1 shrink-0">
-                                            <button
-                                                onClick={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}
-                                                className={clsx(
-                                                    "p-0.5 rounded transition-colors",
-                                                    isPinned ? "text-amber-400 hover:text-amber-300" : "text-slate-600 hover:text-slate-300"
-                                                )}
-                                                title={isPinned ? ja['ui.unpin'] : ja['ui.pinToPanel']}
-                                            >
-                                                <Pin size={10} />
-                                            </button>
-                                            <span className="text-slate-400 text-xs">{label}:</span>
-                                        </div>
-                                        <span className="truncate text-right w-full font-mono text-emerald-400" title={value?.toString()}>
-                                            {formatOutput(value, unitType, unitMode)}
-                                            <span className="text-slate-500 ml-1 text-[10px]">{getUnitLabel(unitType, unitMode)}</span>
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <ResultsPanel cardId={card.id} outputs={card.outputs} fields={RESULT_FIELDS} unitMode={unitMode} />
                 )}
             </div>
+            </CardProvider>
         </BaseCard>
     );
 };
