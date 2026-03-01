@@ -166,7 +166,7 @@ const CircleSectionVisual: VisualizationStrategy = {
 };
 
 const SectionVisualization = createVisualizationComponent({
-    strategyKey: 'shape',
+    strategyAxes: [{ key: 'shape', default: 'rect' }],
     strategies: [RectSectionVisual, HSectionVisual, CircleSectionVisual],
     height: 240,
     padding: 40
@@ -252,6 +252,7 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
         default: 'rect',
     }],
     strategies: [RectSectionStrategy, HSectionStrategy, CircleSectionStrategy],
+    sidebar: { category: 'geometry', order: 1 },
     outputConfig: {
         A: { label: ja['card.section.outputs.area'], unitType: 'area' },
         Ix: { label: 'I_x', unitType: 'inertia' },
@@ -260,3 +261,6 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
     },
     visualization: SectionVisualization,
 });
+
+import { registry } from '../../lib/registry/registry';
+registry.register(SectionCardDef);

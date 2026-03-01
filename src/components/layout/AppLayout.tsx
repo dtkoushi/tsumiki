@@ -17,6 +17,7 @@ import { toast } from '../common/toast';
 import { Button } from '../common/Button';
 import { CardNavigator } from '../stack/CardNavigator';
 import { ja } from '../../lib/i18n/ja';
+import { registry } from '../../lib/registry';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -84,44 +85,43 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     interface CardItem { type: CardType; label: string; desc: string }
     interface CategoryDef { id: string; label: string; items: CardItem[] }
 
-    const cardCategories: CategoryDef[] = [
-        {
-            id: 'geometry',
-            label: ja['sidebar.category.geometry'],
-            items: [
-                { type: 'SECTION',  label: ja['card.section.title'],  desc: ja['card.section.description'] },
-                { type: 'MATERIAL', label: ja['card.material.title'], desc: ja['card.material.description'] },
-            ],
-        },
-        {
-            id: 'loads',
-            label: ja['sidebar.category.loads'],
-            items: [
-                { type: 'BEAM',       label: ja['card.beam.title'],      desc: ja['card.beam.description'] },
-                { type: 'BEAM_MULTI', label: ja['card.beamMulti.title'], desc: ja['card.beamMulti.description'] },
-                { type: 'COUPLE',     label: ja['card.couple.title'],    desc: ja['card.couple.description'] },
-            ],
-        },
-        {
-            id: 'analysis',
-            label: ja['sidebar.category.analysis'],
-            items: [
-                { type: 'DIAGRAM',    label: ja['card.diagram.title'],    desc: ja['card.diagram.description'] },
-                { type: 'STRESS',     label: ja['card.stress.title'],     desc: ja['card.stress.description'] },
-                { type: 'DEFLECTION', label: ja['card.deflection.title'], desc: ja['card.deflection.description'] },
-                { type: 'COLUMN',     label: ja['card.column.title'],     desc: ja['card.column.description'] },
-            ],
-        },
-        {
-            id: 'verify',
-            label: ja['sidebar.category.verify'],
-            items: [
-                { type: 'VERIFY',         label: ja['card.verify.title'],         desc: ja['card.verify.description'] },
-                { type: 'CUSTOM_MAP',     label: ja['card.custom.title.map'],     desc: ja['card.custom.description.map'] },
-                { type: 'CUSTOM_COMBINE', label: ja['card.custom.title.combine'], desc: ja['card.custom.description.combine'] },
-            ],
-        },
-    ];
+    const CATEGORY_ORDER: Record<string, number> = {
+        geometry: 1,
+        loads: 2,
+        analysis: 3,
+        verify: 4,
+    };
+    const CATEGORY_LABELS: Record<string, string> = {
+        geometry: ja['sidebar.category.geometry'],
+        loads:    ja['sidebar.category.loads'],
+        analysis: ja['sidebar.category.analysis'],
+        verify:   ja['sidebar.category.verify'],
+    };
+
+    const cardCategories: CategoryDef[] = (() => {
+        const grouped: Record<string, CardItem[]> = {};
+        for (const def of registry.getAll()) {
+            if (!def.sidebar) continue;
+            const { category } = def.sidebar;
+            if (!grouped[category]) grouped[category] = [];
+            grouped[category].push({
+                type: def.type as CardType,
+                label: def.title,
+                desc: def.description ?? '',
+            });
+        }
+        // Sort items within each category by sidebar.order
+        for (const category of Object.keys(grouped)) {
+            grouped[category].sort((a, b) => {
+                const orderA = registry.get(a.type)?.sidebar?.order ?? 999;
+                const orderB = registry.get(b.type)?.sidebar?.order ?? 999;
+                return orderA - orderB;
+            });
+        }
+        return Object.keys(grouped)
+            .sort((a, b) => (CATEGORY_ORDER[a] ?? 99) - (CATEGORY_ORDER[b] ?? 99))
+            .map(id => ({ id, label: CATEGORY_LABELS[id] ?? id, items: grouped[id] }));
+    })();
 
     return (
         <div className="flex h-screen bg-slate-100 text-slate-800 font-sans overflow-hidden">

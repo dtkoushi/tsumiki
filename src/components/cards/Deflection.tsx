@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { ArrowDown, Pin } from 'lucide-react';
-import { clsx } from 'clsx';
+import { ArrowDown } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
-import { SmartInput } from '../common/SmartInput';
-import { formatOutput, getUnitLabel, type UnitMode } from '../../lib/utils/unitFormatter';
+import { CardProvider } from './common/CardContext';
+import { CardSmartInput } from './common/CardSmartInput';
+import { getUnitLabel, type UnitMode } from '../../lib/utils/unitFormatter';
 import {
     calculateMaxDeflection,
     calculateDeflectionProfile,
@@ -15,7 +15,7 @@ import {
 } from '../../lib/mechanics/beam';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
 import { resolveInput } from '../../lib/utils/cardHelpers';
-import { useTsumikiStore } from '../../store/useTsumikiStore';
+import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
 import type { JaKey } from '../../lib/i18n/ja';
 
@@ -185,7 +185,6 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
 
 const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
     const unitMode = (card.unitMode || 'mm') as UnitMode;
-    const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
 
     const t = (key: string) => ja[key as JaKey] ?? key;
 
@@ -209,10 +208,12 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
 
     const delta_max   = card.outputs['delta_max']   ?? 0;
     const delta_allow = card.outputs['delta_allow']  ?? 0;
-    const ratio       = card.outputs['ratio']        ?? 0;
+
+    const ctxValue = { cardId: card.id, card, actions, upstreamCards, upstreamInputConfigs, unitMode };
 
     return (
         <BaseCard card={card} icon={<ArrowDown size={18} />} color="border-violet-400">
+            <CardProvider value={ctxValue}>
             <div className="flex flex-col gap-4">
 
                 {/* diagramModel input */}
@@ -221,17 +222,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                         {t('card.deflection.inputs.diagramModel')}
                     </span>
                     <div className="w-24">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey="diagramModel"
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            upstreamInputConfigs={upstreamInputConfigs}
-                            placeholder="ref"
-                            unitMode={unitMode}
-                            inputType="none"
-                        />
+                        <CardSmartInput inputKey="diagramModel" inputType="none" placeholder="ref" />
                     </div>
                 </div>
 
@@ -242,17 +233,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                         <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('modulus', unitMode)}]</span>
                     </span>
                     <div className="w-24">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey="E"
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            upstreamInputConfigs={upstreamInputConfigs}
-                            placeholder="205"
-                            unitMode={unitMode}
-                            inputType="modulus"
-                        />
+                        <CardSmartInput inputKey="E" inputType="modulus" placeholder="205" />
                     </div>
                 </div>
 
@@ -263,17 +244,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                         <span className="text-xs text-slate-400 font-normal ml-1">[{getUnitLabel('inertia', unitMode)}]</span>
                     </span>
                     <div className="w-24">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey="I"
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            upstreamInputConfigs={upstreamInputConfigs}
-                            placeholder="0"
-                            unitMode={unitMode}
-                            inputType="inertia"
-                        />
+                        <CardSmartInput inputKey="I" inputType="inertia" placeholder="0" />
                     </div>
                 </div>
 
@@ -283,17 +254,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                         {t('card.deflection.inputs.n_allow')}
                     </span>
                     <div className="w-24">
-                        <SmartInput
-                            cardId={card.id}
-                            inputKey="n_allow"
-                            card={card}
-                            actions={actions}
-                            upstreamCards={upstreamCards}
-                            upstreamInputConfigs={upstreamInputConfigs}
-                            placeholder="300"
-                            unitMode={unitMode}
-                            inputType="none"
-                        />
+                        <CardSmartInput inputKey="n_allow" inputType="none" placeholder="300" />
                     </div>
                 </div>
 
@@ -324,50 +285,10 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
 
                 {/* Results */}
                 {!card.error && (
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('ui.results')}</label>
-                        <div className="bg-slate-800 shadow-inner text-white rounded-lg p-3 space-y-2 font-mono text-sm overflow-hidden">
-                            {resultFields.map(({ key, label, unitType }) => {
-                                const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
-                                const value = card.outputs[key];
-                                const isRatio = unitType === 'ratio';
-                                const ratioOk = isRatio && (value ?? 0) <= 1.0;
-                                return (
-                                    <div key={key} className="flex justify-between items-center gap-2 border-b border-slate-700/50 last:border-0 pb-1 last:pb-0">
-                                        <div className="flex items-center gap-1 shrink-0">
-                                            <button
-                                                onClick={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}
-                                                className={clsx(
-                                                    'p-0.5 rounded transition-colors',
-                                                    isPinned ? 'text-amber-400 hover:text-amber-300' : 'text-slate-600 hover:text-slate-300'
-                                                )}
-                                                title={isPinned ? t('ui.unpin') : t('ui.pinToPanel')}
-                                            >
-                                                <Pin size={10} />
-                                            </button>
-                                            <span className="text-slate-400 text-xs">{label}:</span>
-                                        </div>
-                                        <span
-                                            className={clsx(
-                                                'truncate text-right w-full font-mono text-sm',
-                                                isRatio
-                                                    ? ratioOk ? 'text-emerald-400' : 'text-rose-400'
-                                                    : 'text-emerald-400'
-                                            )}
-                                            title={value?.toString()}
-                                        >
-                                            {formatOutput(value, unitType, unitMode)}
-                                            {unitType !== 'ratio' && unitType !== 'none' && (
-                                                <span className="text-slate-500 ml-1 text-[10px]">{getUnitLabel(unitType, unitMode)}</span>
-                                            )}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <ResultsPanel cardId={card.id} outputs={card.outputs} fields={resultFields} unitMode={unitMode} />
                 )}
             </div>
+            </CardProvider>
         </BaseCard>
     );
 };
@@ -420,4 +341,8 @@ export const DeflectionCardDef = createCardDefinition({
     },
 
     component: DeflectionComponent,
+    sidebar: { category: 'analysis', order: 3 },
 });
+
+import { registry } from '../../lib/registry/registry';
+registry.register(DeflectionCardDef);

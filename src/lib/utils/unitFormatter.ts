@@ -83,6 +83,9 @@ export const formatOutput = (value: number | undefined | null, type: OutputUnitT
             // So numeric value is same.
             return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
         default:
+            if (import.meta.env.DEV) {
+                console.warn(`[unitFormatter] Unknown unitType "${type}" in 'm' mode — falling back to raw number format.`);
+            }
             return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
     }
 };

@@ -2,6 +2,7 @@
 import React from 'react';
 import type { CardComponentProps } from '../../../lib/registry/types';
 import { AutoFitSvg } from './AutoFitSvg';
+import type { DimensionDef } from './AutoFitSvg';
 export { AutoFitSvg };
 
 /**
@@ -13,6 +14,9 @@ export interface VisualizationStrategy<TInputs = Record<string, number>> {
 
     // Calculate bounds based on inputs (World Coordinates)
     getBounds: (inputs: TInputs) => { minX: number; minY: number; maxX: number; maxY: number };
+
+    // Optional: Return dimension annotations to overlay on the drawing
+    getDimensions?: (inputs: TInputs) => DimensionDef[];
 
     // Render the content
     // inputs: Validated inputs
@@ -28,8 +32,7 @@ interface StrategyAxis {
 }
 
 interface CreateVisualizationOptions {
-    strategyKey?: string;
-    strategyAxes?: StrategyAxis[];
+    strategyAxes: StrategyAxis[];
     strategies: VisualizationStrategy<any>[];
 
     // Optional: Transform raw card inputs to typed inputs
@@ -46,7 +49,6 @@ interface CreateVisualizationOptions {
 
 export function createVisualizationComponent(options: CreateVisualizationOptions): React.FC<CardComponentProps> {
     const {
-        strategyKey,
         strategyAxes,
         strategies,
         transformInputs,
@@ -72,18 +74,8 @@ export function createVisualizationComponent(options: CreateVisualizationOptions
         }
 
         // 2. Select Strategy
-        let selection: string;
-
-        if (strategyAxes) {
-            // Composite Mode
-            const parts = strategyAxes.map(axis => String(rawInputs[axis.key]?.value || axis.default));
-            selection = parts.join('_');
-        } else {
-            // Legacy / Single Mode
-            const key = strategyKey || 'strategy'; // Fallback
-            const selectionVal = rawInputs[key]?.value;
-            selection = String(selectionVal || strategies[0].id);
-        }
+        const parts = strategyAxes.map(axis => String(rawInputs[axis.key]?.value || axis.default));
+        const selection = parts.join('::');
 
         const strategy = strategies.find(s => s.id === selection) || strategies[0];
 

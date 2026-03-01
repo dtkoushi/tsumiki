@@ -34,7 +34,7 @@ Each card type is defined as a `CardDefinition` in `src/lib/registry/index.ts`. 
 - An optional SVG visualization strategy
 - For multi-strategy cards (Section, Beam): a strategy selector that picks among sub-definitions
 
-Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM` | `COUPLE` | `BEAM_MULTI` | `DIAGRAM` | `STRESS` | `DEFLECTION` | `COLUMN`
+Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM_MAP` | `CUSTOM_COMBINE` | `COUPLE` | `BEAM_MULTI` | `DIAGRAM` | `STRESS` | `DEFLECTION` | `COLUMN`
 
 **Section** supports strategies: Rectangle, H-Beam, Circle
 **Beam** uses a 2-axis strategy grid: Boundary (Simple | Cantilever) × Load (Uniform | Point)
@@ -60,29 +60,125 @@ Card types: `SECTION` | `MATERIAL` | `BEAM` | `VERIFY` | `CUSTOM` | `COUPLE` | `
 
 ### Adding a New Card Type
 
-1. Define a `CardDefinition` using `createCardDefinition` (fixed inputs) or `createStrategyDefinition` (strategy-switched inputs) from `strategyHelper.ts`.
-2. Register it in `src/lib/registry/index.ts`.
-3. Add the new type literal to `src/types/index.ts`.
-4. Add a sidebar entry to the `cardTypes` array in `src/components/layout/AppLayout.tsx`.
-5. `GenericCard` handles rendering automatically. Use `visualization` for an SVG diagram, `dynamicInputGroup` for variable-count paired input→output rows.
+Minimum viable new card requires editing **1 file**:
 
-**`dynamicInputGroup`**: declare in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. See `src/components/cards/Couple.tsx` for a working example.
+1. **Create** `src/components/cards/MyCard.tsx` — define the card and call `registry.register()` at the end.
+   - `registry/index.ts` auto-loads all `src/components/cards/*.tsx` via `import.meta.glob` — no manual registration needed.
+   - The sidebar entry is declared in the definition itself (`sidebar: { category: ... }`).
+   - `CardType` is `string` — no `src/types/index.ts` edit needed.
+   - Labels can be direct Japanese strings — no `src/lib/i18n/ja.ts` edit needed for card fields.
 
-**Custom component**: set `component` in `CardDefinition` to replace `GenericCard` entirely. The component must wrap content in `BaseCard`. Use this only when layout cannot be expressed via `GenericCard` + `visualization` + `dynamicInputGroup`.
+#### Minimal card template
 
-**`calculate(inputs, rawInputs)`**: `inputs` contains resolved numbers (refs resolved, defaults applied). `rawInputs` is `card.inputs` as-is — use it when you need raw string values (e.g. CustomCard formula strings), since `parseFloat` converts strings to `0`.
+```typescript
+// src/components/cards/MyCard.tsx
+import { Ruler } from 'lucide-react';
+import { createCardDefinition } from '../../lib/registry/strategyHelper';
+
+interface MyOutputs { result: number }
+
+export const MyCardDef = createCardDefinition<MyOutputs>({
+  type: 'MY_CARD',
+  title: '私のカード',
+  description: '簡単な計算',
+  icon: Ruler,
+  sidebar: { category: 'analysis' },
+
+  defaultInputs: { x: { value: 0 } },
+  inputConfig: {
+    x: { label: '入力値', unitType: 'length' },
+  },
+  outputConfig: {
+    result: { label: '結果', unitType: 'length' },
+  },
+  calculate: ({ x }) => ({ result: x * 2 }),
+});
+
+import { registry } from '../../lib/registry/registry';
+registry.register(MyCardDef);
+```
+
+**`dynamicInputGroups`**: declare an array of `DynamicInputGroupConfig` in `CardDefinition` to get add/remove rows rendered between standard inputs and visualization — no custom component needed. See `src/components/cards/Couple.tsx` for a working example.
+
+**`dynamicInputGroups` key points**:
+- `outputKeyFn` maps input key → output key (e.g. `'d_1'` → `'n_1'`). **The logic in `outputKeyFn` must exactly match the key construction in `calculate()`.** A mismatch causes a silent failure: output values show as `undefined` and pin buttons do nothing — no error is thrown.
+- `outputIndexFn` must be set to enable pin-to-panel for dynamic outputs. **Omitting it silently disables pinning** — no error is thrown, the pin icon just does nothing.
+- Dynamic outputs must NOT be listed in `outputConfig` (they are generated at runtime by GenericCard).
+- `minCount` sets the minimum rows; the remove button is disabled at that count. Rows are auto-seeded to `minCount` on initial mount — `defaultInputs` is not required for seeding. You can optionally pre-populate values in `defaultInputs` for better initial UX (e.g. `Couple.tsx`: `defaultInputs: { d_1: { value: 500 }, d_2: { value: 300 } }`).
+
+**`outputConfig.hidden`**: set `hidden: true` on an output field to hide it from the UI results panel while keeping it available as a reference target for other cards. Used by BEAM/BEAM_MULTI for `diagramModel` outputs.
+
+**`shouldRenderInput`**: optional function `(card, key) => boolean` on `CardDefinition`. When provided, GenericCard calls it for each standard input and skips rendering if it returns `false`. Useful for conditionally showing inputs based on card state (e.g. showing different fields per strategy).
+
+**Custom component**: set `component` in `CardDefinition` to replace `GenericCard` entirely. The component must wrap content in `BaseCard`.
+
+Use a custom component when **any** of these apply:
+- Local UI state is needed (e.g. tabs — `Diagram.tsx`, `BeamMulti.tsx` use a tab switcher)
+- Full layout control is required (non-standard input/output arrangement)
+- The card reads a full **model object** from an upstream card's outputs (e.g. `Diagram`/`Deflection` read `DiagramModel` from BEAM/BEAM_MULTI outputs)
+
+Stick with `GenericCard` + `visualization` + `dynamicInputGroups` otherwise — it handles inputs, outputs, pin buttons, errors, and collapse automatically.
+
+**Upstream model reading pattern**: cards like `Diagram` and `Deflection` consume a full model object (e.g. `DiagramModel`) stored in an upstream card's outputs rather than a plain number. Because `calculate()` only operates on numbers, such cards must use a custom component and read the model directly from `upstreamCards`:
+
+```typescript
+// Inside a custom CardComponentProps component:
+const diagramRef = card.inputs['diagramModel']?.ref;
+const model = diagramRef
+    ? (upstreamCards.find(c => c.id === diagramRef.cardId)
+           ?.outputs[diagramRef.outputKey] as unknown as DiagramModel)
+    : null;
+```
+
+The input field's `inputConfig` should use `unitType: 'none'` and `SmartInput` should use `inputType="none"`. The field still participates in the dependency graph normally — the card recalculates when the reference changes.
+
+**Custom component — pinned outputs**: `GenericCard` renders pin buttons automatically. A custom component must render them itself using the Zustand store:
+
+```typescript
+import { useTsumikiStore } from '../../store/useTsumikiStore';
+import { Pin } from 'lucide-react';
+
+// Inside the custom component:
+const { pinnedOutputs, pinOutput, unpinOutput } = useTsumikiStore();
+
+// For each output key:
+const isPinned = pinnedOutputs.some(p => p.cardId === card.id && p.outputKey === key);
+<button onClick={() => isPinned ? unpinOutput(card.id, key) : pinOutput(card.id, key)}>
+    <Pin size={10} />
+</button>
+```
+
+See `Diagram.tsx` and `Deflection.tsx` for the full results-panel pattern (dark `bg-slate-800` block with pin + formatted value per row).
+
+**`calculate(inputs, rawInputs, dynamicGroups)`**: `inputs` contains resolved numbers. `rawInputs` is `card.inputs` as-is — use it when you need raw string values (e.g. CustomCard formula strings). `dynamicGroups` is a pre-computed `Record<keyPrefix, Array<{inputKey, outputKey, value}>>` — use it instead of filtering `inputs` manually.
+
+**Error display**: if `calculate()` throws, `card.error` is set. GenericCard shows an inline error block; BaseCard shows a red badge in the header (visible even when collapsed).
 
 ### Unit System
 
 Each card tracks its own `unitMode` ('mm' or 'm'). `unitFormatter` converts between these display modes and the SI base values stored in state. Unit-type keys are declared in card field configs and drive the formatter.
 
-Valid `inputType` / `unitType` values for `SmartInput` and field configs:
-`'length'` | `'force'` | `'moment'` | `'load'` | `'stress'` | `'modulus'` | `'none'`
-**Note**: `'area'`, `'inertia'`, `'ratio'` are **not** valid SmartInput inputType values.
+Valid `inputType` / `unitType` values for `SmartInput` and field configs (`SmartInputUnitType`):
+`'length'` | `'area'` | `'inertia'` | `'force'` | `'moment'` | `'load'` | `'stress'` | `'modulus'` | `'none'`
+
+`'area'` and `'inertia'` are fully supported for SmartInput display conversion (mm²↔m², mm⁴↔m⁴).
+`'ratio'` is output-only (`OutputUnitType`) and cannot be used as SmartInput `inputType`.
+
+Output-only types (`OutputUnitType` but not `SmartInputUnitType`): `'ratio'`.
 
 ### i18n
 
-All UI strings are in `src/lib/i18n/ja.ts` as `export const ja = { ... } as const`. Components import `ja` directly and access keys as `ja['key.name']`. `export type JaKey = keyof typeof ja` provides the key union type. To add a new string, append a key to `ja` — TypeScript will enforce usage at call sites.
+All shared UI strings are in `src/lib/i18n/ja.ts` as `export const ja = { ... } as const`. Components import `ja` directly and access keys as `ja['key.name']`. `export type JaKey = keyof typeof ja` provides the key union type.
+
+**Card labels do NOT require editing `ja.ts`**: `inputConfig.label`, `outputConfig.label`, and `dynamicInputGroups` labels can be direct Japanese strings. GenericCard's `t()` function falls back to the raw string if the value is not a `JaKey`. Existing cards use `ja['key']` references; for consistency with the codebase it is recommended to add card-specific strings to `ja.ts`, but writing labels inline is fully supported:
+
+```typescript
+inputConfig: {
+  L: { label: 'スパン長', unitType: 'length' },   // ← direct string, no ja.ts edit needed
+}
+```
+
+Only add to `ja.ts` for strings shared across multiple components (button labels, tooltips, toasts).
 
 ### Reference System
 
@@ -95,9 +191,13 @@ After selecting a reference, the user can type an **expression** (e.g. `v/2`, `v
 
 `Card.resolvedInputs` stores all resolved input values after each recalculation (excluded from serialization).
 
+**Circular dependencies**: if a reference chain forms a cycle (A → B → A), the topological sort detects it and assigns output `0` to all affected cards silently. No error badge is shown. Avoid circular references in the card stack.
+
 ### Strategy ID Composition
 
-For `createStrategyDefinition`, strategy IDs are formed by joining axis values with `_`. Example: `boundary='fixed_fixed'` + `load='uniform'` → strategy ID `'fixed_fixed_uniform'`. When parsing in custom components (e.g. BeamMulti), split on the **last** `_` to recover the final axis.
+For `createStrategyDefinition`, strategy IDs are formed by joining axis values with `::`. Example: `boundary='fixed_fixed'` + `load='uniform'` → strategy ID `'fixed_fixed::uniform'`. When parsing in custom components (e.g. BeamMulti), split on `::` to recover the axes.
+
+Axis option values may freely contain `_` (e.g. `fixed_fixed`, `pinned_pinned`) since `::` is the separator.
 
 ### State Mutations
 

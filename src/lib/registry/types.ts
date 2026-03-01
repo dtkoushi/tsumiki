@@ -1,5 +1,12 @@
 import React from 'react';
 import type { Card } from '../../types';
+import type { OutputUnitType } from '../utils/unitFormatter';
+
+/**
+ * Unit types that SmartInput can convert between mm-mode and m-mode.
+ * All OutputUnitType values are supported except 'ratio' (always dimensionless).
+ */
+export type SmartInputUnitType = 'length' | 'area' | 'inertia' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
 
 // Actions passed to components (Decoupled from Store)
 export interface CardActions {
@@ -28,7 +35,7 @@ export interface CardStrategy<TOutputs extends Record<string, number> = Record<s
     // Inputs specific to this strategy
     inputConfig: Record<string, {
         label: string;
-        unitType?: import('../../lib/utils/unitFormatter').OutputUnitType;
+        unitType?: SmartInputUnitType;
         default?: any;
     }>;
 
@@ -86,7 +93,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     // Legacy static input config (will be merged with dynamic if present)
     inputConfig?: Record<string, {
         label: string;
-        unitType?: import('../../lib/utils/unitFormatter').OutputUnitType;
+        unitType?: SmartInputUnitType;
         default?: any;
         type?: 'number' | 'text' | 'select';
         options?: { label: string; value: string | number }[];
@@ -95,7 +102,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     // Dynamic input config based on card state (Strategy Pattern)
     getInputConfig?: (card: import('../../types').Card) => Record<string, {
         label: string;
-        unitType?: import('../../lib/utils/unitFormatter').OutputUnitType;
+        unitType?: SmartInputUnitType;
         default?: any;
         type?: 'number' | 'text' | 'select';
         options?: { label: string; value: string | number }[];
@@ -113,15 +120,31 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     shouldRenderInput?: (card: import('../../types').Card, key: string) => boolean;
 
     // Pure calculation logic
-    // Returns a Record of numbers (outputs) based on inputs
-    calculate: (inputs: Record<string, number>, rawInputs?: Record<string, any>) => TOutputs;
+    // Returns a Record of numbers (outputs) based on inputs.
+    // dynamicGroups: pre-computed rows for each dynamic group (keyed by keyPrefix),
+    //   so calculate() doesn't need to filter inputs manually.
+    calculate: (
+        inputs: Record<string, number>,
+        rawInputs?: Record<string, any>,
+        dynamicGroups?: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>>
+    ) => TOutputs;
 
-    // Variable-length paired (input → output) rows rendered by GenericCard
-    dynamicInputGroup?: DynamicInputGroupConfig;
+    /** Variable-length paired (input → output) row groups rendered by GenericCard. */
+    dynamicInputGroups?: DynamicInputGroupConfig[];
 
     // React Component for UI (Legacy override or GenericCard default)
     component?: React.FC<CardComponentProps>;
 
     // Optional visualization component (renders in the visual area of GenericCard)
     visualization?: React.FC<CardComponentProps>;
+
+    /**
+     * Sidebar registration. When present, this card appears in the sidebar under
+     * the specified category. Cards without this field are hidden from the sidebar.
+     */
+    sidebar?: {
+        category: 'geometry' | 'loads' | 'analysis' | 'verify';
+        /** Display order within the category (lower = earlier). Defaults to registration order. */
+        order?: number;
+    };
 }

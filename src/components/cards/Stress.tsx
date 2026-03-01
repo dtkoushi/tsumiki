@@ -39,6 +39,8 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         sigma_eq:{ label: ja['card.stress.outputs.sigma_eq'],unitType: 'stress' },
     },
 
+    sidebar: { category: 'analysis', order: 2 },
+
     calculate: (inputs) => {
         const M = inputs['M'] || 0;
         const V = inputs['V'] || 0;
@@ -59,3 +61,6 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         return { sigma_b, tau, sigma_eq };
     },
 });
+
+import { registry } from '../../lib/registry/registry';
+registry.register(StressCardDef);

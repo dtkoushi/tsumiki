@@ -5,6 +5,7 @@ import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { formatOutput, type UnitMode } from '../../lib/utils/unitFormatter';
 import { resolveInput } from '../../lib/utils/cardHelpers';
+import { drawArrow, drawDashedLine, drawLabel, drawRect } from './common/svgPrimitives';
 import { ja } from '../../lib/i18n/ja';
 
 // ─── SVG Visualization ────────────────────────────────────────────────────────
@@ -80,20 +81,18 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
           ].join(' ')
         : '';
 
+    // scale=1: Couple SVG uses pixel coordinates (fixed viewBox)
+    const S = 1;
+
     return (
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
 
             {/* Neutral axis */}
-            <line x1={4} y1={cy} x2={W - 4} y2={cy}
-                stroke="#cbd5e1" strokeWidth="1" strokeDasharray="5,3" />
-            <text x={beamCX} y={cy - 3} textAnchor="middle" fontSize="7" fill="#94a3b8">
-                N.A.
-            </text>
+            {drawDashedLine(4, cy, W - 4, cy, S)}
+            {drawLabel(beamCX, cy - 3, 'N.A.', S)}
 
             {/* Beam cross-section */}
-            <rect x={beamX1} y={cy - dExtent - 2}
-                width={beamW} height={dExtent * 2 + 4}
-                fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1.5" />
+            {drawRect(beamX1, cy - dExtent - 2, beamW, dExtent * 2 + 4, S)}
 
             {/* Stress-distribution envelopes (above / below NA, symmetric) */}
             {showEnv && (
@@ -114,53 +113,27 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
                 const len  = toLen(p.N);
                 const endR = beamX2 + len;         // right arrow tip (above NA)
                 const endL = beamX1 - len;         // left  arrow tip (below NA)
-                const nDisplay = formatOutput(p.N, 'force', unitMode);
+                const nDisplay = `${formatOutput(p.N, 'force', unitMode)}${nUnit}`;
 
                 return (
                     <g key={p.key}>
                         {/* ── Above NA: dot + right arrow → ── */}
                         <circle cx={beamX2} cy={yA} r={2.5} fill="#3b82f6" />
-                        {len > 3 && (
-                            <>
-                                <line x1={beamX2} y1={yA} x2={endR} y2={yA}
-                                    stroke="#3b82f6" strokeWidth="1.5" />
-                                <polygon
-                                    points={`${endR},${yA} ${endR-6},${yA-3} ${endR-6},${yA+3}`}
-                                    fill="#3b82f6" />
-                                <text x={endR + 4} y={yA}
-                                    textAnchor="start" fontSize="7.5"
-                                    fill="#059669" dominantBaseline="middle">
-                                    {nDisplay}{nUnit}
-                                </text>
-                            </>
-                        )}
+                        {len > 3 && drawArrow(beamX2, yA, endR, yA, S, {
+                            label: nDisplay, labelColor: '#059669',
+                        })}
 
                         {/* ── Below NA: dot + left arrow ← (same magnitude) ── */}
                         <circle cx={beamX1} cy={yB} r={2.5} fill="#3b82f6" />
-                        {len > 3 && (
-                            <>
-                                <line x1={beamX1} y1={yB} x2={endL} y2={yB}
-                                    stroke="#3b82f6" strokeWidth="1.5" />
-                                <polygon
-                                    points={`${endL},${yB} ${endL+6},${yB-3} ${endL+6},${yB+3}`}
-                                    fill="#3b82f6" />
-                                <text x={endL - 4} y={yB}
-                                    textAnchor="end" fontSize="7.5"
-                                    fill="#059669" dominantBaseline="middle">
-                                    {nDisplay}{nUnit}
-                                </text>
-                            </>
-                        )}
+                        {len > 3 && drawArrow(beamX1, yB, endL, yB, S, {
+                            label: nDisplay, labelColor: '#059669',
+                        })}
                     </g>
                 );
             })}
 
             {/* k label */}
-            {k !== 0 && (
-                <text x={beamCX} y={H - 4} textAnchor="middle" fontSize="7" fill="#94a3b8">
-                    k = {k.toExponential(3)} {kUnit}
-                </text>
-            )}
+            {k !== 0 && drawLabel(beamCX, H - 4, `k = ${k.toExponential(3)} ${kUnit}`, S)}
         </svg>
     );
 };
@@ -188,7 +161,7 @@ export const CoupleCardDef = createCardDefinition({
         k: { label: ja['card.couple.outputs.k'], unitType: 'load' },
     },
 
-    dynamicInputGroup: {
+    dynamicInputGroups: [{
         keyPrefix:      'd',
         inputLabel:     ja['card.couple.inputs.distance'],
         rowLabel:       ja['card.couple.dynamicRow.label'],
@@ -200,7 +173,7 @@ export const CoupleCardDef = createCardDefinition({
         minCount:       1,
         addLabel:       ja['card.couple.addLabel'],
         outputIndexFn:  (key) => { const m = key.match(/^n_(\d+)$/); return m ? m[1] : null; },
-    },
+    }],
 
     // 偶力の式: M = Σ(Ni × 2 × di), Ni = k × di → k = M / (2 × Σdi²)
     // d_i は正値（NA からの距離）として扱う
@@ -233,4 +206,8 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     visualization: CoupleSvg,
+    sidebar: { category: 'loads', order: 3 },
 });
+
+import { registry } from '../../lib/registry/registry';
+registry.register(CoupleCardDef);

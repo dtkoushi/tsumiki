@@ -1,6 +1,15 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import type { Point, DimensionDef } from '../section/drawingStrategies';
+
+export interface Point { x: number; y: number }
+
+export interface DimensionDef {
+    type: 'horizontal' | 'vertical';
+    start: Point;
+    end: Point;
+    label: string;
+    offset?: number;
+}
 
 interface AutoFitSvgProps {
     // Geometry in World Coordinates

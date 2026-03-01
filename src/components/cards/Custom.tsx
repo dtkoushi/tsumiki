@@ -46,7 +46,7 @@ export const CustomMapDef = createCardDefinition({
     inputConfig: {},
     outputConfig: {},
 
-    dynamicInputGroup: {
+    dynamicInputGroups: [{
         keyPrefix:      'x',
         inputLabel:     ja['card.custom.inputs.varX'],
         inputUnitType:  'none',
@@ -58,7 +58,7 @@ export const CustomMapDef = createCardDefinition({
         addLabel:       ja['card.custom.addLabel'],
         outputIndexFn:  (key) => { const m = key.match(/^y_(\d+)$/); return m ? m[1] : null; },
         // showOutputFn 省略 → 常に y_i 行を表示（デフォルト挙動）
-    },
+    }],
 
     calculate: (inputs, rawInputs) => {
         const formula = rawInputs?.['formula']?.value;
@@ -83,6 +83,7 @@ export const CustomMapDef = createCardDefinition({
     },
 
     visualization: FormulaView,
+    sidebar: { category: 'verify', order: 2 },
 });
 
 // ─── CUSTOM_COMBINE: 複数変数 x_1, x_2, … を formula で合成 → 単一 result ───
@@ -105,7 +106,7 @@ export const CustomCombineDef = createCardDefinition({
         result: { label: ja['card.custom.outputs.result'], unitType: 'none' },
     },
 
-    dynamicInputGroup: {
+    dynamicInputGroups: [{
         keyPrefix:      'x',
         inputLabel:     ja['card.custom.inputs.varX'],
         inputUnitType:  'none',
@@ -116,7 +117,7 @@ export const CustomCombineDef = createCardDefinition({
         minCount:       1,
         addLabel:       ja['card.custom.addLabel'],
         showOutputFn:   () => false,   // y_i 出力行を Results に表示しない
-    },
+    }],
 
     calculate: (inputs, rawInputs) => {
         const formula = rawInputs?.['formula']?.value;
@@ -136,4 +137,9 @@ export const CustomCombineDef = createCardDefinition({
     },
 
     visualization: FormulaView,
+    sidebar: { category: 'verify', order: 3 },
 });
+
+import { registry } from '../../lib/registry/registry';
+registry.register(CustomMapDef);
+registry.register(CustomCombineDef);

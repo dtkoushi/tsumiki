@@ -26,11 +26,12 @@ export const PinnedPanel: React.FC = () => {
                     const def = registry.get(card.type);
                     if (!def) return null;
                     const outputConf = def.outputConfig[outputKey] ?? (() => {
-                        const dg = def.dynamicInputGroup;
-                        if (!dg?.outputIndexFn) return undefined;
-                        const idx = dg.outputIndexFn(outputKey);
-                        if (!idx) return undefined;
-                        return { label: `${dg.outputLabel} ${idx}`, unitType: dg.outputUnitType };
+                        for (const dg of (def.dynamicInputGroups ?? [])) {
+                            if (!dg.outputIndexFn) continue;
+                            const idx = dg.outputIndexFn(outputKey);
+                            if (idx) return { label: `${dg.outputLabel} ${idx}`, unitType: dg.outputUnitType };
+                        }
+                        return undefined;
                     })();
                     if (!outputConf) return null;
                     const unitMode = (card.unitMode || 'mm') as UnitMode;
