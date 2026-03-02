@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { GitBranch, Plus, X } from 'lucide-react';
+import { GitBranch } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
-import type { CardComponentProps } from '../../lib/registry/types';
+import type { CardComponentProps, DynamicMultiGroupConfig } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
 import { CardProvider } from './common/CardContext';
 import { CardSmartInput } from './common/CardSmartInput';
@@ -15,10 +15,8 @@ import {
 } from './common/beamSvgHelpers';
 import { AutoFitSvg } from './common/AutoFitSvg';
 import { ResultsPanel, type ResultField } from './common/ResultsPanel';
+import { DynamicMultiGroupSection } from './common/GenericCard';
 import { ja } from '../../lib/i18n/ja';
-
-// Subset of OutputUnitType that SmartInput accepts
-type SmartInputType = 'length' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
 
 // --- Types ---
 
@@ -50,16 +48,54 @@ const BOUNDARY_OPTIONS: { value: BoundaryType; label: string }[] = [
     { value: 'cantilever', label: ja['card.beamMulti.boundary.cantilever'] },
 ];
 
-const getValUnitType = (type: LoadType): SmartInputType => {
-    if (type === 'moment') return 'moment';
-    if (type === 'dist') return 'load';
-    return 'force';
-};
-
-const getValLabelJa = (type: LoadType): string => {
-    if (type === 'moment') return ja['card.beamMulti.loadRow.valM0'];
-    if (type === 'dist') return ja['card.beamMulti.loadRow.valW'];
-    return ja['card.beamMulti.loadRow.valP'];
+const LOAD_ROW_GROUP: DynamicMultiGroupConfig = {
+    groupLabel: ja['card.beamMulti.loads'],
+    addLabel: ja['card.beamMulti.addLoad'],
+    rowLabel: '荷重',
+    minCount: 1,
+    fields: [
+        {
+            keyPrefix: 'load_type',
+            label: '種別',
+            options: LOAD_TYPE_OPTIONS,
+            defaultValue: 'point',
+            width: 'md',
+        },
+        {
+            keyPrefix: 'a',
+            label: ja['card.beamMulti.loadRow.posA'],
+            getLabel: (raw) => raw['load_type'] === 'dist'
+                ? ja['card.beamMulti.loadRow.startA']
+                : ja['card.beamMulti.loadRow.posA'],
+            unitType: 'length',
+            defaultValue: 0,
+            width: 'sm',
+        },
+        {
+            keyPrefix: 'b',
+            label: ja['card.beamMulti.loadRow.endB'],
+            unitType: 'length',
+            defaultValue: 0,
+            hidden: (raw) => raw['load_type'] !== 'dist',
+            width: 'sm',
+        },
+        {
+            keyPrefix: 'val',
+            label: ja['card.beamMulti.loadRow.valP'],
+            getLabel: (raw) => {
+                if (raw['load_type'] === 'moment') return ja['card.beamMulti.loadRow.valM0'];
+                if (raw['load_type'] === 'dist') return ja['card.beamMulti.loadRow.valW'];
+                return ja['card.beamMulti.loadRow.valP'];
+            },
+            getUnitType: (raw) => {
+                if (raw['load_type'] === 'moment') return 'moment';
+                if (raw['load_type'] === 'dist') return 'load';
+                return 'force';
+            },
+            defaultValue: 0,
+            width: 'sm',
+        },
+    ],
 };
 
 // --- Utilities ---
@@ -130,22 +166,6 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
 
     const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
-    const loadIndices = getLoadIndices(card.inputs);
-
-    const handleAddLoad = () => {
-        const next = loadIndices.length > 0 ? Math.max(...loadIndices) + 1 : 1;
-        actions.updateInput(card.id, `load_type_${next}`, 'point');
-        actions.updateInput(card.id, `a_${next}`, 0);
-        actions.updateInput(card.id, `val_${next}`, 0);
-    };
-
-    const handleRemoveLoad = (n: number) => {
-        actions.removeInput(card.id, `load_type_${n}`);
-        actions.removeInput(card.id, `a_${n}`);
-        actions.removeInput(card.id, `b_${n}`);
-        actions.removeInput(card.id, `val_${n}`);
-    };
-
     const RESULT_FIELDS: ResultField[] = [
         { key: 'M_max', label: 'M_max', unitType: 'moment' },
         { key: 'V_max', label: 'V_max', unitType: 'force' },
@@ -205,82 +225,14 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
                 </div>
 
                 {/* ── Loads ── */}
-                <div className="space-y-1">
-                    <div className="flex items-center justify-between pb-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            {ja['card.beamMulti.loads']}
-                        </label>
-                        <button
-                            onClick={handleAddLoad}
-                            className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
-                        >
-                            <Plus size={12} /> {ja['card.beamMulti.addLoad']}
-                        </button>
-                    </div>
-
-                    {loadIndices.length === 0 && (
-                        <div className="text-xs text-slate-400 italic text-center py-2">
-                            {ja['card.beamMulti.emptyLoads']}
-                        </div>
-                    )}
-
-                    {loadIndices.map(n => {
-                        const loadTypeVal = (card.inputs[`load_type_${n}`]?.value as LoadType) || 'point';
-                        const isDist = loadTypeVal === 'dist';
-                        const valUnitType = getValUnitType(loadTypeVal);
-
-                        return (
-                            <div key={n} className="flex flex-col gap-2 px-2 py-2 border-b border-slate-100 last:border-0">
-                                {/* Type + remove */}
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-slate-400 w-8 shrink-0">#{n}</span>
-                                    <div className="flex-1">
-                                        <StyledSelect
-                                            value={loadTypeVal}
-                                            onChange={v => {
-                                                actions.updateInput(card.id, `load_type_${n}`, v);
-                                                if (v !== 'dist') {
-                                                    actions.removeInput(card.id, `b_${n}`);
-                                                }
-                                            }}
-                                            options={LOAD_TYPE_OPTIONS}
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={() => handleRemoveLoad(n)}
-                                        className="text-slate-400 hover:text-rose-500 transition-colors shrink-0"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
-
-                                {/* Inputs */}
-                                <div className={`grid ${isDist ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pl-8`}>
-                                    <div>
-                                        <div className="text-[10px] text-slate-400 mb-0.5">
-                                            {isDist ? `${ja['card.beamMulti.loadRow.startA']} [${getUnitLabel('length', unitMode)}]` : `${ja['card.beamMulti.loadRow.posA']} [${getUnitLabel('length', unitMode)}]`}
-                                        </div>
-                                        <CardSmartInput inputKey={`a_${n}`} inputType="length" placeholder="0" />
-                                    </div>
-                                    {isDist && (
-                                        <div>
-                                            <div className="text-[10px] text-slate-400 mb-0.5">
-                                                {`${ja['card.beamMulti.loadRow.endB']} [${getUnitLabel('length', unitMode)}]`}
-                                            </div>
-                                            <CardSmartInput inputKey={`b_${n}`} inputType="length" placeholder="0" />
-                                        </div>
-                                    )}
-                                    <div>
-                                        <div className="text-[10px] text-slate-400 mb-0.5">
-                                            {`${getValLabelJa(loadTypeVal)} [${getUnitLabel(valUnitType, unitMode)}]`}
-                                        </div>
-                                        <CardSmartInput inputKey={`val_${n}`} inputType={valUnitType} placeholder="0" />
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                <DynamicMultiGroupSection
+                    config={LOAD_ROW_GROUP}
+                    card={card}
+                    actions={actions}
+                    upstreamCards={upstreamCards}
+                    unitMode={unitMode}
+                    upstreamInputConfigs={upstreamInputConfigs}
+                />
 
                 {/* ── 荷重図 ── */}
                 <div className="w-full bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">

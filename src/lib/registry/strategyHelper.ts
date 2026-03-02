@@ -75,6 +75,17 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
             }
         }
     }
+
+    // dynamicRowGroups: check fields is non-empty
+    if (def.dynamicRowGroups) {
+        for (const group of def.dynamicRowGroups) {
+            if (!group.fields || group.fields.length === 0) {
+                warn(`dynamicRowGroups["${group.groupLabel}"] has no fields — no rows will be rendered`);
+            } else if (!group.fields[0]) {
+                warn(`dynamicRowGroups["${group.groupLabel}"].fields[0] is undefined — row count cannot be determined`);
+            }
+        }
+    }
 }
 
 
