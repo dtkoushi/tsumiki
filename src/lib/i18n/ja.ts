@@ -57,9 +57,9 @@ export const ja = {
     'card.section.outputs.area': '断面積',
 
     // ── Card: Material ────────────────────────────────────────────────────────
-    'card.material.axis.grade': '鋼種',
+    'card.material.axis.grade': '材種',
     'card.material.title': '材料',
-    'card.material.description': '鋼種を選択して許容応力度を設定します。',
+    'card.material.description': '材種を選択して設計強度・ヤング率を設定します。',
     'card.material.outputs.designStrength': '設計強度 (F)',
     'card.material.outputs.youngsModulus': 'ヤング率 (E)',
 
