@@ -247,6 +247,8 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     component?: CardDefinition<TOutputs>['component'];
     /** Variable-length paired (input → output) row groups rendered by GenericCard. */
     dynamicInputGroups?: CardDefinition<TOutputs>['dynamicInputGroups'];
+    /** Variable-length multi-field row groups (select + SmartInput mix) rendered by GenericCard. */
+    dynamicRowGroups?: CardDefinition<TOutputs>['dynamicRowGroups'];
     sidebar?: CardDefinition<TOutputs>['sidebar'];
 }
 
@@ -263,6 +265,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         visualization,
         component,
         dynamicInputGroups,
+        dynamicRowGroups,
         sidebar
     } = options;
 
@@ -278,6 +281,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         visualization,
         component,
         dynamicInputGroups,
+        dynamicRowGroups,
         sidebar
     };
 

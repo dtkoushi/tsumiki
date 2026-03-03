@@ -14,7 +14,6 @@ interface OverturnOutputs {
     Fs: number;
     e: number;
     e_allow: number;
-    [key: string]: number;
 }
 
 // --- Visualization ---
@@ -23,40 +22,30 @@ const OverturnVisualization: React.FC<CardComponentProps> = ({ card }) => {
     const ri = card.resolvedInputs ?? {};
     const B  = (ri['B'] as number) || 2000;
 
-    // Collect N_i and H_i / h_i entries
-    const nEntries = Object.entries(ri)
-        .filter(([k]) => /^N_\d+$/.test(k))
-        .sort(([a], [b]) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]))
-        .map(([key, val]) => ({ key, val: (val as number) || 0 }));
+    const indices = Object.keys(card.inputs)
+        .filter(k => /^type_\d+$/.test(k))
+        .map(k => parseInt(k.split('_')[1]))
+        .sort((a, b) => a - b);
 
-    const hEntries = Object.entries(ri)
-        .filter(([k]) => /^H_\d+$/.test(k))
-        .sort(([a], [b]) => parseInt(a.split('_')[1]) - parseInt(b.split('_')[1]))
-        .map(([key, val]) => {
-            const idx = key.split('_')[1];
-            const hi = (ri[`h_${idx}`] as number) || 0;
-            return { key, val: (val as number) || 0, hi };
-        });
+    const verticals = indices
+        .filter(n => card.inputs[`type_${n}`]?.value === 'vertical')
+        .map(n => ({ n, xi: (ri[`x_${n}`] as number) ?? B / 2 }));
+
+    const horizontals = indices
+        .filter(n => card.inputs[`type_${n}`]?.value === 'horizontal')
+        .map(n => ({ n, hi: (ri[`h_${n}`] as number) || 0 }));
 
     // World scale: B = 100 units
     const bW = 100;
+    const scale1 = bW / B;
 
     // Body height: based on max h_i, but capped
-    const maxH = Math.max(...hEntries.map(e => e.hi), B);
-    const scale1 = bW / B;
+    const maxH = Math.max(...horizontals.map(e => e.hi), B);
     const rawBodyH = maxH * scale1;
     const bodyH = Math.min(rawBodyH, bW * 2.5);
 
     const arrowLenN = 24;
     const arrowLenH = 36;
-
-    // Spread N arrows across block width
-    const nCount = Math.max(nEntries.length, 1);
-    const nStep = bW / (nCount + 1);
-
-    // H arrows: positioned at their h_i heights (measured from bottom = ground)
-    // y in SVG: 0=top, bodyH=bottom (ground)
-    // h_i is measured from the bottom, so y = bodyH - h_i * scale1, clamped within [0, bodyH]
     const hArrowX = -arrowLenH;
 
     const pad = bW * 0.6;
@@ -102,37 +91,34 @@ const OverturnVisualization: React.FC<CardComponentProps> = ({ card }) => {
                         fill="#ef4444" stroke="#ef4444" strokeWidth={1 / s}
                     />
 
-                    {/* N_i arrows: evenly spread across top, pointing down */}
-                    {nEntries.map(({ key }, i) => {
-                        const idx = i + 1;
-                        const cx = nStep * idx;
+                    {/* Vertical load arrows: positioned at x_i from left */}
+                    {verticals.map(({ n, xi }, i) => {
+                        const cx = Math.max(0, Math.min(xi * scale1, bW));
                         return (
-                            <g key={key}>
+                            <g key={n}>
                                 {drawArrow(
                                     cx, -arrowLenN,
                                     cx, 0,
                                     s,
-                                    { color: '#3b82f6', label: `N${idx}`, labelSide: 'start' },
+                                    { color: '#3b82f6', label: `N${i + 1}`, labelSide: 'start' },
                                 )}
                             </g>
                         );
                     })}
 
-                    {/* H_i arrows: pointing right at each h_i height */}
-                    {hEntries.map(({ key, hi }, i) => {
-                        const idx = i + 1;
+                    {/* Horizontal load arrows: pointing right at each h_i height */}
+                    {horizontals.map(({ n, hi }, i) => {
                         const hScaled = hi * scale1;
                         const hClamped = Math.min(hScaled, bodyH);
                         const arrowY = bodyH - hClamped;
                         return (
-                            <g key={key}>
+                            <g key={n}>
                                 {drawArrow(
                                     hArrowX, arrowY,
                                     0, arrowY,
                                     s,
-                                    { color: '#f97316', label: `H${idx}`, labelSide: 'start' },
+                                    { color: '#f97316', label: `H${i + 1}`, labelSide: 'start' },
                                 )}
-                                {/* Dashed vertical line showing h_i */}
                                 {drawDashedLine(
                                     hArrowX * 0.5, bodyH,
                                     hArrowX * 0.5, arrowY,
@@ -142,7 +128,7 @@ const OverturnVisualization: React.FC<CardComponentProps> = ({ card }) => {
                                 {drawLabel(
                                     hArrowX * 0.5 - 8 / s,
                                     (bodyH + arrowY) / 2,
-                                    `h${idx}`,
+                                    `h${i + 1}`,
                                     s,
                                     { color: '#94a3b8', anchor: 'end' },
                                 )}
@@ -181,10 +167,13 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
     sidebar: { category: 'verify', order: 3 },
 
     defaultInputs: {
-        B:   { value: 2000  },
-        N_1: { value: 10000 },
-        H_1: { value: 1000  },
-        h_1: { value: 3000  },
+        B:      { value: 2000  },
+        type_1: { value: 'vertical'   },
+        val_1:  { value: 10000 },
+        x_1:    { value: 1000  },   // B/2 = center
+        type_2: { value: 'horizontal' },
+        val_2:  { value: 1000  },
+        h_2:    { value: 3000  },
     },
 
     inputConfig: {
@@ -199,85 +188,84 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
         e_allow: { label: '許容偏心 B/6',     unitType: 'length' },
     },
 
-    dynamicInputGroups: [
-        {
-            keyPrefix:      'N',
-            inputLabel:     '鉛直荷重 N_i',
-            rowLabel:       '荷重',
-            inputUnitType:  'force',
-            outputKeyFn:    (key) => `ms_${key.split('_')[1]}`,
-            outputLabel:    '安定モーメント貢献',
-            outputUnitType: 'moment',
-            defaultValue:   10000,
-            minCount:       1,
-            addLabel:       '鉛直荷重を追加',
-            outputIndexFn:  (key) => { const m = key.match(/^ms_(\d+)$/); return m ? m[1] : null; },
-        },
-        {
-            keyPrefix:      'H',
-            inputLabel:     '水平力 H_i',
-            rowLabel:       '水平力',
-            inputUnitType:  'force',
-            outputKeyFn:    (key) => `fh_${key.split('_')[1]}`,
-            outputLabel:    '水平力 (参照)',
-            outputUnitType: 'force',
-            defaultValue:   1000,
-            minCount:       1,
-            addLabel:       '水平力を追加',
-            outputIndexFn:  (key) => { const m = key.match(/^fh_(\d+)$/); return m ? m[1] : null; },
-        },
-        {
-            keyPrefix:      'h',
-            inputLabel:     '作用高さ h_i',
-            rowLabel:       '高さ',
-            inputUnitType:  'length',
-            outputKeyFn:    (key) => `mo_${key.split('_')[1]}`,
-            outputLabel:    '転倒モーメント貢献',
-            outputUnitType: 'moment',
-            defaultValue:   3000,
-            minCount:       1,
-            addLabel:       '作用高さを追加',
-            outputIndexFn:  (key) => { const m = key.match(/^mo_(\d+)$/); return m ? m[1] : null; },
-        },
-    ],
+    dynamicRowGroups: [{
+        groupLabel: '荷重リスト',
+        addLabel:   '荷重を追加',
+        rowLabel:   '荷重',
+        minCount:   1,
+        fields: [
+            {
+                keyPrefix:    'type',
+                label:        '種別',
+                options: [
+                    { value: 'vertical',   label: '鉛直荷重 (N)' },
+                    { value: 'horizontal', label: '水平力 (H)'   },
+                ],
+                defaultValue: 'vertical',
+                width:        'md',
+            },
+            {
+                keyPrefix:    'val',
+                label:        '鉛直荷重 N',
+                getLabel:     (raw) => raw['type'] === 'horizontal' ? '水平力 H' : '鉛直荷重 N',
+                unitType:     'force',
+                defaultValue: 0,
+                width:        'sm',
+            },
+            {
+                keyPrefix:    'x',
+                label:        '位置 x (左端)',
+                unitType:     'length',
+                defaultValue: 1000,
+                hidden:       (raw) => raw['type'] !== 'vertical',
+                width:        'sm',
+            },
+            {
+                keyPrefix:    'h',
+                label:        '作用高さ h',
+                unitType:     'length',
+                defaultValue: 0,
+                hidden:       (raw) => raw['type'] !== 'horizontal',
+                width:        'sm',
+            },
+        ],
+    }],
 
-    calculate: (inputs) => {
+    // Ms, Mo are computed about the right-edge toe (pivot).
+    // Ms = Σ N_i × (B − x_i)   [x_i: distance from left edge]
+    // Mo = Σ H_i × h_i
+    // e  = |B/2 − (Ms − Mo) / ΣN|
+    calculate: (inputs, rawInputs) => {
         const B = inputs['B'] ?? 2000;
-        const arm = B / 2;
 
-        const nEntries = Object.entries(inputs).filter(([k]) => /^N_\d+$/.test(k));
-        const HEntries = Object.entries(inputs).filter(([k]) => /^H_\d+$/.test(k));
+        const indices = Object.keys(rawInputs || {})
+            .filter(k => /^type_\d+$/.test(k))
+            .map(k => parseInt(k.split('_')[1]))
+            .sort((a, b) => a - b);
 
-        const outputs: Record<string, number> = {
-            Ms: 0, Mo: 0, Fs: 0, e: 0, e_allow: B / 6,
+        let sumN = 0, Ms = 0, Mo = 0;
+        for (const n of indices) {
+            const type = rawInputs?.[`type_${n}`]?.value ?? 'vertical';
+            const val  = inputs[`val_${n}`] ?? 0;
+            if (type === 'vertical') {
+                const x = inputs[`x_${n}`] ?? B / 2;
+                sumN += val;
+                Ms   += val * (B - x);   // moment arm to right-edge toe
+            } else {
+                const h = inputs[`h_${n}`] ?? 0;
+                Mo += val * h;
+            }
+        }
+
+        const e = sumN !== 0 ? Math.abs(B / 2 - (Ms - Mo) / sumN) : 0;
+
+        return {
+            Ms,
+            Mo,
+            Fs:      Mo > 0 ? Ms / Mo : Infinity,
+            e,
+            e_allow: B / 6,
         };
-
-        let sumN = 0, Ms = 0;
-        for (const [key, Ni] of nEntries) {
-            const idx = key.split('_')[1];
-            const msi = Ni * arm;
-            outputs[`ms_${idx}`] = msi;
-            sumN += Ni;
-            Ms += msi;
-        }
-
-        let Mo = 0;
-        for (const [key, Hi] of HEntries) {
-            const idx = key.split('_')[1];
-            const hi = inputs[`h_${idx}`] ?? 0;
-            outputs[`fh_${idx}`] = Hi;
-            const moi = Hi * hi;
-            outputs[`mo_${idx}`] = moi;
-            Mo += moi;
-        }
-
-        outputs['Ms'] = Ms;
-        outputs['Mo'] = Mo;
-        outputs['Fs'] = Mo > 0 ? Ms / Mo : Infinity;
-        outputs['e'] = sumN !== 0 ? Mo / sumN : 0;
-        outputs['e_allow'] = B / 6;
-
-        return outputs;
     },
 
     visualization: OverturnVisualization,
