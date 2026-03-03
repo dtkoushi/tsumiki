@@ -29,11 +29,23 @@ const OverturnVisualization: React.FC<CardComponentProps> = ({ card }) => {
 
     const verticals = indices
         .filter(n => card.inputs[`type_${n}`]?.value === 'vertical')
-        .map(n => ({ n, xi: (ri[`x_${n}`] as number) ?? B / 2 }));
+        .map(n => ({
+            n,
+            xi:  (ri[`x_${n}`]   as number) ?? B / 2,
+            val: (ri[`val_${n}`] as number) || 0,
+        }));
 
     const horizontals = indices
         .filter(n => card.inputs[`type_${n}`]?.value === 'horizontal')
-        .map(n => ({ n, hi: (ri[`h_${n}`] as number) || 0 }));
+        .map(n => ({
+            n,
+            hi:  (ri[`h_${n}`]   as number) || 0,
+            val: (ri[`val_${n}`] as number) || 0,
+        }));
+
+    // Determine critical pivot side from sign of net overturning moment
+    const Mo_net = horizontals.reduce((s, { val, hi }) => s + val * hi, 0);
+    const pivotAtRight = Mo_net >= 0;
 
     // World scale: B = 100 units
     const bW = 100;
@@ -46,13 +58,14 @@ const OverturnVisualization: React.FC<CardComponentProps> = ({ card }) => {
 
     const arrowLenN = 24;
     const arrowLenH = 36;
-    const hArrowX = -arrowLenH;
+    const hArrowX = -arrowLenH;  // left-side origin (negative H draws on right)
 
+    const hasNegH = horizontals.some(h => h.val < 0);
     const pad = bW * 0.6;
     const bounds = {
         minX: -pad - arrowLenH,
         minY: -arrowLenN - bW * 0.25,
-        maxX: bW + bW * 0.25,
+        maxX: bW + (hasNegH ? arrowLenH + bW * 0.25 : bW * 0.25),
         maxY: bodyH + bW * 0.3,
     };
 
@@ -84,53 +97,53 @@ const OverturnVisualization: React.FC<CardComponentProps> = ({ card }) => {
                         opacity={0.8}
                     />
 
-                    {/* Pivot circle at bottom-right corner */}
+                    {/* Pivot circle: right for Mo_net ≥ 0, left for Mo_net < 0 */}
                     <circle
-                        cx={bW} cy={bodyH}
+                        cx={pivotAtRight ? bW : 0} cy={bodyH}
                         r={4 / s}
                         fill="#ef4444" stroke="#ef4444" strokeWidth={1 / s}
                     />
 
-                    {/* Vertical load arrows: positioned at x_i from left */}
-                    {verticals.map(({ n, xi }, i) => {
-                        const cx = Math.max(0, Math.min(xi * scale1, bW));
+                    {/* Vertical load arrows: positive=down, negative=up (uplift) */}
+                    {verticals.map(({ n, xi, val }, i) => {
+                        const cx      = Math.max(0, Math.min(xi * scale1, bW));
+                        const uplift  = val < 0;
+                        const color   = uplift ? '#ef4444' : '#3b82f6';
+                        // arrowhead always at y=0 (structure top); tail above for downward, below-top for uplift
+                        const [x1, y1, x2, y2] = uplift
+                            ? [cx, 0, cx, -arrowLenN]   // arrowhead points up
+                            : [cx, -arrowLenN, cx, 0];  // arrowhead points down
                         return (
                             <g key={n}>
-                                {drawArrow(
-                                    cx, -arrowLenN,
-                                    cx, 0,
-                                    s,
-                                    { color: '#3b82f6', label: `N${i + 1}`, labelSide: 'start' },
-                                )}
+                                {drawArrow(x1, y1, x2, y2, s, { color, label: `N${i + 1}`, labelSide: 'start' })}
                             </g>
                         );
                     })}
 
-                    {/* Horizontal load arrows: pointing right at each h_i height */}
-                    {horizontals.map(({ n, hi }, i) => {
-                        const hScaled = hi * scale1;
+                    {/* Horizontal load arrows: positive=rightward (left side), negative=leftward (right side) */}
+                    {horizontals.map(({ n, hi, val }, i) => {
+                        const hScaled  = hi * scale1;
                         const hClamped = Math.min(hScaled, bodyH);
-                        const arrowY = bodyH - hClamped;
+                        const arrowY   = bodyH - hClamped;
+                        const reverse  = val < 0;
+                        // positive: tail at hArrowX, tip at x=0 (left edge)
+                        // negative: tail at bW-hArrowX, tip at x=bW (right edge)
+                        const [ax1, ax2, dashX] = reverse
+                            ? [bW - hArrowX, bW,  bW - hArrowX * 0.5]
+                            : [hArrowX,      0,   hArrowX * 0.5      ];
                         return (
                             <g key={n}>
                                 {drawArrow(
-                                    hArrowX, arrowY,
-                                    0, arrowY,
-                                    s,
+                                    ax1, arrowY, ax2, arrowY, s,
                                     { color: '#f97316', label: `H${i + 1}`, labelSide: 'start' },
                                 )}
-                                {drawDashedLine(
-                                    hArrowX * 0.5, bodyH,
-                                    hArrowX * 0.5, arrowY,
-                                    s,
-                                    { color: '#94a3b8' },
-                                )}
+                                {drawDashedLine(dashX, bodyH, dashX, arrowY, s, { color: '#94a3b8' })}
                                 {drawLabel(
-                                    hArrowX * 0.5 - 8 / s,
+                                    dashX + (reverse ? 8 / s : -8 / s),
                                     (bodyH + arrowY) / 2,
                                     `h${i + 1}`,
                                     s,
-                                    { color: '#94a3b8', anchor: 'end' },
+                                    { color: '#94a3b8', anchor: reverse ? 'start' : 'end' },
                                 )}
                             </g>
                         );
@@ -231,10 +244,12 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
         ],
     }],
 
-    // Ms, Mo are computed about the right-edge toe (pivot).
-    // Ms = Σ N_i × (B − x_i)   [x_i: distance from left edge]
-    // Mo = Σ H_i × h_i
-    // e  = |B/2 − (Ms − Mo) / ΣN|
+    // Critical toe is determined by sign of Mo_net = Σ H_i × h_i:
+    //   Mo_net > 0 → right-toe overturning: Ms = Σ N_i(B−x_i), Mo = Mo_net
+    //   Mo_net < 0 → left-toe overturning:  Ms = Σ N_i×x_i,     Mo = −Mo_net
+    //   Mo_net = 0 → no overturning, Fs = ∞
+    // Ms_left = ΣN×B − Ms_right, so both are derived from a single loop.
+    // e = |x_R − B/2|, x_R = (Ms_left + Mo_net) / ΣN  (from moment equilibrium)
     calculate: (inputs, rawInputs) => {
         const B = inputs['B'] ?? 2000;
 
@@ -243,21 +258,36 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
             .map(k => parseInt(k.split('_')[1]))
             .sort((a, b) => a - b);
 
-        let sumN = 0, Ms = 0, Mo = 0;
+        let sumN = 0, Ms_right = 0, Mo_net = 0;
         for (const n of indices) {
             const type = rawInputs?.[`type_${n}`]?.value ?? 'vertical';
             const val  = inputs[`val_${n}`] ?? 0;
             if (type === 'vertical') {
                 const x = inputs[`x_${n}`] ?? B / 2;
-                sumN += val;
-                Ms   += val * (B - x);   // moment arm to right-edge toe
+                sumN     += val;
+                Ms_right += val * (B - x);
             } else {
                 const h = inputs[`h_${n}`] ?? 0;
-                Mo += val * h;
+                Mo_net  += val * h;
             }
         }
 
-        const e = sumN !== 0 ? Math.abs(B / 2 - (Ms - Mo) / sumN) : 0;
+        const Ms_left = sumN * B - Ms_right;
+
+        // Select critical toe
+        let Ms: number, Mo: number;
+        if (Mo_net > 0) {
+            Ms = Ms_right; Mo = Mo_net;
+        } else if (Mo_net < 0) {
+            Ms = Ms_left;  Mo = -Mo_net;
+        } else {
+            Ms = Ms_right; Mo = 0;
+        }
+
+        // e = |x_R − B/2|, x_R derived from moment equilibrium about left toe
+        const e = sumN !== 0
+            ? Math.abs((Ms_left + Mo_net) / sumN - B / 2)
+            : 0;
 
         return {
             Ms,
