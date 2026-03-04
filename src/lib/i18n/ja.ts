@@ -44,7 +44,7 @@ export const ja = {
 
     // ── Card: Section ─────────────────────────────────────────────────────────
     'card.section.axis.shape': '断面形状',
-    'card.section.title': '断面',
+    'card.section.title': '断面（汎用）',
     'card.section.description': '断面形状を定義します（矩形、H形鋼など）。',
     'card.section.strategies.rect': '矩形',
     'card.section.strategies.hBeam': 'H形鋼',
