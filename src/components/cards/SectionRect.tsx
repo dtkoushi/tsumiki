@@ -47,16 +47,35 @@ const RectSectionVisual: VisualizationStrategy = {
     draw: (inputs, scale) => {
         const B = inputs['B'] || 100;
         const H = inputs['H'] || 200;
-        const path = `M 0 0 H ${B} V ${H} H 0 Z`;
+        const t = inputs['t'] || 0;
+        const Bi = Math.max(B - 2 * t, 0);
+        const Hi = Math.max(H - 2 * t, 0);
+        const outerPath = `M 0 0 H ${B} V ${H} H 0 Z`;
+        const innerPath = t > 0 && Bi > 0 && Hi > 0
+            ? `M ${t} ${t} H ${t + Bi} V ${t + Hi} H ${t} Z`
+            : null;
         return (
-            <path
-                d={path}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2 / scale}
-                vectorEffect="non-scaling-stroke"
-                className="transition-all duration-300 ease-out"
-            />
+            <>
+                <path
+                    d={outerPath}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2 / scale}
+                    vectorEffect="non-scaling-stroke"
+                    className="transition-all duration-300 ease-out"
+                />
+                {innerPath && (
+                    <path
+                        d={innerPath}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5 / scale}
+                        strokeDasharray={`${6 / scale} ${3 / scale}`}
+                        vectorEffect="non-scaling-stroke"
+                        className="transition-all duration-300 ease-out"
+                    />
+                )}
+            </>
         );
     }
 };
@@ -80,10 +99,12 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
     defaultInputs: {
         B: { value: 300 },
         H: { value: 600 },
+        t: { value: 0 },
     },
     inputConfig: {
         B: { label: '幅 B', unitType: 'length' },
         H: { label: '高さ H', unitType: 'length' },
+        t: { label: '板厚 t（中実=0）', unitType: 'length' },
     },
     outputConfig: {
         A: { label: '断面積 A', unitType: 'area' },
@@ -93,15 +114,18 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         Zy: { label: 'Z_y（弾性）', unitType: 'modulus' },
         Zpx: { label: 'Z_px（塑性）', unitType: 'modulus' },
     },
-    calculate: ({ B, H }) => {
-        const b = B || 0;
-        const h = H || 0;
-        const A = b * h;
-        const Ix = (b * Math.pow(h, 3)) / 12;
-        const Iy = (h * Math.pow(b, 3)) / 12;
-        const Zx = (b * Math.pow(h, 2)) / 6;
-        const Zy = (h * Math.pow(b, 2)) / 6;
-        const Zpx = (b * Math.pow(h, 2)) / 4;
+    calculate: ({ B, H, t }) => {
+        const b  = B || 0;
+        const h  = H || 0;
+        const tk = t || 0;
+        const bi = Math.max(b - 2 * tk, 0);
+        const hi = Math.max(h - 2 * tk, 0);
+        const A   = b * h - bi * hi;
+        const Ix  = (b * Math.pow(h, 3) - bi * Math.pow(hi, 3)) / 12;
+        const Iy  = (h * Math.pow(b, 3) - hi * Math.pow(bi, 3)) / 12;
+        const Zx  = h > 0 ? Ix / (h / 2) : 0;
+        const Zy  = b > 0 ? Iy / (b / 2) : 0;
+        const Zpx = (b * Math.pow(h, 2) - bi * Math.pow(hi, 2)) / 4;
         return { A, Ix, Iy, Zx, Zy, Zpx };
     },
     visualization: SectionRectVisualization,
