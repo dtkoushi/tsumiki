@@ -70,7 +70,7 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
 
     strategies: Strategies,
 
-    sidebar: { category: 'analysis', order: 4 },
+    sidebar: { category: 'beam', order: 4 },
 
     commonInputConfig: {
         L: { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000 },

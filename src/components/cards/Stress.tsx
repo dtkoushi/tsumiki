@@ -39,7 +39,7 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
         sigma_eq:{ label: ja['card.stress.outputs.sigma_eq'],unitType: 'stress' },
     },
 
-    sidebar: { category: 'analysis', order: 2 },
+    sidebar: { category: 'cross_section', order: 2 },
 
     calculate: (inputs) => {
         const M = inputs['M'] || 0;

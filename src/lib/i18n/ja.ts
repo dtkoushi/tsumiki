@@ -44,7 +44,7 @@ export const ja = {
 
     // ── Card: Section ─────────────────────────────────────────────────────────
     'card.section.axis.shape': '断面形状',
-    'card.section.title': '断面',
+    'card.section.title': '断面（汎用）',
     'card.section.description': '断面形状を定義します（矩形、H形鋼など）。',
     'card.section.strategies.rect': '矩形',
     'card.section.strategies.hBeam': 'H形鋼',
@@ -57,9 +57,9 @@ export const ja = {
     'card.section.outputs.area': '断面積',
 
     // ── Card: Material ────────────────────────────────────────────────────────
-    'card.material.axis.grade': '鋼種',
+    'card.material.axis.grade': '材種',
     'card.material.title': '材料',
-    'card.material.description': '鋼種を選択して許容応力度を設定します。',
+    'card.material.description': '材種を選択して設計強度・ヤング率を設定します。',
     'card.material.outputs.designStrength': '設計強度 (F)',
     'card.material.outputs.youngsModulus': 'ヤング率 (E)',
 
@@ -194,10 +194,13 @@ export const ja = {
     'card.column.outputs.N_cr': '座屈荷重 (Ncr)',
     'card.column.outputs.sigma_cr': '座屈応力 (σ_cr)',
     // ── Sidebar Categories ────────────────────────────────────────────
-    'sidebar.category.geometry': '断面・材料',
-    'sidebar.category.loads': '荷重・はり',
-    'sidebar.category.analysis': '解析・出力',
-    'sidebar.category.verify': '検証・ユーティリティ',
+    'sidebar.category.material':      '材料',
+    'sidebar.category.section':       '断面特性',
+    'sidebar.category.beam':          '部材解析',
+    'sidebar.category.cross_section': '断面解析',
+    'sidebar.category.balance':       '荷重・つり合い',
+    'sidebar.category.verify':        '検定',
+    'sidebar.category.utility':       'ユーティリティ',
 } as const;
 
 export type JaKey = keyof typeof ja;

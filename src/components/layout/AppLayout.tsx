@@ -86,16 +86,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     interface CategoryDef { id: string; label: string; items: CardItem[] }
 
     const CATEGORY_ORDER: Record<string, number> = {
-        geometry: 1,
-        loads: 2,
-        analysis: 3,
-        verify: 4,
+        material:      1,
+        section:       2,
+        beam:          3,
+        cross_section: 4,
+        balance:       5,
+        verify:        6,
+        utility:       7,
     };
     const CATEGORY_LABELS: Record<string, string> = {
-        geometry: ja['sidebar.category.geometry'],
-        loads:    ja['sidebar.category.loads'],
-        analysis: ja['sidebar.category.analysis'],
-        verify:   ja['sidebar.category.verify'],
+        material:      ja['sidebar.category.material'],
+        section:       ja['sidebar.category.section'],
+        beam:          ja['sidebar.category.beam'],
+        cross_section: ja['sidebar.category.cross_section'],
+        balance:       ja['sidebar.category.balance'],
+        verify:        ja['sidebar.category.verify'],
+        utility:       ja['sidebar.category.utility'],
     };
 
     const cardCategories: CategoryDef[] = (() => {

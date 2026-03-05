@@ -75,6 +75,17 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
             }
         }
     }
+
+    // dynamicRowGroups: check fields is non-empty
+    if (def.dynamicRowGroups) {
+        for (const group of def.dynamicRowGroups) {
+            if (!group.fields || group.fields.length === 0) {
+                warn(`dynamicRowGroups["${group.groupLabel}"] has no fields — no rows will be rendered`);
+            } else if (!group.fields[0]) {
+                warn(`dynamicRowGroups["${group.groupLabel}"].fields[0] is undefined — row count cannot be determined`);
+            }
+        }
+    }
 }
 
 
@@ -236,6 +247,8 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     component?: CardDefinition<TOutputs>['component'];
     /** Variable-length paired (input → output) row groups rendered by GenericCard. */
     dynamicInputGroups?: CardDefinition<TOutputs>['dynamicInputGroups'];
+    /** Variable-length multi-field row groups (select + SmartInput mix) rendered by GenericCard. */
+    dynamicRowGroups?: CardDefinition<TOutputs>['dynamicRowGroups'];
     sidebar?: CardDefinition<TOutputs>['sidebar'];
 }
 
@@ -252,6 +265,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         visualization,
         component,
         dynamicInputGroups,
+        dynamicRowGroups,
         sidebar
     } = options;
 
@@ -267,6 +281,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         visualization,
         component,
         dynamicInputGroups,
+        dynamicRowGroups,
         sidebar
     };
 

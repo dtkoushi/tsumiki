@@ -5,7 +5,7 @@ import { clsx } from 'clsx';
 import { BaseCard } from './BaseCard';
 import { SmartInput } from '../../common/SmartInput';
 import { formatOutput, getUnitLabel, type OutputUnitType, type UnitMode } from '../../../lib/utils/unitFormatter';
-import type { CardComponentProps, CardActions, DynamicInputGroupConfig } from '../../../lib/registry/types';
+import type { CardComponentProps, CardActions, DynamicInputGroupConfig, DynamicMultiGroupConfig, DynamicMultiGroupFieldConfig } from '../../../lib/registry/types';
 import type { Card } from '../../../types';
 import { registry } from '../../../lib/registry';
 import { useTsumikiStore } from '../../../store/useTsumikiStore';
@@ -98,7 +98,10 @@ const DynamicGroupSection = ({
         let next = existingNums.length > 0 ? Math.max(...existingNums) : 0;
         for (let i = 0; i < needed; i++) {
             next++;
-            actions.updateInput(card.id, `${keyPrefix}_${next}`, defaultValue);
+            const key = `${keyPrefix}_${next}`;
+            // 既存キーがあればスキップ（Strict Mode 二重実行対応）
+            if (card.inputs[key] !== undefined) continue;
+            actions.updateInput(card.id, key, defaultValue);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -155,6 +158,166 @@ const DynamicGroupSection = ({
             })}
 
             {keys.length === 0 && (
+                <div className="text-xs text-slate-400 italic text-center py-2">
+                    「{t(addLabel)}」ボタンで行を追加してください
+                </div>
+            )}
+        </div>
+    );
+};
+
+const widthClass = (w?: DynamicMultiGroupFieldConfig['width']) => {
+    if (w === 'xs') return 'w-16';
+    if (w === 'md') return 'w-32';
+    return 'w-24';
+};
+
+export const DynamicMultiGroupSection = ({
+    config, card, actions, upstreamCards, unitMode, upstreamInputConfigs
+}: {
+    config: DynamicMultiGroupConfig;
+    card: Card;
+    actions: CardActions;
+    upstreamCards: Card[];
+    unitMode: UnitMode;
+    upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>;
+}) => {
+    const { groupLabel, addLabel = '追加', minCount = 1, rowLabel, fields } = config;
+
+    // Row count is determined by the first field's key pattern
+    const firstPrefix = fields[0]?.keyPrefix ?? '';
+    const pattern = new RegExp(`^${firstPrefix}_\\d+$`);
+    const firstKeys = Object.keys(card.inputs)
+        .filter(k => pattern.test(k))
+        .sort((a, b) => {
+            const ai = parseInt(a.split('_').pop()!);
+            const bi = parseInt(b.split('_').pop()!);
+            return ai - bi;
+        });
+
+    const indices = firstKeys.map(k => parseInt(k.split('_').pop()!));
+
+    const handleAdd = () => {
+        const next = indices.length > 0 ? Math.max(...indices) + 1 : 1;
+        fields.forEach(f => {
+            actions.updateInput(card.id, `${f.keyPrefix}_${next}`, f.defaultValue ?? 0);
+        });
+    };
+
+    const handleRemove = (idx: number) => {
+        fields.forEach(f => {
+            actions.removeInput(card.id, `${f.keyPrefix}_${idx}`);
+        });
+    };
+
+    // Auto-seed rows to meet minCount on initial mount
+    useEffect(() => {
+        const needed = minCount - indices.length;
+        if (needed <= 0) return;
+        let next = indices.length > 0 ? Math.max(...indices) : 0;
+        for (let i = 0; i < needed; i++) {
+            next++;
+            fields.forEach(f => {
+                const key = `${f.keyPrefix}_${next}`;
+                // 既存キーがあればスキップ（Strict Mode 二重実行対応）
+                if (card.inputs[key] !== undefined) return;
+                actions.updateInput(card.id, key, f.defaultValue ?? 0);
+            });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {groupLabel}
+                </label>
+                <button
+                    onClick={handleAdd}
+                    className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                >
+                    <Plus size={12} /> {t(addLabel)}
+                </button>
+            </div>
+
+            {indices.map(idx => {
+                // Build rowRaw for hidden() evaluation
+                const rowRaw: Record<string, string> = {};
+                fields.forEach(f => {
+                    const key = `${f.keyPrefix}_${idx}`;
+                    rowRaw[f.keyPrefix] = String(card.inputs[key]?.value ?? '');
+                });
+
+                const visibleFields = fields.filter(f => !f.hidden?.(rowRaw));
+                const label = rowLabel ? `${rowLabel} ${idx}` : `${idx}`;
+
+                return (
+                    <div key={idx} className="bg-slate-50 rounded border border-slate-100/50 p-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-500">{label}</span>
+                            <button
+                                onClick={() => handleRemove(idx)}
+                                className="text-slate-400 hover:text-rose-500 transition-colors flex items-center justify-center"
+                                disabled={indices.length <= minCount}
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {visibleFields.map(f => {
+                                const key = `${f.keyPrefix}_${idx}`;
+                                const resolvedUnitType = f.getUnitType?.(rowRaw) ?? f.unitType;
+                                const resolvedLabel = f.getLabel?.(rowRaw) ?? f.label;
+                                const unitLabel = resolvedUnitType ? getUnitLabel(resolvedUnitType, unitMode) : '';
+                                return (
+                                    <div key={f.keyPrefix} className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] text-slate-400">
+                                            {resolvedLabel}
+                                            {unitLabel && <span className="ml-0.5">[{unitLabel}]</span>}
+                                        </span>
+                                        {f.options ? (
+                                            <div className="relative">
+                                                <select
+                                                    className={clsx(
+                                                        widthClass(f.width),
+                                                        'appearance-none bg-white border border-slate-200 rounded px-2 py-1 pr-6 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer'
+                                                    )}
+                                                    value={String(card.inputs[key]?.value ?? f.defaultValue ?? '')}
+                                                    onChange={e => actions.updateInput(card.id, key, e.target.value)}
+                                                >
+                                                    {f.options.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-500">
+                                                    <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className={widthClass(f.width)}>
+                                                <SmartInput
+                                                    cardId={card.id}
+                                                    inputKey={key}
+                                                    card={card}
+                                                    actions={actions}
+                                                    upstreamCards={upstreamCards}
+                                                    upstreamInputConfigs={upstreamInputConfigs}
+                                                    inputType={resolvedUnitType as any}
+                                                    unitMode={unitMode}
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+
+            {indices.length === 0 && (
                 <div className="text-xs text-slate-400 italic text-center py-2">
                     「{t(addLabel)}」ボタンで行を追加してください
                 </div>
@@ -244,6 +407,19 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                 {(def.dynamicInputGroups ?? []).map((groupCfg, i) => (
                     <DynamicGroupSection
                         key={groupCfg.keyPrefix ?? i}
+                        config={groupCfg}
+                        card={card}
+                        actions={actions}
+                        upstreamCards={upstreamCards}
+                        unitMode={unitMode}
+                        upstreamInputConfigs={upstreamInputConfigs}
+                    />
+                ))}
+
+                {/* Dynamic Multi-field Row Groups (select + SmartInput mix) */}
+                {(def.dynamicRowGroups ?? []).map((groupCfg, i) => (
+                    <DynamicMultiGroupSection
+                        key={i}
                         config={groupCfg}
                         card={card}
                         actions={actions}

@@ -274,7 +274,7 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
         }
     ],
     strategies: Strategies,
-    sidebar: { category: 'loads', order: 1 },
+    sidebar: { category: 'beam', order: 1 },
     outputConfig: {
         M_max: { label: 'M_max', unitType: 'moment' },
         V_max: { label: 'V_max', unitType: 'force' },

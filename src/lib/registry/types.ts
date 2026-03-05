@@ -79,6 +79,51 @@ export interface DynamicInputGroupConfig {
     showOutputFn?: (card: import('../../types').Card) => boolean;
 }
 
+/**
+ * Declares a single field within a DynamicMultiGroupConfig row.
+ */
+export interface DynamicMultiGroupFieldConfig {
+    /** Key prefix: 'type' → 'type_1', 'type_2', ... */
+    keyPrefix: string;
+    /** Field label */
+    label: string;
+    /** Unit type for numeric fields (ignored when options is set) */
+    unitType?: SmartInputUnitType;
+    /** Default value for new rows */
+    defaultValue?: number | string;
+    /** If set, renders a <select> instead of SmartInput */
+    options?: Array<{ value: string; label: string }>;
+    /**
+     * Conditionally hide this field.
+     * rowRaw = raw values (card.inputs[key].value) for all fields in this row.
+     * Return true to hide the field.
+     */
+    hidden?: (rowRaw: Record<string, string>) => boolean;
+    /** Column width hint (default: 'sm') */
+    width?: 'xs' | 'sm' | 'md';
+    /** 動的な単位型（rowRaw から算出）。静的 unitType より優先 */
+    getUnitType?: (rowRaw: Record<string, string>) => SmartInputUnitType;
+    /** 動的なラベル（rowRaw から算出）。静的 label より優先 */
+    getLabel?: (rowRaw: Record<string, string>) => string;
+}
+
+/**
+ * Declares a variable-length group of multi-field rows rendered by GenericCard.
+ * Supports mixing select fields and SmartInput (numeric/reference) fields per row.
+ */
+export interface DynamicMultiGroupConfig {
+    /** Group label shown in the header */
+    groupLabel: string;
+    /** Add-row button label (default: '追加') */
+    addLabel?: string;
+    /** Minimum row count (default: 1) */
+    minCount?: number;
+    /** Row label prefix (e.g. '荷重' → '荷重 1', '荷重 2', ...) */
+    rowLabel?: string;
+    /** Field definitions rendered in order, side-by-side, within each row */
+    fields: DynamicMultiGroupFieldConfig[];
+}
+
 export interface CardDefinition<TOutputs extends Record<string, number> = Record<string, number>> {
     type: string;             // Unique ID (e.g., 'SECTION', 'BEAM')
     title: string;            // Display Name
@@ -132,6 +177,9 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
     /** Variable-length paired (input → output) row groups rendered by GenericCard. */
     dynamicInputGroups?: DynamicInputGroupConfig[];
 
+    /** Variable-length multi-field row groups (select + SmartInput mix) rendered by GenericCard. */
+    dynamicRowGroups?: DynamicMultiGroupConfig[];
+
     // React Component for UI (Legacy override or GenericCard default)
     component?: React.FC<CardComponentProps>;
 
@@ -143,7 +191,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
      * the specified category. Cards without this field are hidden from the sidebar.
      */
     sidebar?: {
-        category: 'geometry' | 'loads' | 'analysis' | 'verify';
+        category: 'material' | 'section' | 'beam' | 'cross_section' | 'balance' | 'verify' | 'utility';
         /** Display order within the category (lower = earlier). Defaults to registration order. */
         order?: number;
     };
