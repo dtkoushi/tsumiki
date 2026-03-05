@@ -191,7 +191,7 @@ export interface CardDefinition<TOutputs extends Record<string, number> = Record
      * the specified category. Cards without this field are hidden from the sidebar.
      */
     sidebar?: {
-        category: 'geometry' | 'loads' | 'analysis' | 'verify';
+        category: 'material' | 'section' | 'beam' | 'cross_section' | 'balance' | 'verify' | 'utility';
         /** Display order within the category (lower = earlier). Defaults to registration order. */
         order?: number;
     };

@@ -62,7 +62,7 @@ export const BoltCardDef = createStrategyDefinition<BoltOutputs>({
     title: 'ボルトの検討',
     description: '高力ボルト（摩擦接合）または普通ボルト（支圧接合）の検定を行います',
     icon: Settings2,
-    sidebar: { category: 'verify', order: 7 },
+    sidebar: { category: 'verify', order: 3 },
 
     strategyAxes: [
         {

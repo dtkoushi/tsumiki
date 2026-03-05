@@ -177,7 +177,7 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
     description: '複数の鉛直荷重・水平力による転倒安全率と偏心距離を確認',
     icon: RotateCcw,
 
-    sidebar: { category: 'verify', order: 3 },
+    sidebar: { category: 'balance', order: 3 },
 
     defaultInputs: {
         B:      { value: 2000  },
@@ -292,7 +292,7 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
         return {
             Ms,
             Mo,
-            Fs:      Mo > 0 ? Ms / Mo : Infinity,
+            Fs:      Mo > 0 ? Ms / Mo : 9999,
             e,
             e_allow: B / 6,
         };

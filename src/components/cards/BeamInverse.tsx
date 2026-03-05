@@ -14,6 +14,9 @@ import {
 interface BeamInverseOutputs {
     w_solved: number;
     P_solved: number;
+    // BEAM カードと同様、diagramModel は数値でなく BeamModel オブジェクトを格納する。
+    // CardDefinition の Record<string, number> 制約を回避するため unknown を使用。
+    // outputConfig で hidden: true を設定し UI には表示しない。
     diagramModel: unknown;
 }
 
@@ -186,7 +189,7 @@ export const BeamInverseCardDef = createStrategyDefinition<BeamInverseOutputs>({
         },
     ],
     strategies: Strategies,
-    sidebar: { category: 'loads', order: 10 },
+    sidebar: { category: 'beam', order: 3 },
     outputConfig: {
         w_solved: { label: '等分布荷重 w', unitType: 'load' },
         P_solved: { label: '集中荷重 P', unitType: 'force' },

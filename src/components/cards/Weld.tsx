@@ -19,7 +19,7 @@ export const WeldCardDef = createCardDefinition<WeldOutputs>({
     title: '溶接部の検討',
     description: 'のど断面に作用する応力を計算し、許容応力度と比較します',
     icon: Zap,
-    sidebar: { category: 'verify', order: 6 },
+    sidebar: { category: 'verify', order: 2 },
 
     defaultInputs: {
         F:  { value: 0 },

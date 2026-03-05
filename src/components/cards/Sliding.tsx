@@ -6,13 +6,6 @@ import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/AutoFitSvg';
 import { drawArrow, drawLabel } from './common/svgPrimitives';
 
-// --- Types ---
-
-interface SlidingOutputs {
-    Fr: number;
-    [key: string]: number;
-}
-
 // --- Visualization ---
 
 const SlidingVisualization: React.FC<CardComponentProps> = ({ card }) => {
@@ -126,13 +119,13 @@ const SlidingVisualization: React.FC<CardComponentProps> = ({ card }) => {
 
 // --- Definition ---
 
-export const SlidingCardDef = createCardDefinition<SlidingOutputs>({
+export const SlidingCardDef = createCardDefinition<Record<string, number>>({
     type: 'SLIDING',
     title: '滑動の検討',
     description: '複数の鉛直荷重に対する摩擦抵抗力の合計を計算',
     icon: MoveHorizontal,
 
-    sidebar: { category: 'verify', order: 4 },
+    sidebar: { category: 'balance', order: 4 },
 
     defaultInputs: {
         mu:  { value: 0.5   },

@@ -206,7 +206,7 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     visualization: CoupleSvg,
-    sidebar: { category: 'loads', order: 3 },
+    sidebar: { category: 'cross_section', order: 1 },
 });
 
 import { registry } from '../../lib/registry/registry';

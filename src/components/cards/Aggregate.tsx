@@ -14,7 +14,7 @@ export const AggregateCardDef = createCardDefinition<AggregateOutputs>({
     title: '集計',
     description: '複数の値を集計して合計・平均・最大・最小を計算します。',
     icon: Sigma,
-    sidebar: { category: 'analysis' },
+    sidebar: { category: 'utility', order: 1 },
 
     defaultInputs: { val_1: { value: 0 } },
     inputConfig: {},

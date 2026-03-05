@@ -356,7 +356,7 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     component: DiagramComponent,
-    sidebar: { category: 'analysis', order: 1 },
+    sidebar: { category: 'beam', order: 5 },
 });
 
 import { registry } from '../../lib/registry/registry';

@@ -83,7 +83,7 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
         default: 'ss400',
     }],
     strategies: MaterialStrategies,
-    sidebar: { category: 'geometry', order: 2 },
+    sidebar: { category: 'material', order: 1 },
     outputConfig: {
         F: { label: ja['card.material.outputs.designStrength'], unitType: 'stress' },
         E: { label: ja['card.material.outputs.youngsModulus'], unitType: 'stress' },

@@ -194,10 +194,13 @@ export const ja = {
     'card.column.outputs.N_cr': '座屈荷重 (Ncr)',
     'card.column.outputs.sigma_cr': '座屈応力 (σ_cr)',
     // ── Sidebar Categories ────────────────────────────────────────────
-    'sidebar.category.geometry': '断面・材料',
-    'sidebar.category.loads': '荷重・はり',
-    'sidebar.category.analysis': '解析・出力',
-    'sidebar.category.verify': '検証・ユーティリティ',
+    'sidebar.category.material':      '材料',
+    'sidebar.category.section':       '断面特性',
+    'sidebar.category.beam':          '部材解析',
+    'sidebar.category.cross_section': '断面解析',
+    'sidebar.category.balance':       '荷重・つり合い',
+    'sidebar.category.verify':        '検定',
+    'sidebar.category.utility':       'ユーティリティ',
 } as const;
 
 export type JaKey = keyof typeof ja;

@@ -341,7 +341,7 @@ export const DeflectionCardDef = createCardDefinition({
     },
 
     component: DeflectionComponent,
-    sidebar: { category: 'analysis', order: 3 },
+    sidebar: { category: 'beam', order: 6 },
 });
 
 import { registry } from '../../lib/registry/registry';

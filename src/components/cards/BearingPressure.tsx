@@ -116,7 +116,7 @@ export const BearingPressureCardDef = createCardDefinition<BearingPressureOutput
     title: '基礎接地圧の検討',
     description: '基礎底面の接地圧を計算し、許容地耐力と比較します',
     icon: Building2,
-    sidebar: { category: 'verify', order: 5 },
+    sidebar: { category: 'balance', order: 5 },
 
     defaultInputs: {
         N:  { value: 100000 },

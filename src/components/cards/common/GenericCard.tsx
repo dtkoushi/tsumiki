@@ -98,7 +98,10 @@ const DynamicGroupSection = ({
         let next = existingNums.length > 0 ? Math.max(...existingNums) : 0;
         for (let i = 0; i < needed; i++) {
             next++;
-            actions.updateInput(card.id, `${keyPrefix}_${next}`, defaultValue);
+            const key = `${keyPrefix}_${next}`;
+            // 既存キーがあればスキップ（Strict Mode 二重実行対応）
+            if (card.inputs[key] !== undefined) continue;
+            actions.updateInput(card.id, key, defaultValue);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -215,7 +218,10 @@ export const DynamicMultiGroupSection = ({
         for (let i = 0; i < needed; i++) {
             next++;
             fields.forEach(f => {
-                actions.updateInput(card.id, `${f.keyPrefix}_${next}`, f.defaultValue ?? 0);
+                const key = `${f.keyPrefix}_${next}`;
+                // 既存キーがあればスキップ（Strict Mode 二重実行対応）
+                if (card.inputs[key] !== undefined) return;
+                actions.updateInput(card.id, key, f.defaultValue ?? 0);
             });
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps

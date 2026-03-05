@@ -9,7 +9,7 @@ export const CenterOfGravityCardDef = createCardDefinition<CogOutputs>({
     title: '重心位置',
     description: '各部材の座標と重量から重心位置を計算します。',
     icon: Crosshair,
-    sidebar: { category: 'loads', order: 2 },
+    sidebar: { category: 'balance', order: 2 },
 
     defaultInputs: {},
     inputConfig: {},
@@ -30,8 +30,8 @@ export const CenterOfGravityCardDef = createCardDefinition<CogOutputs>({
         ],
     }],
 
-    calculate: (inputs) => {
-        const indices = Object.keys(inputs)
+    calculate: (inputs, rawInputs) => {
+        const indices = Object.keys(rawInputs || {})
             .filter(k => /^W_\d+$/.test(k))
             .map(k => parseInt(k.split('_')[1]))
             .sort((a, b) => a - b);

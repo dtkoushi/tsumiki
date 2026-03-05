@@ -98,7 +98,7 @@ export const SectionRCDef = createCardDefinition<SectionRCOutputs>({
     title: 'RC断面',
     description: 'RC（鉄筋コンクリート）断面の弾性特性・鉄筋比・ひび割れモーメントを計算します',
     icon: Layers,
-    sidebar: { category: 'geometry', order: 3 },
+    sidebar: { category: 'section', order: 3 },
 
     defaultInputs: {
         b: { value: 300 },

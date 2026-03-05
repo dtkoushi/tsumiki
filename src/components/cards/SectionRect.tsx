@@ -94,7 +94,7 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
     title: '矩形断面',
     description: '矩形（長方形）断面の断面特性を計算します',
     icon: Square,
-    sidebar: { category: 'geometry', order: 1 },
+    sidebar: { category: 'section', order: 1 },
 
     defaultInputs: {
         B: { value: 300 },

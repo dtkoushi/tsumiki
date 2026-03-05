@@ -77,7 +77,7 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     title: '円形断面',
     description: '円形（中実・中空）断面の断面特性を計算します',
     icon: Circle,
-    sidebar: { category: 'geometry', order: 4 },
+    sidebar: { category: 'section', order: 4 },
 
     defaultInputs: {
         D: { value: 200 },

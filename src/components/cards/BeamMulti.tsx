@@ -307,7 +307,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     },
 
     component: React.memo(BeamMultiComponentInner),
-    sidebar: { category: 'loads', order: 2 },
+    sidebar: { category: 'beam', order: 2 },
 });
 
 import { registry } from '../../lib/registry/registry';

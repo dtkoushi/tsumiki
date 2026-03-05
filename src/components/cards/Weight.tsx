@@ -9,7 +9,7 @@ export const WeightCardDef = createCardDefinition<WeightOutputs>({
     title: '重量計算',
     description: '部材の形状と密度から総重量を計算します。',
     icon: Scale,
-    sidebar: { category: 'loads', order: 1 },
+    sidebar: { category: 'balance', order: 1 },
 
     defaultInputs: {},
     inputConfig: {},

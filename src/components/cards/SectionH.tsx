@@ -97,7 +97,7 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
     title: 'H形断面',
     description: 'H形鋼断面の断面特性・幅厚比・塑性断面係数を計算します',
     icon: RectangleHorizontal,
-    sidebar: { category: 'geometry', order: 2 },
+    sidebar: { category: 'section', order: 2 },
 
     defaultInputs: {
         H: { value: 200 },

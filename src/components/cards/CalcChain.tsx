@@ -8,7 +8,7 @@ export const CalcChainCardDef = createCardDefinition<CalcChainOutputs>({
     title: '逐次演算',
     description: '初期値に演算ステップを順番に適用して最終結果を計算します。',
     icon: Calculator,
-    sidebar: { category: 'analysis' },
+    sidebar: { category: 'utility', order: 2 },
 
     defaultInputs: { init: { value: 0 } },
     inputConfig: {
@@ -57,7 +57,10 @@ export const CalcChainCardDef = createCardDefinition<CalcChainOutputs>({
             if      (op === '+') result = result + val;
             else if (op === '-') result = result - val;
             else if (op === '*') result = result * val;
-            else if (op === '/') result = val !== 0 ? result / val : result;
+            else if (op === '/') {
+                if (val === 0) throw new Error('ゼロ除算エラー（÷ステップの値が 0）');
+                result = result / val;
+            }
         }
         return { result };
     },
