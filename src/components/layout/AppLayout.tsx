@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
     Layout,
     Plus,
@@ -8,7 +8,10 @@ import {
     Share2,
     PanelRight,
     ChevronDown,
-    ChevronRight
+    ChevronRight,
+    Copy,
+    Check,
+    X
 } from 'lucide-react';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import type { CardType } from '../../types';
@@ -28,6 +31,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showNavigator, setShowNavigator] = useState(false);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+    const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+    const sharePopoverRef = useRef<HTMLDivElement>(null);
+    const shareWrapperRef = useRef<HTMLDivElement>(null);
+    const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const toggleCategory = (id: string) => {
         setCollapsedCategories(prev => {
             const next = new Set(prev);
@@ -74,12 +82,68 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
 
     const handleShare = () => {
+        if (shareUrl) {
+            handleCloseShare();
+            return;
+        }
         const hash = compressToUrl(meta, cards, pinnedOutputs);
         const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
-        navigator.clipboard.writeText(url)
-            .then(() => toast(ja['toast.linkCopied'], 'success'))
-            .catch(() => toast(ja['toast.linkFailed'], 'error'));
+        setShareUrl(url);
+        setCopied(false);
     };
+
+    const handleCopyUrl = useCallback(() => {
+        if (!shareUrl) return;
+        const markCopied = () => {
+            setCopied(true);
+            if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+            copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
+        };
+        const doFallbackCopy = () => {
+            const ta = document.createElement('textarea');
+            ta.value = shareUrl;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) markCopied();
+        };
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl).then(markCopied).catch(doFallbackCopy);
+        } else {
+            doFallbackCopy();
+        }
+    }, [shareUrl]);
+
+    const handleCloseShare = useCallback(() => {
+        setShareUrl(null);
+        setCopied(false);
+        if (copyTimerRef.current) {
+            clearTimeout(copyTimerRef.current);
+            copyTimerRef.current = null;
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!shareUrl) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') handleCloseShare();
+        };
+        const handleClickOutside = (e: MouseEvent) => {
+            if (shareWrapperRef.current && !shareWrapperRef.current.contains(e.target as Node)) {
+                handleCloseShare();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [shareUrl, handleCloseShare]);
 
 
     interface CardItem { type: CardType; label: string; desc: string }
@@ -222,9 +286,49 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         <Button onClick={handleExport} leftIcon={<Download size={14} />}>
                             {ja['ui.export']}
                         </Button>
-                        <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
-                            {ja['ui.share']}
-                        </Button>
+                        <div className="relative" ref={shareWrapperRef}>
+                            <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
+                                {ja['ui.share']}
+                            </Button>
+                            {shareUrl && (
+                                <div
+                                    ref={sharePopoverRef}
+                                    className="absolute right-0 top-full mt-2 w-96 bg-white border border-slate-200 rounded-lg shadow-lg p-4 z-50"
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-semibold text-slate-600">共有リンク</span>
+                                        <button
+                                            onClick={handleCloseShare}
+                                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input
+                                            readOnly
+                                            value={shareUrl}
+                                            onClick={e => (e.target as HTMLInputElement).select()}
+                                            className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-slate-700 font-mono min-w-0 cursor-text"
+                                        />
+                                        <button
+                                            onClick={handleCopyUrl}
+                                            className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                                                copied
+                                                    ? 'bg-green-100 text-green-700 border border-green-200'
+                                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                            }`}
+                                        >
+                                            {copied ? <Check size={12} /> : <Copy size={12} />}
+                                            {copied ? 'コピー済み' : 'コピー'}
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2">
+                                        このURLを共有すると、現在のカードスタックを再現できます
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                         <Button
                             onClick={() => setShowNavigator(v => !v)}
                             leftIcon={<PanelRight size={14} />}
