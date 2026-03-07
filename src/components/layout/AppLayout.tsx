@@ -34,6 +34,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const sharePopoverRef = useRef<HTMLDivElement>(null);
+    const shareWrapperRef = useRef<HTMLDivElement>(null);
+    const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const toggleCategory = (id: string) => {
         setCollapsedCategories(prev => {
             const next = new Set(prev);
@@ -80,6 +82,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
 
     const handleShare = () => {
+        if (shareUrl) {
+            handleCloseShare();
+            return;
+        }
         const hash = compressToUrl(meta, cards, pinnedOutputs);
         const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
         setShareUrl(url);
@@ -88,6 +94,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
     const handleCopyUrl = useCallback(() => {
         if (!shareUrl) return;
+        const markCopied = () => {
+            setCopied(true);
+            if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+            copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
+        };
         const doFallbackCopy = () => {
             const ta = document.createElement('textarea');
             ta.value = shareUrl;
@@ -98,18 +109,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             ta.select();
             const ok = document.execCommand('copy');
             document.body.removeChild(ta);
-            if (ok) {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-            }
+            if (ok) markCopied();
         };
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(shareUrl)
-                .then(() => {
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                })
-                .catch(doFallbackCopy);
+            navigator.clipboard.writeText(shareUrl).then(markCopied).catch(doFallbackCopy);
         } else {
             doFallbackCopy();
         }
@@ -118,6 +121,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const handleCloseShare = useCallback(() => {
         setShareUrl(null);
         setCopied(false);
+        if (copyTimerRef.current) {
+            clearTimeout(copyTimerRef.current);
+            copyTimerRef.current = null;
+        }
     }, []);
 
     useEffect(() => {
@@ -126,7 +133,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             if (e.key === 'Escape') handleCloseShare();
         };
         const handleClickOutside = (e: MouseEvent) => {
-            if (sharePopoverRef.current && !sharePopoverRef.current.contains(e.target as Node)) {
+            if (shareWrapperRef.current && !shareWrapperRef.current.contains(e.target as Node)) {
                 handleCloseShare();
             }
         };
@@ -279,7 +286,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         <Button onClick={handleExport} leftIcon={<Download size={14} />}>
                             {ja['ui.export']}
                         </Button>
-                        <div className="relative">
+                        <div className="relative" ref={shareWrapperRef}>
                             <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
                                 {ja['ui.share']}
                             </Button>
