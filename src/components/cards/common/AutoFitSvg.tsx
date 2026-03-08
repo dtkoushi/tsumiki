@@ -1,5 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
+import { SVG_FONT_FAMILY, SVG_FONT_SIZE } from './svgTheme';
 
 export interface Point { x: number; y: number }
 
@@ -171,9 +172,11 @@ export const AutoFitSvg: React.FC<AutoFitSvgProps> = ({
                                         y={midY}
                                         dy={offset > 0 ? -4 : 12 /* Flip text side based on offset direction */}
                                         textAnchor="middle"
-                                        fontSize={11}
+                                        dominantBaseline="middle"
+                                        fontSize={SVG_FONT_SIZE.lg}
                                         fill="currentColor"
-                                        className="font-mono font-medium"
+                                        fontFamily={SVG_FONT_FAMILY}
+                                        className="font-medium"
                                         style={{ pointerEvents: 'none' }}
                                     >
                                         {dim.label}

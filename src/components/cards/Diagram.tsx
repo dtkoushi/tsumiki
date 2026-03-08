@@ -11,6 +11,7 @@ import { getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/util
 import { evalDiagramAt, type DiagramModel, type BoundaryType } from '../../lib/mechanics/beam';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
+import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './common/svgTheme';
 import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
 
@@ -89,26 +90,26 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
             </defs>
 
             {/* Filled areas: positive (below beam) = blue, negative (above beam) = red */}
-            <polygon points={polyPoints} fill="#3b82f6" fillOpacity={0.18} stroke="none"
+            <polygon points={polyPoints} fill={SVG_COLOR.blue} fillOpacity={0.18} stroke="none"
                 clipPath={`url(#${clipPosId})`} />
-            <polygon points={polyPoints} fill="#ef4444" fillOpacity={0.18} stroke="none"
+            <polygon points={polyPoints} fill={SVG_COLOR.red} fillOpacity={0.18} stroke="none"
                 clipPath={`url(#${clipNegId})`} />
 
             {/* Zero line (beam) */}
             <line x1={beamX0} y1={beamY} x2={beamX1} y2={beamY}
-                stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,3" />
+                stroke={SVG_COLOR.muted} strokeWidth="1" strokeDasharray="4,3" />
 
             {/* Curve outline */}
             <polyline
                 points={curvePointStr}
                 fill="none"
-                stroke={tab === 'M' ? '#3b82f6' : '#10b981'}
+                stroke={tab === 'M' ? SVG_COLOR.blue : SVG_COLOR.green}
                 strokeWidth="1.5"
             />
 
             {/* Beam line */}
             <line x1={beamX0} y1={beamY} x2={beamX1} y2={beamY}
-                stroke="#475569" strokeWidth="3" strokeLinecap="round" />
+                stroke={SVG_COLOR.beam} strokeWidth="3" strokeLinecap="round" />
 
             {/* Support symbols */}
             {boundary === 'simple' && <><DrawPinSupport x={beamX0} beamY={beamY} /><DrawRollerSupport x={beamX1} beamY={beamY} /></>}
@@ -117,20 +118,24 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
             {boundary === 'cantilever' && <DrawFixedSupport x={beamX0} beamY={beamY} side="left" />}
 
             {/* x=0 label */}
-            <text x={beamX0} y={H - 4} textAnchor="middle" fontSize="9" fill="#94a3b8">x=0</text>
+            <text x={beamX0} y={H - 4} textAnchor="middle" dominantBaseline="middle"
+                fontSize={SVG_FONT_SIZE.sm} fill={SVG_COLOR.muted}
+                fontFamily={SVG_FONT_FAMILY}>x=0</text>
 
             {/* Max value marker */}
             {Math.abs(maxVal) > 1e-10 && (
                 <g>
-                    <circle cx={maxXpx} cy={maxYpx} r={3} fill={tab === 'M' ? '#3b82f6' : '#10b981'} />
+                    <circle cx={maxXpx} cy={maxYpx} r={3} fill={tab === 'M' ? SVG_COLOR.blue : SVG_COLOR.green} />
                     <line x1={maxXpx} y1={beamY} x2={maxXpx} y2={maxYpx}
-                        stroke={tab === 'M' ? '#3b82f6' : '#10b981'}
+                        stroke={tab === 'M' ? SVG_COLOR.blue : SVG_COLOR.green}
                         strokeWidth="1" strokeDasharray="2,2" />
                     <text
                         x={maxXpx + (maxXpx > (beamX0 + beamX1) / 2 ? -4 : 4)}
                         y={maxYpx - 4}
                         textAnchor={maxXpx > (beamX0 + beamX1) / 2 ? 'end' : 'start'}
-                        fontSize="9" fill={tab === 'M' ? '#3b82f6' : '#10b981'} fontWeight="600"
+                        dominantBaseline="middle"
+                        fontSize={SVG_FONT_SIZE.sm} fill={tab === 'M' ? SVG_COLOR.blue : SVG_COLOR.green}
+                        fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}
                     >
                         {maxLabel}
                     </text>
@@ -150,11 +155,13 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
                 return (
                     <g key={n}>
                         <line x1={xpx} y1={beamY - halfH - 8} x2={xpx} y2={beamY + halfH + 8}
-                            stroke="#f59e0b" strokeWidth="1" strokeDasharray="3,2" />
-                        <circle cx={xpx} cy={ypx} r={3} fill="#f59e0b" />
+                            stroke={SVG_COLOR.amber} strokeWidth="1" strokeDasharray="3,2" />
+                        <circle cx={xpx} cy={ypx} r={3} fill={SVG_COLOR.amber} />
                         <text
                             x={xpx + 4} y={ypx - 4}
-                            fontSize="8" fill="#f59e0b" fontWeight="600"
+                            dominantBaseline="middle"
+                            fontSize={SVG_FONT_SIZE.xs} fill={SVG_COLOR.amber}
+                            fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}
                         >
                             x{n}: {label}
                         </text>
