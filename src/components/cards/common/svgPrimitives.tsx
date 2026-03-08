@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE } from './svgTheme';
 
 // ─── Generic SVG Primitives (world coordinates, scale-aware) ────────────────
 //
@@ -29,12 +30,12 @@ export const drawArrow = (
     scale: number, opts: ArrowOpts = {},
 ): JSX.Element => {
     const {
-        color = '#3b82f6',
+        color = SVG_COLOR.blue,
         strokeWidth = 1.5,
         label,
         labelSide = 'end',
         labelColor,
-        fontSize = 7.5,
+        fontSize = SVG_FONT_SIZE.xs,
     } = opts;
 
     const dx = x2 - x1;
@@ -98,7 +99,8 @@ export const drawArrow = (
             {label && (
                 <text x={lx} y={ly}
                     textAnchor={anchor} dominantBaseline="middle"
-                    fontSize={fontSize / scale} fill={labelColor ?? color}>
+                    fontSize={fontSize / scale} fill={labelColor ?? color}
+                    fontFamily={SVG_FONT_FAMILY}>
                     {label}
                 </text>
             )}
@@ -121,15 +123,16 @@ export const drawLabel = (
     scale: number, opts: LabelOpts = {},
 ): JSX.Element => {
     const {
-        color = '#94a3b8',
-        fontSize = 7,
+        color = SVG_COLOR.muted,
+        fontSize = SVG_FONT_SIZE.xs,
         anchor = 'middle',
-        baseline = 'auto',
+        baseline = 'middle',
     } = opts;
     return (
         <text x={x} y={y}
             textAnchor={anchor} dominantBaseline={baseline}
-            fontSize={fontSize / scale} fill={color}>
+            fontSize={fontSize / scale} fill={color}
+            fontFamily={SVG_FONT_FAMILY}>
             {text}
         </text>
     );

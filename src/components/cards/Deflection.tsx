@@ -14,6 +14,7 @@ import {
     type BoundaryType,
 } from '../../lib/mechanics/beam';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
+import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE } from './common/svgTheme';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
@@ -67,7 +68,7 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
         : '';
 
     const isOk = delta_allow > 0 ? delta_max <= delta_allow : true;
-    const color = isOk ? '#3b82f6' : '#ef4444';
+    const color = isOk ? SVG_COLOR.blue : SVG_COLOR.red;
 
     // Marker at point of max |deflection|
     const maxPt = profile.reduce(
@@ -122,7 +123,7 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
 
                 {/* Beam baseline (drawn on top of curve fill) */}
                 <line x1={beamX0} y1={beamY} x2={beamX1} y2={beamY}
-                    stroke="#475569" strokeWidth="3" strokeLinecap="round" />
+                    stroke={SVG_COLOR.beam} strokeWidth="3" strokeLinecap="round" />
 
                 {/* Support symbols based on boundary */}
                 {boundary === 'simple' && (
@@ -148,7 +149,9 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
                 )}
 
                 {/* x=0 label */}
-                <text x={beamX0} y={beamY + 24} textAnchor="middle" fontSize="9" fill="#94a3b8">x=0</text>
+                <text x={beamX0} y={beamY + 24} textAnchor="middle" dominantBaseline="middle"
+                    fontSize={SVG_FONT_SIZE.sm} fill={SVG_COLOR.muted}
+                    fontFamily={SVG_FONT_FAMILY}>x=0</text>
 
                 {/* Max deflection marker — dashed vertical + dot, labels between dot and beam line */}
                 {absMax > 1e-10 && (
@@ -157,13 +160,16 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
                             stroke={color} strokeWidth="1" strokeDasharray="3,2" />
                         <circle cx={maxXpx} cy={maxYpx} r={3} fill={color} />
                         <text x={labelX} y={maxYpx + labelDir * 14}
-                            textAnchor={labelAnchor} fontSize="9"
-                            fill={color} fontWeight="600">
+                            textAnchor={labelAnchor} dominantBaseline="middle"
+                            fontSize={SVG_FONT_SIZE.sm} fill={color}
+                            fontWeight="600" fontFamily={SVG_FONT_FAMILY}>
                             δ={deltaLabel}
                         </text>
                         {delta_allow > 0 && (
                             <text x={labelX} y={maxYpx + labelDir * 3}
-                                textAnchor={labelAnchor} fontSize="9" fill="#94a3b8">
+                                textAnchor={labelAnchor} dominantBaseline="middle"
+                                fontSize={SVG_FONT_SIZE.sm} fill={SVG_COLOR.muted}
+                                fontFamily={SVG_FONT_FAMILY}>
                                 allow={allowLabel}
                             </text>
                         )}
@@ -172,7 +178,9 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
 
                 {/* Placeholder when EI>0 but deflection is zero */}
                 {absMax <= 1e-10 && EI > 0 && (
-                    <text x={W / 2} y={beamY + 50} textAnchor="middle" fontSize="10" fill="#94a3b8">
+                    <text x={W / 2} y={beamY + 50} textAnchor="middle" dominantBaseline="middle"
+                        fontSize={SVG_FONT_SIZE.md} fill={SVG_COLOR.muted}
+                        fontFamily={SVG_FONT_FAMILY}>
                         たわみなし
                     </text>
                 )}
