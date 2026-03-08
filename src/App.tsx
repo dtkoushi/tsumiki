@@ -3,6 +3,8 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { StackArea } from "./components/stack/StackArea";
 import { useTsumikiStore } from "./store/useTsumikiStore";
 import { decompressFromUrl } from "./lib/utils/serialization";
+import { toast } from "./components/common/toast";
+import { ja } from "./lib/i18n/ja";
 
 function App() {
   const loadProject = useTsumikiStore((state) => state.loadProject);
@@ -20,6 +22,7 @@ function App() {
         }
       } catch (e) {
         console.error("Failed to load shared project", e);
+        toast(ja['toast.shareLoadFailed'], 'error');
       }
     }
   }, [loadProject]);
