@@ -11,7 +11,7 @@ import { getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/util
 import { evalDiagramAt, type DiagramModel, type BoundaryType } from '../../lib/mechanics/beam';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
-import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE } from './common/svgTheme';
+import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './common/svgTheme';
 import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
 
@@ -135,7 +135,7 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
                         textAnchor={maxXpx > (beamX0 + beamX1) / 2 ? 'end' : 'start'}
                         dominantBaseline="middle"
                         fontSize={SVG_FONT_SIZE.sm} fill={tab === 'M' ? SVG_COLOR.blue : SVG_COLOR.green}
-                        fontWeight="600" fontFamily={SVG_FONT_FAMILY}
+                        fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}
                     >
                         {maxLabel}
                     </text>
@@ -161,7 +161,7 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
                             x={xpx + 4} y={ypx - 4}
                             dominantBaseline="middle"
                             fontSize={SVG_FONT_SIZE.xs} fill={SVG_COLOR.amber}
-                            fontWeight="600" fontFamily={SVG_FONT_FAMILY}
+                            fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}
                         >
                             x{n}: {label}
                         </text>

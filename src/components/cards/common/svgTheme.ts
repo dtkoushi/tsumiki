@@ -1,6 +1,9 @@
 
 // SVG design tokens — single source of truth for all SVG text/color styles.
-// All fontSize values are in world units (divided by scale before use).
+//
+// fontSize usage:
+//   - World-coordinate SVGs (beamSvgHelpers, svgPrimitives): divide by scale → N/scale
+//   - Fixed-viewBox SVGs (Diagram, Deflection, AutoFitSvg): use directly as px
 
 export const SVG_FONT_SIZE = {
     xs:  7,   // arrow labels, auxiliary text
@@ -24,5 +27,5 @@ export const SVG_COLOR = {
     green:  '#10b981',  // emerald-500 — Q diagram, OK indicator
     violet: '#8b5cf6',  // violet-500 — moment load
     amber:  '#f59e0b',  // amber-500  — x_n markers
-    teal:   '#059669',  // emerald-600 — Couple force labels
+    teal:   '#059669',  // emerald-600 — Couple force labels (reserved for Couple.tsx)
 } as const;

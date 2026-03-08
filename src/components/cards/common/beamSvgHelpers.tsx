@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE } from './svgTheme';
+import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './svgTheme';
 
 export const C_BEAM   = SVG_COLOR.beam;
 export const C_POINT  = SVG_COLOR.red;
@@ -105,7 +105,7 @@ export const drawScaledDistLoad = (a: number, b: number, scale: number, val: num
                 <text x={a + distW / 2} y={s < 0 ? farY - 4 / scale : farY + 12 / scale}
                     textAnchor="middle" dominantBaseline="middle"
                     fontSize={SVG_FONT_SIZE.md / scale} fill={C_DIST}
-                    fontWeight="600" fontFamily={SVG_FONT_FAMILY}>
+                    fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}>
                     {label}
                 </text>
             )}
@@ -131,7 +131,7 @@ export const drawScaledPointLoad = (a: number, scale: number, P: number, label?:
                 <text x={a} y={s < 0 ? farY - 4 / scale : farY + 12 / scale}
                     textAnchor="middle" dominantBaseline="middle"
                     fontSize={SVG_FONT_SIZE.md / scale} fill={C_POINT}
-                    fontWeight="600" fontFamily={SVG_FONT_FAMILY}>
+                    fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}>
                     {label}
                 </text>
             )}
@@ -164,7 +164,7 @@ export const drawScaledMomentLoad = (a: number, scale: number, val: number, labe
                 <text x={a + r + 4 / scale} y={4 / scale}
                     textAnchor="start" dominantBaseline="middle"
                     fontSize={SVG_FONT_SIZE.md / scale} fill={C_MOMENT}
-                    fontWeight="600" fontFamily={SVG_FONT_FAMILY}>
+                    fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}>
                     {label}
                 </text>
             )}

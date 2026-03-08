@@ -14,7 +14,7 @@ import {
     type BoundaryType,
 } from '../../lib/mechanics/beam';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
-import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE } from './common/svgTheme';
+import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './common/svgTheme';
 import { resolveInput } from '../../lib/utils/cardHelpers';
 import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
@@ -162,7 +162,7 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
                         <text x={labelX} y={maxYpx + labelDir * 14}
                             textAnchor={labelAnchor} dominantBaseline="middle"
                             fontSize={SVG_FONT_SIZE.sm} fill={color}
-                            fontWeight="600" fontFamily={SVG_FONT_FAMILY}>
+                            fontWeight={SVG_FONT_WEIGHT.bold} fontFamily={SVG_FONT_FAMILY}>
                             δ={deltaLabel}
                         </text>
                         {delta_allow > 0 && (

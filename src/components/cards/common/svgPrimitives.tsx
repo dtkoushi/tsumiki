@@ -30,7 +30,7 @@ export const drawArrow = (
     scale: number, opts: ArrowOpts = {},
 ): JSX.Element => {
     const {
-        color = SVG_COLOR.blue,
+        color = SVG_COLOR.muted,
         strokeWidth = 1.5,
         label,
         labelSide = 'end',
