@@ -37,6 +37,7 @@ export const ja = {
 
     // ── Toast ─────────────────────────────────────────────────────────────────
     'toast.importFailed': '読み込み失敗：ファイル形式が無効です',
+    'toast.shareLoadFailed': '共有URLの読み込みに失敗しました',
     'toast.readFailed': 'ファイルの読み込みに失敗しました',
     'toast.loadConfirm': '読み込みますか？未保存の変更は失われます。',
     'toast.linkCopied': 'リンクをクリップボードにコピーしました',
