@@ -12,7 +12,8 @@ import {
     Copy,
     Check,
     X,
-    Menu
+    Menu,
+    Pencil
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
@@ -29,11 +30,13 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-    const { meta, cards, pinnedOutputs, addCard, loadProject } = useTsumikiStore();
+    const { meta, cards, pinnedOutputs, addCard, loadProject, updateMeta } = useTsumikiStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showNavigator, setShowNavigator] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+    const [editingField, setEditingField] = useState<'title' | 'author' | null>(null);
+    const [editValue, setEditValue] = useState('');
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const sharePopoverRef = useRef<HTMLDivElement>(null);
@@ -72,7 +75,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             const data = deserializeProject(text);
             if (data) {
                 if (confirm(ja['toast.loadConfirm'])) {
-                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? []);
+                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? [], data.meta.memo);
                 }
             } else {
                 toast(ja['toast.importFailed'], 'error');
@@ -266,15 +269,59 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
                     <div>
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">{ja['ui.projectInfo']}</h3>
-                        <div className="px-1">
-                            <div className="text-sm font-medium text-slate-700">{meta.title}</div>
-                            <div className="text-xs text-slate-500">{ja['ui.author']}{meta.author}</div>
+                        <div className="px-1 space-y-1">
+                            {editingField === 'title' ? (
+                                <input
+                                    autoFocus
+                                    className="text-sm font-medium w-full border-b border-blue-400 outline-none bg-transparent text-slate-700"
+                                    value={editValue}
+                                    onChange={e => setEditValue(e.target.value)}
+                                    onBlur={() => { updateMeta({ title: editValue.trim() || meta.title }); setEditingField(null); }}
+                                    onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+                                />
+                            ) : (
+                                <div
+                                    className="text-sm font-medium text-slate-700 cursor-pointer hover:text-blue-600 flex items-center gap-1 group"
+                                    onClick={() => { setEditValue(meta.title); setEditingField('title'); }}
+                                >
+                                    {meta.title}
+                                    <Pencil size={10} className="opacity-0 group-hover:opacity-50 transition-opacity" />
+                                </div>
+                            )}
+                            {editingField === 'author' ? (
+                                <input
+                                    autoFocus
+                                    className="text-xs w-full border-b border-blue-400 outline-none bg-transparent text-slate-500"
+                                    value={editValue}
+                                    onChange={e => setEditValue(e.target.value)}
+                                    onBlur={() => { updateMeta({ author: editValue.trim() || meta.author }); setEditingField(null); }}
+                                    onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
+                                />
+                            ) : (
+                                <div
+                                    className="text-xs text-slate-500 cursor-pointer hover:text-blue-600 flex items-center gap-1 group"
+                                    onClick={() => { setEditValue(meta.author); setEditingField('author'); }}
+                                >
+                                    {ja['ui.author']}{meta.author}
+                                    <Pencil size={10} className="opacity-0 group-hover:opacity-50 transition-opacity" />
+                                </div>
+                            )}
+                            <div className="mt-2">
+                                <div className="text-xs text-slate-400 mb-0.5">{ja['ui.projectMemo']}</div>
+                                <textarea
+                                    className="w-full text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded p-1.5 resize-none focus:outline-none focus:border-blue-300 min-h-[48px]"
+                                    placeholder={ja['ui.projectMemoPlaceholder']}
+                                    value={meta.memo ?? ''}
+                                    onChange={e => updateMeta({ memo: e.target.value })}
+                                    rows={3}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="p-4 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center">
-                    <span>v0.2.0</span>
+                    <span>v0.3.0</span>
                     <a href="https://github.com/dtkoushi/tsumiki" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600"><Github size={14} /></a>
                 </div>
             </aside>
