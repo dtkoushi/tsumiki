@@ -27,6 +27,8 @@ export const ja = {
     'ui.stackEmpty': 'スタックが空です',
     'ui.toggleNavigator': 'ナビゲーターを表示/非表示',
     'ui.author': '作成者：',
+    'ui.projectMemo': 'メモ',
+    'ui.projectMemoPlaceholder': '検討メモ…',
     'ui.linkedInfo': 'にリンク中（クリックで解除）',
     'ui.picker.outputs': '出力値',
     'ui.picker.inputs':  '入力値',

@@ -8,6 +8,7 @@ import { applyExpression } from '../lib/utils/cardHelpers';
 interface ProjectMeta {
     title: string;
     author: string;
+    memo?: string;
 }
 
 export interface PinnedOutput {
@@ -39,7 +40,8 @@ interface TsumikiState {
     unpinOutput: (cardId: string, outputKey: string) => void;
 
     // Project State
-    loadProject: (cards: Card[], title: string, author: string, pinnedOutputs?: PinnedOutput[]) => void;
+    loadProject: (cards: Card[], title: string, author: string, pinnedOutputs?: PinnedOutput[], memo?: string) => void;
+    updateMeta: (patch: Partial<ProjectMeta>) => void;
 }
 
 const recalculateAll = (cards: Card[]): Card[] => {
@@ -133,17 +135,20 @@ const recalculateAll = (cards: Card[]): Card[] => {
 
 export const useTsumikiStore = create<TsumikiState>((set) => ({
     cards: [],
-    meta: { title: 'New Project', author: 'User' },
+    meta: { title: 'New Project', author: 'User', memo: '' },
     pinnedOutputs: [],
 
-    loadProject: (cards, title, author, pinnedOutputs = []) => set((state) => ({
+    loadProject: (cards, title, author, pinnedOutputs = [], memo?) => set((state) => ({
         cards: recalculateAll(cards),
         pinnedOutputs,
         meta: {
             title: title || state.meta.title,
-            author: author || state.meta.author
+            author: author || state.meta.author,
+            memo: memo ?? '',
         }
     })),
+
+    updateMeta: (patch) => set((state) => ({ meta: { ...state.meta, ...patch } })),
 
     addCard: (type) => set((state) => {
         const def = registry.get(type);

@@ -3,7 +3,7 @@ import type { Card } from '../../types';
 import type { PinnedOutput } from '../../store/useTsumikiStore';
 
 interface ProjectData {
-    meta: { title: string; author: string };
+    meta: { title: string; author: string; memo?: string };
     cards: Card[];
     pinnedOutputs?: PinnedOutput[];
     version: string;
