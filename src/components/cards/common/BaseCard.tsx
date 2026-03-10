@@ -79,7 +79,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                                 type="text"
                                 value={card.alias}
                                 onChange={(e) => updateCardAlias(card.id, e.target.value)}
-                                className="font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0 text-sm hover:bg-slate-50 rounded px-1 -ml-1 leading-tight w-32"
+                                className="font-semibold text-slate-700 bg-transparent border-none p-0 focus:ring-0 text-sm hover:bg-slate-50 rounded px-1 -ml-1 leading-tight w-20 sm:w-32"
                                 onClick={(e) => e.stopPropagation()}
                             />
                         </div>
@@ -99,7 +99,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
                         <button
                             onClick={() => setIsMemoOpen(!isMemoOpen)}
                             className={clsx(
-                                "p-1.5 rounded-md transition-colors",
+                                "p-2 rounded-md transition-colors",
                                 card.memo ? "text-blue-500 hover:bg-blue-50" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
                             )}
                             title="Toggle memo"
@@ -109,7 +109,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({ card, icon, children, color 
 
                         <button
                             onClick={() => removeCard(card.id)}
-                            className="text-slate-300 hover:text-red-400 p-1.5 rounded-md hover:bg-red-50 transition-colors"
+                            className="text-slate-300 hover:text-red-400 p-2 rounded-md hover:bg-red-50 transition-colors"
                         >
                             <X size={18} />
                         </button>

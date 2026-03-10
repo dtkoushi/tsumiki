@@ -11,8 +11,10 @@ import {
     ChevronRight,
     Copy,
     Check,
-    X
+    X,
+    Menu
 } from 'lucide-react';
+import { clsx } from 'clsx';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import type { CardType } from '../../types';
 import { serializeProject, deserializeProject, compressToUrl } from '../../lib/utils/serialization';
@@ -30,6 +32,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const { meta, cards, pinnedOutputs, addCard, loadProject } = useTsumikiStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showNavigator, setShowNavigator] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
@@ -195,8 +198,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
     return (
         <div className="flex h-screen bg-slate-100 text-slate-800 font-sans overflow-hidden">
+            {/* Mobile backdrop */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
+
             {/* Sidebar / Drawer */}
-            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-full shadow-lg z-10">
+            <aside className={clsx(
+                "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col h-full shadow-lg transition-transform duration-300 shrink-0",
+                sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+            )}>
                 <div className="p-4 border-b border-slate-100 flex items-center gap-2">
                     <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white shadow-blue-200 shadow-md">
                         <Layout size={20} />
@@ -266,13 +281,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-                <header className="h-14 bg-white/80 backdrop-blur-sm border-b border-slate-200 flex items-center px-6 justify-between shrink-0 z-10 sticky top-0">
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <span className="font-medium text-slate-900">{ja['ui.workspace']}</span>
-                        <span>/</span>
-                        <span>{meta.title}</span>
+                <header className="h-14 bg-white/80 backdrop-blur-sm border-b border-slate-200 flex items-center px-3 sm:px-6 justify-between shrink-0 z-10 sticky top-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <button
+                            onClick={() => setSidebarOpen(v => !v)}
+                            className="lg:hidden p-2 rounded-md hover:bg-slate-100 text-slate-600 shrink-0"
+                            aria-label="メニューを開く"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        <div className="flex items-center gap-2 text-sm text-slate-500 min-w-0 hidden lg:flex">
+                            <span className="font-medium text-slate-900">{ja['ui.workspace']}</span>
+                            <span>/</span>
+                            <span className="truncate">{meta.title}</span>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 sm:gap-2 shrink-0">
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -281,19 +305,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             className="hidden"
                         />
                         <Button onClick={handleImportClick} leftIcon={<Upload size={14} />}>
-                            {ja['ui.import']}
+                            <span className="hidden sm:inline">{ja['ui.import']}</span>
                         </Button>
                         <Button onClick={handleExport} leftIcon={<Download size={14} />}>
-                            {ja['ui.export']}
+                            <span className="hidden sm:inline">{ja['ui.export']}</span>
                         </Button>
                         <div className="relative" ref={shareWrapperRef}>
                             <Button variant="primary" onClick={handleShare} leftIcon={<Share2 size={14} />}>
-                                {ja['ui.share']}
+                                <span className="hidden sm:inline">{ja['ui.share']}</span>
                             </Button>
                             {shareUrl && (
                                 <div
                                     ref={sharePopoverRef}
-                                    className="absolute right-0 top-full mt-2 w-96 bg-white border border-slate-200 rounded-lg shadow-lg p-4 z-50"
+                                    className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-lg shadow-lg p-4 z-50"
                                 >
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-xs font-semibold text-slate-600">共有リンク</span>
@@ -334,14 +358,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             leftIcon={<PanelRight size={14} />}
                             title={ja['ui.toggleNavigator']}
                         >
-                            {ja['ui.navigator']}
+                            <span className="hidden sm:inline">{ja['ui.navigator']}</span>
                         </Button>
                     </div>
                 </header>
 
                 {/* Stack Scroll Area + Navigator */}
                 <div className="flex-1 flex overflow-hidden">
-                    <div className="flex-1 overflow-y-auto p-8 relative">
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-8 relative">
                         <div className="max-w-3xl mx-auto pb-20">
                             {children}
                         </div>

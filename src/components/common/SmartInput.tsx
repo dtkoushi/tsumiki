@@ -226,7 +226,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             )}
 
             {isPickerOpen && !isReferencing && (
-                <div className="absolute right-0 top-full mt-1 w-64 max-h-60 overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute right-0 top-full mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-60 overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-2 border-b border-slate-100 bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wide sticky top-0">
                         {ja['ui.selectSource']}
                     </div>
