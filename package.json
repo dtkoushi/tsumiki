@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "description": "カードを積み上げる構造計算ツール",
   "license": "MIT",
-  "homepage": "https://toruinaba.github.io/tsumiki/",
+  "homepage": "https://dtkoushi.github.io/tsumiki/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/toruinaba/tsumiki"
+    "url": "https://github.com/dtkoushi/tsumiki"
   },
   "type": "module",
   "scripts": {
