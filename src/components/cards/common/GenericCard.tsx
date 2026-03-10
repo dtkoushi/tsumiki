@@ -45,12 +45,12 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstre
 }) => {
     const unitLabel = config.unitType ? getUnitLabel(config.unitType, unitMode) : '';
     return (
-        <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
-            <span className="text-sm text-slate-600 truncate mr-2 font-medium" title={t(config.label)}>
+        <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50 gap-2">
+            <span className="text-sm text-slate-600 truncate font-medium min-w-0" title={t(config.label)}>
                 {t(config.label)}
                 {unitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{unitLabel}]</span>}
             </span>
-            <div className="w-24">
+            <div className="w-24 shrink-0">
                 <SmartInput
                     cardId={card.id}
                     inputKey={name}
@@ -341,7 +341,7 @@ const OutputRow = ({
             <button
                 onClick={onPinToggle}
                 className={clsx(
-                    "p-0.5 rounded transition-colors",
+                    "p-1.5 -m-1 rounded transition-colors",
                     isPinned ? "text-amber-400 hover:text-amber-300" : "text-slate-600 hover:text-slate-300"
                 )}
                 title={isPinned ? t('ui.unpin') : t('ui.pinToPanel')}
@@ -384,7 +384,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
 
                 {/* Top Selectors Area */}
                 {selectors.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3 bg-white pb-2 border-b border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white pb-2 border-b border-slate-100">
                         {selectors.map(([key, config]) => (
                             <SelectInput key={key} name={key} config={config} card={card} actions={actions} />
                         ))}
