@@ -22,6 +22,7 @@ import { serializeProject, deserializeProject, compressToUrl } from '../../lib/u
 import { toast } from '../common/toast';
 import { Button } from '../common/Button';
 import { CardNavigator } from '../stack/CardNavigator';
+import { PinnedInputsPanel } from '../stack/PinnedInputsPanel';
 import { ja } from '../../lib/i18n/ja';
 import { registry } from '../../lib/registry';
 
@@ -30,9 +31,10 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-    const { meta, cards, pinnedOutputs, addCard, loadProject, updateMeta } = useTsumikiStore();
+    const { meta, cards, pinnedOutputs, pinnedInputs, addCard, loadProject, updateMeta } = useTsumikiStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showNavigator, setShowNavigator] = useState(false);
+    const [showPinnedInputs, setShowPinnedInputs] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
     const [editingField, setEditingField] = useState<'title' | 'author' | null>(null);
@@ -51,7 +53,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
 
     const handleExport = () => {
-        const jsonString = serializeProject(meta, cards, pinnedOutputs);
+        const jsonString = serializeProject(meta, cards, pinnedOutputs, pinnedInputs);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -75,7 +77,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             const data = deserializeProject(text);
             if (data) {
                 if (confirm(ja['toast.loadConfirm'])) {
-                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? [], data.meta.memo);
+                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? [], data.meta.memo, data.pinnedInputs ?? []);
                 }
             } else {
                 toast(ja['toast.importFailed'], 'error');
@@ -92,7 +94,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             handleCloseShare();
             return;
         }
-        const hash = compressToUrl(meta, cards, pinnedOutputs);
+        const hash = compressToUrl(meta, cards, pinnedOutputs, pinnedInputs);
         const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
         setShareUrl(url);
         setCopied(false);
@@ -151,6 +153,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         };
     }, [shareUrl, handleCloseShare]);
 
+
+    useEffect(() => {
+        if (pinnedInputs.length > 0) setShowPinnedInputs(true);
+    }, [pinnedInputs.length]);
 
     interface CardItem { type: CardType; label: string; desc: string }
     interface CategoryDef { id: string; label: string; items: CardItem[] }
@@ -417,6 +423,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             {children}
                         </div>
                     </div>
+                    {showPinnedInputs && pinnedInputs.length > 0 && (
+                        <PinnedInputsPanel onClose={() => setShowPinnedInputs(false)} />
+                    )}
                     {showNavigator && <CardNavigator />}
                 </div>
             </main>

@@ -10,7 +10,6 @@ export const PinnedPanel: React.FC = () => {
     const cards = useTsumikiStore((state) => state.cards);
     const pinnedOutputs = useTsumikiStore((state) => state.pinnedOutputs);
     const unpinOutput = useTsumikiStore((state) => state.unpinOutput);
-
     if (pinnedOutputs.length === 0) return null;
 
     return (
@@ -39,7 +38,7 @@ export const PinnedPanel: React.FC = () => {
 
                     return (
                         <div
-                            key={`${cardId}-${outputKey}`}
+                            key={`out-${cardId}-${outputKey}`}
                             className="flex items-center gap-1.5 bg-slate-800 text-white rounded-lg px-3 py-1.5 text-xs font-mono"
                         >
                             <span className="text-slate-400 text-[10px]">{card.alias}.</span>
