@@ -102,6 +102,46 @@ const recalculateAll = (cards: Card[]): Card[] => {
                 }
             });
 
+            // 3. Resolve intra-card input references (same-card INPUT refs only)
+            const sameCardRefs = Object.entries(card.inputs).filter(([, inp]) =>
+                inp.ref?.cardId === card.id && inp.ref?.refType === 'input' && inp.ref?.inputKey
+            );
+            if (sameCardRefs.length > 0) {
+                const intraOrder: string[] = [];
+                const intraVisited = new Set<string>();
+                const intraTempVisited = new Set<string>();
+                let hasCycle = false;
+
+                const intraVisit = (key: string) => {
+                    if (intraTempVisited.has(key)) { hasCycle = true; return; }
+                    if (intraVisited.has(key)) return;
+                    intraTempVisited.add(key);
+                    const inp = card.inputs[key];
+                    if (inp?.ref?.cardId === card.id && inp?.ref?.refType === 'input' && inp?.ref?.inputKey) {
+                        intraVisit(inp.ref.inputKey);
+                    }
+                    intraTempVisited.delete(key);
+                    intraVisited.add(key);
+                    intraOrder.push(key); // post-order: dependencies before dependents
+                };
+
+                for (const [key] of sameCardRefs) {
+                    if (!intraVisited.has(key)) intraVisit(key);
+                }
+
+                if (hasCycle) {
+                    error = 'カード内の入力間に循環参照があります';
+                } else {
+                    for (const key of intraOrder) {
+                        const inp = card.inputs[key];
+                        if (inp?.ref?.cardId === card.id && inp?.ref?.refType === 'input' && inp?.ref?.inputKey) {
+                            const srcVal = resolvedInputs[inp.ref.inputKey] ?? 0;
+                            resolvedInputs[key] = applyExpression(srcVal, inp.ref.expression) ?? srcVal;
+                        }
+                    }
+                }
+            }
+
             // Build dynamicGroups arg: pre-computed entries for each dynamic group
             const allGroups = def.dynamicInputGroups ?? [];
             const dynamicGroupsArg: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>> = {};
@@ -118,12 +158,15 @@ const recalculateAll = (cards: Card[]): Card[] => {
             }
 
             // Pass resolved inputs, raw inputs (for CustomCard), and dynamicGroups
-            try {
-                outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg);
-            } catch (err) {
-                const message = err instanceof Error ? err.message : String(err);
-                if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);
-                error = message;
+            // Skip calculate when a pre-calculation error (e.g. intra-card cycle) was detected
+            if (!error) {
+                try {
+                    outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg);
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : String(err);
+                    if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);
+                    error = message;
+                }
             }
         }
 

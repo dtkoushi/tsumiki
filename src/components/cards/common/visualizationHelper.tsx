@@ -37,7 +37,8 @@ interface CreateVisualizationOptions {
 
     // Optional: Transform raw card inputs to typed inputs
     // Default: Converts all values to numbers
-    transformInputs?: (inputs: Record<string, any>) => any;
+    // resolvedInputs (2nd arg) contains post-reference-resolution values
+    transformInputs?: (inputs: Record<string, any>, resolvedInputs: Record<string, number>) => any;
 
     // Optional: Default/Initial bounds if strategy undefined (unlikely)
     defaultBounds?: { minX: number; minY: number; maxX: number; maxY: number };
@@ -62,13 +63,14 @@ export function createVisualizationComponent(options: CreateVisualizationOptions
         const rawInputs = card.inputs;
         let inputs: any;
 
+        const resolved = card.resolvedInputs ?? {};
         if (transformInputs) {
-            inputs = transformInputs(rawInputs);
+            inputs = transformInputs(rawInputs, resolved);
         } else {
             // Default: Record<string, number>
             const numInputs: Record<string, number> = {};
-            for (const [key, input] of Object.entries(rawInputs)) {
-                numInputs[key] = Number(input.value) || 0;
+            for (const [key] of Object.entries(rawInputs)) {
+                numInputs[key] = resolved[key] ?? 0;
             }
             inputs = numInputs;
         }

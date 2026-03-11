@@ -17,6 +17,8 @@ export function buildDependencyGraph(cards: Card[]): Map<string, string[]> {
         Object.values(consumerCard.inputs).forEach(input => {
             if (input.ref) {
                 const producerId = input.ref.cardId;
+                // Same-card refs are not cross-card dependencies; skip to avoid self-loops
+                if (producerId === consumerCard.id) return;
                 if (adjacencyList.has(producerId)) {
                     const edges = adjacencyList.get(producerId)!;
                     if (!edges.includes(consumerCard.id)) {

@@ -7,6 +7,7 @@ import { formatOutput, INPUT_FACTORS } from '../../lib/utils/unitFormatter';
 import type { SmartInputUnitType } from '../../lib/registry/types';
 import { applyExpression } from '../../lib/utils/cardHelpers';
 import { ja } from '../../lib/i18n/ja';
+import { registry } from '../../lib/registry/registry';
 
 interface SmartInputProps {
     cardId: string;
@@ -43,7 +44,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     // Determine if currently referencing
     const isReferencing = !!input?.ref;
-    const referencedCard = isReferencing ? upstreamCards.find(c => c.id === input.ref!.cardId) : null;
+    const referencedCard = isReferencing
+        ? (input.ref!.cardId === cardId ? card : upstreamCards.find(c => c.id === input.ref!.cardId))
+        : null;
 
     // Conversion factor: display value * factor = SI value
     const factor = unitMode === 'm' ? (INPUT_FACTORS[inputType as keyof typeof INPUT_FACTORS] ?? 1) : 1;
@@ -309,6 +312,50 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                             })}
                         </div>
                     )}
+                    {(() => {
+                        const cardDef = registry.get(card.type);
+                        const cardInputConfig = {
+                            ...(cardDef?.inputConfig ?? {}),
+                            ...(cardDef?.getInputConfig?.(card) ?? {}),
+                        };
+                        const sameCardInputEntries = Object.entries(card.inputs).filter(([key]) => {
+                            if (key === inputKey) return false;
+                            const val = card.resolvedInputs?.[key];
+                            return typeof val === 'number' && isFinite(val);
+                        });
+                        if (sameCardInputEntries.length === 0) return null;
+                        return (
+                            <div className="p-1 border-t border-slate-100">
+                                <div className="px-2 py-1 text-xs font-semibold text-slate-700 flex items-center gap-1 bg-indigo-50/70">
+                                    <span className="text-[10px] bg-indigo-200 rounded px-1 text-indigo-600">{card.type}</span>
+                                    {ja['ui.picker.thisCard']}
+                                </div>
+                                <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                                    {ja['ui.picker.inputs']}
+                                </div>
+                                <div className="pl-2">
+                                    {sameCardInputEntries.map(([key]) => {
+                                        const val = card.resolvedInputs?.[key];
+                                        const label = cardInputConfig[key]?.label ?? key;
+                                        return (
+                                            <button
+                                                key={key}
+                                                onClick={() => handleSelectInputReference(card, key)}
+                                                className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-indigo-50 hover:text-indigo-700 rounded transition-colors group"
+                                            >
+                                                <span className="text-slate-600 group-hover:text-indigo-700">{label}</span>
+                                                <span className="text-slate-400 group-hover:text-indigo-500">
+                                                    {typeof val === 'number'
+                                                        ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                        : '-'}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
         </div>

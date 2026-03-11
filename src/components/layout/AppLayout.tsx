@@ -321,7 +321,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </div>
 
                 <div className="p-4 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center">
-                    <span>v0.3.0</span>
+                    <span>v0.4.0</span>
                     <a href="https://github.com/dtkoushi/tsumiki" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600"><Github size={14} /></a>
                 </div>
             </aside>
