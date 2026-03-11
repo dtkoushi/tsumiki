@@ -103,7 +103,7 @@ const recalculateAll = (cards: Card[]): Card[] => {
             });
 
             // 3. Resolve intra-card input references (same-card INPUT refs only)
-            const sameCardRefs = Object.entries(card.inputs).filter(([_, inp]) =>
+            const sameCardRefs = Object.entries(card.inputs).filter(([, inp]) =>
                 inp.ref?.cardId === card.id && inp.ref?.refType === 'input' && inp.ref?.inputKey
             );
             if (sameCardRefs.length > 0) {
@@ -158,12 +158,15 @@ const recalculateAll = (cards: Card[]): Card[] => {
             }
 
             // Pass resolved inputs, raw inputs (for CustomCard), and dynamicGroups
-            try {
-                outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg);
-            } catch (err) {
-                const message = err instanceof Error ? err.message : String(err);
-                if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);
-                error = message;
+            // Skip calculate when a pre-calculation error (e.g. intra-card cycle) was detected
+            if (!error) {
+                try {
+                    outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg);
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : String(err);
+                    if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);
+                    error = message;
+                }
             }
         }
 
