@@ -16,10 +16,16 @@ export interface PinnedOutput {
     outputKey: string;
 }
 
+export interface PinnedInput {
+    cardId: string;
+    inputKey: string;
+}
+
 interface TsumikiState {
     cards: Card[];
     meta: ProjectMeta;
     pinnedOutputs: PinnedOutput[];
+    pinnedInputs: PinnedInput[];
 
     // Actions
     addCard: (type: CardType) => void;
@@ -38,9 +44,11 @@ interface TsumikiState {
     updateCardMemo: (id: string, memo: string) => void;
     pinOutput: (cardId: string, outputKey: string) => void;
     unpinOutput: (cardId: string, outputKey: string) => void;
+    pinInput: (cardId: string, inputKey: string) => void;
+    unpinInput: (cardId: string, inputKey: string) => void;
 
     // Project State
-    loadProject: (cards: Card[], title: string, author: string, pinnedOutputs?: PinnedOutput[], memo?: string) => void;
+    loadProject: (cards: Card[], title: string, author: string, pinnedOutputs?: PinnedOutput[], memo?: string, pinnedInputs?: PinnedInput[]) => void;
     updateMeta: (patch: Partial<ProjectMeta>) => void;
 }
 
@@ -180,10 +188,12 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
     cards: [],
     meta: { title: 'New Project', author: 'User', memo: '' },
     pinnedOutputs: [],
+    pinnedInputs: [],
 
-    loadProject: (cards, title, author, pinnedOutputs = [], memo?) => set((state) => ({
+    loadProject: (cards, title, author, pinnedOutputs = [], memo?, pinnedInputs = []) => set((state) => ({
         cards: recalculateAll(cards),
         pinnedOutputs,
+        pinnedInputs,
         meta: {
             title: title || state.meta.title,
             author: author || state.meta.author,
@@ -218,6 +228,7 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
     removeCard: (id) => set((state) => ({
         cards: recalculateAll(state.cards.filter((c) => c.id !== id)),
         pinnedOutputs: state.pinnedOutputs.filter(p => p.cardId !== id),
+        pinnedInputs: state.pinnedInputs.filter(p => p.cardId !== id),
     })),
 
     updateCardAlias: (id, alias) => set((state) => ({
@@ -241,6 +252,15 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
 
     unpinOutput: (cardId, outputKey) => set((state) => ({
         pinnedOutputs: state.pinnedOutputs.filter(p => !(p.cardId === cardId && p.outputKey === outputKey))
+    })),
+
+    pinInput: (cardId, inputKey) => set((state) => {
+        if (state.pinnedInputs.some(p => p.cardId === cardId && p.inputKey === inputKey)) return {};
+        return { pinnedInputs: [...state.pinnedInputs, { cardId, inputKey }] };
+    }),
+
+    unpinInput: (cardId, inputKey) => set((state) => ({
+        pinnedInputs: state.pinnedInputs.filter(p => !(p.cardId === cardId && p.inputKey === inputKey))
     })),
 
     updateInput: (cardId, inputKey, value) => set((state) => {

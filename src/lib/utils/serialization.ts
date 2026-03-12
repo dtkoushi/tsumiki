@@ -1,23 +1,25 @@
 import pako from 'pako';
 import type { Card } from '../../types';
-import type { PinnedOutput } from '../../store/useTsumikiStore';
+import type { PinnedOutput, PinnedInput } from '../../store/useTsumikiStore';
 
 interface ProjectData {
     meta: { title: string; author: string; memo?: string };
     cards: Card[];
     pinnedOutputs?: PinnedOutput[];
+    pinnedInputs?: PinnedInput[];
     version: string;
 }
 
 /**
  * Serialize project state to JSON string
  */
-export const serializeProject = (meta: ProjectData['meta'], cards: Card[], pinnedOutputs: PinnedOutput[] = []): string => {
+export const serializeProject = (meta: ProjectData['meta'], cards: Card[], pinnedOutputs: PinnedOutput[] = [], pinnedInputs: PinnedInput[] = []): string => {
     const serializableCards = cards.map(({ resolvedInputs: _ri, ...rest }) => rest) as Card[];
     const data: ProjectData = {
         meta,
         cards: serializableCards,
         pinnedOutputs,
+        pinnedInputs,
         version: '1.0.0',
     };
     return JSON.stringify(data, null, 2);
@@ -42,9 +44,9 @@ export const deserializeProject = (jsonStr: string): ProjectData | null => {
 /**
  * Compress state to Base64 string for URL sharing
  */
-export const compressToUrl = (meta: ProjectData['meta'], cards: Card[], pinnedOutputs: PinnedOutput[] = []): string => {
+export const compressToUrl = (meta: ProjectData['meta'], cards: Card[], pinnedOutputs: PinnedOutput[] = [], pinnedInputs: PinnedInput[] = []): string => {
     const serializableCards = cards.map(({ resolvedInputs: _ri, ...rest }) => rest) as Card[];
-    const jsonStr = JSON.stringify({ meta, cards: serializableCards, pinnedOutputs, v: '1' });
+    const jsonStr = JSON.stringify({ meta, cards: serializableCards, pinnedOutputs, pinnedInputs, v: '1' });
     const compressed = pako.deflate(jsonStr);
     const base64 = btoa(String.fromCharCode.apply(null, Array.from(compressed)));
     return encodeURIComponent(base64);
@@ -65,6 +67,7 @@ export const decompressFromUrl = (urlParam: string): Partial<ProjectData> | null
             meta: data.meta,
             cards: data.cards,
             pinnedOutputs: data.pinnedOutputs,
+            pinnedInputs: data.pinnedInputs,
             version: data.v
         };
     } catch (e) {

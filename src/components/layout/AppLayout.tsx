@@ -22,6 +22,8 @@ import { serializeProject, deserializeProject, compressToUrl } from '../../lib/u
 import { toast } from '../common/toast';
 import { Button } from '../common/Button';
 import { CardNavigator } from '../stack/CardNavigator';
+import { PinnedInputsPanel } from '../stack/PinnedInputsPanel';
+import { PinnedPanel } from '../stack/PinnedPanel';
 import { ja } from '../../lib/i18n/ja';
 import { registry } from '../../lib/registry';
 
@@ -30,9 +32,10 @@ interface AppLayoutProps {
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-    const { meta, cards, pinnedOutputs, addCard, loadProject, updateMeta } = useTsumikiStore();
+    const { meta, cards, pinnedOutputs, pinnedInputs, addCard, loadProject, updateMeta } = useTsumikiStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showNavigator, setShowNavigator] = useState(false);
+    const [showPinnedInputs, setShowPinnedInputs] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
     const [editingField, setEditingField] = useState<'title' | 'author' | null>(null);
@@ -51,7 +54,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     };
 
     const handleExport = () => {
-        const jsonString = serializeProject(meta, cards, pinnedOutputs);
+        const jsonString = serializeProject(meta, cards, pinnedOutputs, pinnedInputs);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -75,7 +78,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             const data = deserializeProject(text);
             if (data) {
                 if (confirm(ja['toast.loadConfirm'])) {
-                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? [], data.meta.memo);
+                    loadProject(data.cards, data.meta.title, data.meta.author, data.pinnedOutputs ?? [], data.meta.memo, data.pinnedInputs ?? []);
                 }
             } else {
                 toast(ja['toast.importFailed'], 'error');
@@ -92,7 +95,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             handleCloseShare();
             return;
         }
-        const hash = compressToUrl(meta, cards, pinnedOutputs);
+        const hash = compressToUrl(meta, cards, pinnedOutputs, pinnedInputs);
         const url = `${window.location.origin}${window.location.pathname}?data=${hash}`;
         setShareUrl(url);
         setCopied(false);
@@ -151,6 +154,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         };
     }, [shareUrl, handleCloseShare]);
 
+
+    // ピンが追加されたときだけパネルを自動展開する。
+    // 全解除後も showPinnedInputs は true のままだが、パネル自体は
+    // pinnedInputs.length === 0 で非表示になるため UI 上は問題ない。
+    useEffect(() => {
+        if (pinnedInputs.length > 0) setShowPinnedInputs(true);
+    }, [pinnedInputs.length]);
 
     interface CardItem { type: CardType; label: string; desc: string }
     interface CategoryDef { id: string; label: string; items: CardItem[] }
@@ -321,7 +331,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </div>
 
                 <div className="p-4 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center">
-                    <span>v0.4.1</span>
+                    <span>v0.5.0</span>
                     <a href="https://github.com/dtkoushi/tsumiki" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600"><Github size={14} /></a>
                 </div>
             </aside>
@@ -409,6 +419,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         </Button>
                     </div>
                 </header>
+
+                {/* 入力ピン留め: 上バー */}
+                {showPinnedInputs && pinnedInputs.length > 0 && (
+                    <PinnedInputsPanel onClose={() => setShowPinnedInputs(false)} />
+                )}
+
+                {/* 出力ピン留め: 入力バー直下 */}
+                <PinnedPanel />
 
                 {/* Stack Scroll Area + Navigator */}
                 <div className="flex-1 flex overflow-hidden">

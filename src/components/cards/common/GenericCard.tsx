@@ -34,7 +34,7 @@ const SelectInput = ({ name, config, card, actions }: { name: string, config: an
     </div>
 );
 
-const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstreamInputConfigs }: {
+const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstreamInputConfigs, isPinned, onPinToggle }: {
     name: string;
     config: any;
     card: any;
@@ -42,11 +42,25 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstre
     upstreamCards: any;
     unitMode: UnitMode;
     upstreamInputConfigs?: Map<string, Record<string, { label: string; unitType?: OutputUnitType }>>;
+    isPinned: boolean;
+    onPinToggle: () => void;
 }) => {
     const unitLabel = config.unitType ? getUnitLabel(config.unitType, unitMode) : '';
     return (
         <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50 gap-2">
-            <span className="text-sm text-slate-600 truncate font-medium min-w-0" title={t(config.label)}>
+            <div className="flex items-center gap-1 shrink-0">
+                <button
+                    onClick={onPinToggle}
+                    className={clsx(
+                        "p-1 -m-0.5 rounded transition-colors",
+                        isPinned ? "text-amber-400 hover:text-amber-300" : "text-slate-400 hover:text-slate-600"
+                    )}
+                    title={isPinned ? t('ui.unpin') : t('ui.pinInputToPanel')}
+                >
+                    <Pin size={10} />
+                </button>
+            </div>
+            <span className="text-sm text-slate-600 truncate font-medium min-w-0 flex-1" title={t(config.label)}>
                 {t(config.label)}
                 {unitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{unitLabel}]</span>}
             </span>
@@ -363,6 +377,9 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
     const pinnedOutputs = useTsumikiStore(state => state.pinnedOutputs);
     const pinOutput = useTsumikiStore(state => state.pinOutput);
     const unpinOutput = useTsumikiStore(state => state.unpinOutput);
+    const pinnedInputs = useTsumikiStore(state => state.pinnedInputs);
+    const pinInput = useTsumikiStore(state => state.pinInput);
+    const unpinInput = useTsumikiStore(state => state.unpinInput);
 
     const unitMode = (card.unitMode || 'mm') as UnitMode;
     const def = registry.get(card.type);
@@ -397,7 +414,8 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                         <div className="space-y-2">
                             {standardInputs.map(([key, config]) => {
                                 if (def.shouldRenderInput && !def.shouldRenderInput(card, key)) return null;
-                                return <InputRow key={key} name={key} config={config} card={card} actions={actions} upstreamCards={upstreamCards} unitMode={unitMode} upstreamInputConfigs={upstreamInputConfigs} />;
+                                const isInputPinned = pinnedInputs.some(p => p.cardId === card.id && p.inputKey === key);
+                                return <InputRow key={key} name={key} config={config} card={card} actions={actions} upstreamCards={upstreamCards} unitMode={unitMode} upstreamInputConfigs={upstreamInputConfigs} isPinned={isInputPinned} onPinToggle={() => isInputPinned ? unpinInput(card.id, key) : pinInput(card.id, key)} />;
                             })}
                         </div>
                     </div>
