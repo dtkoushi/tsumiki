@@ -155,6 +155,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     }, [shareUrl, handleCloseShare]);
 
 
+    // ピンが追加されたときだけパネルを自動展開する。
+    // 全解除後も showPinnedInputs は true のままだが、パネル自体は
+    // pinnedInputs.length === 0 で非表示になるため UI 上は問題ない。
     useEffect(() => {
         if (pinnedInputs.length > 0) setShowPinnedInputs(true);
     }, [pinnedInputs.length]);

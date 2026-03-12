@@ -42,18 +42,18 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
             {/* Chip scroll area — overflow here so dropdowns can escape */}
             <div className="flex-1 flex items-center gap-2 px-2 py-2 overflow-x-auto min-w-0">
                 {pinnedInputs.map(({ cardId, inputKey }) => {
-                    const card = cards.find(c => c.id === cardId);
-                    if (!card) return null;
+                    const cardIndex = cards.findIndex(c => c.id === cardId);
+                    if (cardIndex === -1) return null;
+                    const card = cards[cardIndex];
                     const def = registry.get(card.type);
                     if (!def) return null;
                     const dynamicConfig = def.getInputConfig ? def.getInputConfig(card) : {};
-                    const resolvedInputConfig = { ...(def.inputConfig || {}), ...dynamicConfig };
+                    const resolvedInputConfig = { ...(def.inputConfig ?? {}), ...dynamicConfig };
                     const inputConf = resolvedInputConfig[inputKey];
                     if (!inputConf) return null;
 
                     const unitMode = (card.unitMode || 'mm') as 'mm' | 'm';
-                    const unitLabel = inputConf.unitType ? getUnitLabel(inputConf.unitType as any, unitMode) : '';
-                    const cardIndex = cards.findIndex(c => c.id === cardId);
+                    const unitLabel = inputConf.unitType ? getUnitLabel(inputConf.unitType, unitMode) : '';
                     const upstreamCards = cards.slice(0, cardIndex);
 
                     return (
@@ -74,7 +74,7 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
                                     upstreamCards={upstreamCards}
                                     placeholder={unitLabel ? '0' : ''}
                                     unitMode={unitMode}
-                                    inputType={inputConf.unitType as any}
+                                    inputType={inputConf.unitType}
                                 />
                             </div>
                             <button
@@ -93,7 +93,7 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
             <button
                 onClick={onClose}
                 className="px-3 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
-                title="閉じる"
+                title={ja['ui.close']}
             >
                 <X size={14} />
             </button>

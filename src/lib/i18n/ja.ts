@@ -16,6 +16,7 @@ export const ja = {
     'ui.pinToPanel': 'パネルにピン留め',
     'ui.pinInputToPanel': '入力値をパネルにピン留め',
     'ui.unpin': 'ピン留め解除',
+    'ui.close': '閉じる',
     'ui.linkToVariable': '変数にリンク',
     'ui.invalidNumber': '無効な数値',
     'ui.invalidExpression': '無効な式です',
