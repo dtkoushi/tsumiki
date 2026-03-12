@@ -29,22 +29,18 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
     };
 
     return (
-        <div className="w-72 shrink-0 border-l border-slate-200 bg-slate-50 flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
-                <div className="flex items-center gap-2">
-                    <Pin size={12} className="text-amber-500" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        {ja['ui.pinnedInputs']}
-                    </span>
-                </div>
-                <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-                    <X size={14} />
-                </button>
+        <div className="shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-sm flex items-center">
+            {/* Left label */}
+            <div className="px-4 py-2 flex items-center gap-1.5 shrink-0">
+                <Pin size={11} className="text-amber-500" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {ja['ui.pinnedInputs']}
+                </span>
             </div>
+            <div className="h-4 w-px bg-slate-200 shrink-0 mx-1" />
 
-            {/* Pinned Input Items */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {/* Chip scroll area — overflow here so dropdowns can escape */}
+            <div className="flex-1 flex items-center gap-2 px-2 py-2 overflow-x-auto min-w-0">
                 {pinnedInputs.map(({ cardId, inputKey }) => {
                     const card = cards.find(c => c.id === cardId);
                     if (!card) return null;
@@ -62,42 +58,45 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
 
                     return (
                         <div key={`${cardId}-${inputKey}`}
-                            className="bg-white rounded-lg border border-slate-200 p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <span className="text-[10px] text-blue-500 font-semibold">{card.alias}</span>
-                                    <span className="text-[10px] text-slate-400 ml-1">
-                                        {t(inputConf.label)}
-                                        {unitLabel && <span className="ml-0.5">[{unitLabel}]</span>}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={() => unpinInput(cardId, inputKey)}
-                                    className="text-slate-300 hover:text-rose-400 transition-colors"
-                                    title={ja['ui.unpin']}
-                                >
-                                    <X size={12} />
-                                </button>
+                            className="flex items-center gap-2 bg-slate-50 rounded-lg border border-slate-200 px-2 py-1.5 shrink-0">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-blue-500 font-semibold leading-none">{card.alias}</span>
+                                <span className="text-[10px] text-slate-400 leading-none mt-0.5">
+                                    {t(inputConf.label)}{unitLabel && ` [${unitLabel}]`}
+                                </span>
                             </div>
-                            <SmartInput
-                                cardId={cardId}
-                                inputKey={inputKey}
-                                card={card}
-                                actions={actions}
-                                upstreamCards={upstreamCards}
-                                placeholder={unitLabel ? '0' : ''}
-                                unitMode={unitMode}
-                                inputType={inputConf.unitType as any}
-                            />
+                            <div className="w-32">
+                                <SmartInput
+                                    cardId={cardId}
+                                    inputKey={inputKey}
+                                    card={card}
+                                    actions={actions}
+                                    upstreamCards={upstreamCards}
+                                    placeholder={unitLabel ? '0' : ''}
+                                    unitMode={unitMode}
+                                    inputType={inputConf.unitType as any}
+                                />
+                            </div>
+                            <button
+                                onClick={() => unpinInput(cardId, inputKey)}
+                                className="text-slate-300 hover:text-rose-400 transition-colors"
+                                title={ja['ui.unpin']}
+                            >
+                                <X size={11} />
+                            </button>
                         </div>
                     );
                 })}
-                {pinnedInputs.length === 0 && (
-                    <div className="text-xs text-slate-400 italic text-center py-8">
-                        カード入力行のピンアイコンをクリックすると<br />ここに表示されます
-                    </div>
-                )}
             </div>
+
+            {/* Close button */}
+            <button
+                onClick={onClose}
+                className="px-3 shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+                title="閉じる"
+            >
+                <X size={14} />
+            </button>
         </div>
     );
 };

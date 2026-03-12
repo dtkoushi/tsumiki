@@ -23,6 +23,7 @@ import { toast } from '../common/toast';
 import { Button } from '../common/Button';
 import { CardNavigator } from '../stack/CardNavigator';
 import { PinnedInputsPanel } from '../stack/PinnedInputsPanel';
+import { PinnedPanel } from '../stack/PinnedPanel';
 import { ja } from '../../lib/i18n/ja';
 import { registry } from '../../lib/registry';
 
@@ -416,6 +417,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     </div>
                 </header>
 
+                {/* 入力ピン留め: 上バー */}
+                {showPinnedInputs && pinnedInputs.length > 0 && (
+                    <PinnedInputsPanel onClose={() => setShowPinnedInputs(false)} />
+                )}
+
+                {/* 出力ピン留め: 入力バー直下 */}
+                <PinnedPanel />
+
                 {/* Stack Scroll Area + Navigator */}
                 <div className="flex-1 flex overflow-hidden">
                     <div className="flex-1 overflow-y-auto p-4 sm:p-8 relative">
@@ -423,9 +432,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             {children}
                         </div>
                     </div>
-                    {showPinnedInputs && pinnedInputs.length > 0 && (
-                        <PinnedInputsPanel onClose={() => setShowPinnedInputs(false)} />
-                    )}
                     {showNavigator && <CardNavigator />}
                 </div>
             </main>
