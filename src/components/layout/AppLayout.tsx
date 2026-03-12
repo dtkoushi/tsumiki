@@ -46,6 +46,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const sharePopoverRef = useRef<HTMLDivElement>(null);
     const shareWrapperRef = useRef<HTMLDivElement>(null);
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const toggleCategory = (id: string) => {
         setCollapsedCategories(prev => {
             const next = new Set(prev);
@@ -263,9 +264,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                                                 onClick={() => {
                                                     addCard(item.type);
                                                     setFlashingType(item.type);
-                                                    setTimeout(() => setFlashingType(null), 200);
+                                                    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+                                                    flashTimerRef.current = setTimeout(() => setFlashingType(null), 200);
                                                 }}
-                                                className={`flex items-start gap-3 p-3 rounded-lg border transition-all text-left group bg-white ${flashingType === item.type ? 'scale-95 bg-blue-100 border-blue-400' : 'border-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm'}`}
+                                                className={clsx(
+                                                    'flex items-start gap-3 p-3 rounded-lg border transition-all text-left group bg-white',
+                                                    flashingType === item.type
+                                                        ? 'scale-95 bg-blue-100 border-blue-400'
+                                                        : 'border-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm'
+                                                )}
                                             >
                                                 <div className="bg-slate-100 p-1.5 rounded text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
                                                     <Plus size={16} />
