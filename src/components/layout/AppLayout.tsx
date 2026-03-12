@@ -42,9 +42,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const [editValue, setEditValue] = useState('');
     const [shareUrl, setShareUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [flashingType, setFlashingType] = useState<string | null>(null);
     const sharePopoverRef = useRef<HTMLDivElement>(null);
     const shareWrapperRef = useRef<HTMLDivElement>(null);
     const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const toggleCategory = (id: string) => {
         setCollapsedCategories(prev => {
             const next = new Set(prev);
@@ -259,8 +261,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                                         {category.items.map((item) => (
                                             <button
                                                 key={item.type}
-                                                onClick={() => addCard(item.type)}
-                                                className="flex items-start gap-3 p-3 rounded-lg border border-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm transition-all text-left group bg-white"
+                                                onClick={() => {
+                                                    addCard(item.type);
+                                                    setFlashingType(item.type);
+                                                    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+                                                    flashTimerRef.current = setTimeout(() => setFlashingType(null), 200);
+                                                }}
+                                                className={clsx(
+                                                    'flex items-start gap-3 p-3 rounded-lg border transition-all text-left group bg-white',
+                                                    flashingType === item.type
+                                                        ? 'scale-95 bg-blue-100 border-blue-400'
+                                                        : 'border-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm'
+                                                )}
                                             >
                                                 <div className="bg-slate-100 p-1.5 rounded text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
                                                     <Plus size={16} />
@@ -331,7 +343,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </div>
 
                 <div className="p-4 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center">
-                    <span>v0.5.0</span>
+                    <span className="flex items-center gap-1.5">
+                        v0.5.1
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-600 rounded-full border border-amber-200">
+                            alpha
+                        </span>
+                    </span>
                     <a href="https://github.com/dtkoushi/tsumiki" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600"><Github size={14} /></a>
                 </div>
             </aside>
