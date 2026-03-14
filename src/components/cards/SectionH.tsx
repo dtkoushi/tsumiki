@@ -12,9 +12,16 @@ interface SectionHOutputs {
     Iy: number;
     Zx: number;
     Zpx: number;
+    Zy: number;
+    Zpy: number;
     lambda_f: number;
     lambda_w: number;
+    ix: number;
+    iy: number;
     Mp: number;
+    Mx: number;
+    My: number;
+    Mpy: number;
     Qy: number;
 }
 
@@ -119,9 +126,16 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         Iy: { label: 'I_y', unitType: 'inertia' },
         Zx: { label: 'Z_x（弾性）', unitType: 'modulus' },
         Zpx: { label: 'Z_px（塑性）', unitType: 'modulus' },
+        Zy: { label: 'Z_y（弾性）', unitType: 'modulus' },
+        Zpy: { label: 'Z_py（塑性）', unitType: 'modulus' },
         lambda_f: { label: 'λ_f フランジ幅厚比', unitType: 'none' },
         lambda_w: { label: 'λ_w ウェブ幅厚比', unitType: 'none' },
+        ix: { label: 'i_x', unitType: 'length' },
+        iy: { label: 'i_y', unitType: 'length' },
         Mp: { label: '全塑性モーメント Mp', unitType: 'moment' },
+        Mx: { label: 'M_x（弾性）', unitType: 'moment' },
+        My: { label: 'M_y（弾性）', unitType: 'moment' },
+        Mpy: { label: 'M_py（全塑性）', unitType: 'moment' },
         Qy: { label: '降伏せん断耐力 Qy', unitType: 'force' },
     },
     calculate: ({ H, B, tw, tf, Fy }) => {
@@ -137,13 +151,20 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         const Ix = (b * Math.pow(h, 3)) / 12 - ((b - tw_) * Math.pow(hw, 3)) / 12;
         const Iy = (2 * tf_ * Math.pow(b, 3)) / 12 + (hw * Math.pow(tw_, 3)) / 12;
         const Zx = h > 0 ? Ix / (h / 2) : 0;
+        const Zy = b > 0 ? Iy / (b / 2) : 0;
         const Zpx = tf_ * b * hw + (tw_ * Math.pow(hw, 2)) / 4;
+        const Zpy = (tf_ * Math.pow(b, 2)) / 2 + (hw * Math.pow(tw_, 2)) / 4;
         const lambda_f = tf_ > 0 ? (b / 2) / tf_ : 0;
         const lambda_w = tw_ > 0 ? hw / tw_ : 0;
+        const ix = A > 0 ? Math.sqrt(Ix / A) : 0;
+        const iy = A > 0 ? Math.sqrt(Iy / A) : 0;
         const Mp = fy * Zpx;
+        const Mx = Zx * fy;
+        const My = Zy * fy;
+        const Mpy = Zpy * fy;
         const Qy = (fy / Math.sqrt(3)) * hw * tw_;
 
-        return { A, Ix, Iy, Zx, Zpx, lambda_f, lambda_w, Mp, Qy };
+        return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mp, Mx, My, Mpy, Qy };
     },
     visualization: SectionHVisualization,
 });

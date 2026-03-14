@@ -11,6 +11,9 @@ interface SectionCircleOutputs {
     I: number;
     Z: number;
     Zp: number;
+    ix: number;
+    Mx: number;
+    Mp: number;
 }
 
 // --- Visualization ---
@@ -82,11 +85,13 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     defaultInputs: {
         D: { value: 200 },
         t: { value: 0 },
+        fy: { value: 235 },
     },
 
     inputConfig: {
         D: { label: '外径 D', unitType: 'length' },
         t: { label: '板厚 t（中実=0）', unitType: 'length' },
+        fy: { label: '降伏応力度 Fy', unitType: 'stress' },
     },
 
     outputConfig: {
@@ -94,9 +99,12 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         I:  { label: '断面二次モーメント I', unitType: 'inertia' },
         Z:  { label: '断面係数 Z（弾性）', unitType: 'modulus' },
         Zp: { label: '塑性断面係数 Zp', unitType: 'modulus' },
+        ix: { label: 'i', unitType: 'length' },
+        Mx: { label: 'M（弾性）', unitType: 'moment' },
+        Mp: { label: 'M_p（全塑性）', unitType: 'moment' },
     },
 
-    calculate: ({ D, t }) => {
+    calculate: ({ D, t, fy }) => {
         const d  = D || 0;
         const tk = t || 0;
         const Di = tk > 0 ? Math.max(d - 2 * tk, 0) : 0;
@@ -104,7 +112,10 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         const I  = (Math.PI / 64) * (Math.pow(d, 4) - Math.pow(Di, 4));
         const Z  = d > 0 ? I / (d / 2) : 0;
         const Zp = (Math.pow(d, 3) - Math.pow(Di, 3)) / 6;
-        return { A, I, Z, Zp };
+        const ix = A > 0 ? Math.sqrt(I / A) : 0;
+        const Mx = Z * (fy || 0);
+        const Mp = Zp * (fy || 0);
+        return { A, I, Z, Zp, ix, Mx, Mp };
     },
 
     visualization: SectionCircleVisualization,

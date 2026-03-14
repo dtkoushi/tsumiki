@@ -13,6 +13,13 @@ interface SectionRectOutputs {
     Zx: number;
     Zy: number;
     Zpx: number;
+    Zpy: number;
+    ix: number;
+    iy: number;
+    Mx: number;
+    My: number;
+    Mpx: number;
+    Mpy: number;
 }
 
 // --- Visualization ---
@@ -100,11 +107,13 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         B: { value: 300 },
         H: { value: 600 },
         t: { value: 0 },
+        fy: { value: 235 },
     },
     inputConfig: {
         B: { label: '幅 B', unitType: 'length' },
         H: { label: '高さ H', unitType: 'length' },
         t: { label: '板厚 t（中実=0）', unitType: 'length' },
+        fy: { label: '降伏応力度 Fy', unitType: 'stress' },
     },
     outputConfig: {
         A: { label: '断面積 A', unitType: 'area' },
@@ -113,8 +122,15 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         Zx: { label: 'Z_x（弾性）', unitType: 'modulus' },
         Zy: { label: 'Z_y（弾性）', unitType: 'modulus' },
         Zpx: { label: 'Z_px（塑性）', unitType: 'modulus' },
+        Zpy: { label: 'Z_py（塑性）', unitType: 'modulus' },
+        ix: { label: 'i_x', unitType: 'length' },
+        iy: { label: 'i_y', unitType: 'length' },
+        Mx: { label: 'M_x（弾性）', unitType: 'moment' },
+        My: { label: 'M_y（弾性）', unitType: 'moment' },
+        Mpx: { label: 'M_px（全塑性）', unitType: 'moment' },
+        Mpy: { label: 'M_py（全塑性）', unitType: 'moment' },
     },
-    calculate: ({ B, H, t }) => {
+    calculate: ({ B, H, t, fy }) => {
         const b  = B || 0;
         const h  = H || 0;
         const tk = t || 0;
@@ -126,7 +142,14 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         const Zx  = h > 0 ? Ix / (h / 2) : 0;
         const Zy  = b > 0 ? Iy / (b / 2) : 0;
         const Zpx = (b * Math.pow(h, 2) - bi * Math.pow(hi, 2)) / 4;
-        return { A, Ix, Iy, Zx, Zy, Zpx };
+        const Zpy = (h * Math.pow(b, 2) - hi * Math.pow(bi, 2)) / 4;
+        const ix  = A > 0 ? Math.sqrt(Ix / A) : 0;
+        const iy  = A > 0 ? Math.sqrt(Iy / A) : 0;
+        const Mx  = Zx * (fy || 0);
+        const My  = Zy * (fy || 0);
+        const Mpx = Zpx * (fy || 0);
+        const Mpy = Zpy * (fy || 0);
+        return { A, Ix, Iy, Zx, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     },
     visualization: SectionRectVisualization,
 });

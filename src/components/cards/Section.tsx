@@ -13,6 +13,15 @@ export interface SectionOutputs {
     Ix: number;
     Iy: number;
     Z: number;
+    Zy: number;
+    Zpx: number;
+    Zpy: number;
+    ix: number;
+    iy: number;
+    Mx: number;
+    My: number;
+    Mpx: number;
+    Mpy: number;
 }
 
 // --- Visualization Logic ---
@@ -184,11 +193,21 @@ const RectSectionStrategy: CardStrategy<SectionOutputs> = {
     calculate: (inputs) => {
         const B = inputs['B'] || 0;
         const H = inputs['H'] || 0;
+        const fy = inputs['fy'] || 0;
         const A = B * H;
         const Ix = (B * Math.pow(H, 3)) / 12;
         const Iy = (H * Math.pow(B, 3)) / 12;
         const Z = (B * Math.pow(H, 2)) / 6;
-        return { A, Ix, Iy, Z };
+        const Zy = (H * Math.pow(B, 2)) / 6;
+        const Zpx = (B * Math.pow(H, 2)) / 4;
+        const Zpy = (H * Math.pow(B, 2)) / 4;
+        const ix = Math.sqrt(Ix / A);
+        const iy = Math.sqrt(Iy / A);
+        const Mx = Z * fy;
+        const My = Zy * fy;
+        const Mpx = Zpx * fy;
+        const Mpy = Zpy * fy;
+        return { A, Ix, Iy, Z, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     }
 };
 
@@ -206,14 +225,24 @@ const HSectionStrategy: CardStrategy<SectionOutputs> = {
         const B = inputs['B'] || 0;
         const tw = inputs['tw'] || 0;
         const tf = inputs['tf'] || 0;
+        const fy = inputs['fy'] || 0;
 
         // Simplified calculation for rolled H-Beam (ignoring radius)
         const A = 2 * B * tf + (H - 2 * tf) * tw;
         const Ix = (B * Math.pow(H, 3)) / 12 - ((B - tw) * Math.pow(H - 2 * tf, 3)) / 12;
         const Iy = (2 * tf * Math.pow(B, 3)) / 12 + ((H - 2 * tf) * Math.pow(tw, 3)) / 12;
         const Z = Ix / (H / 2);
+        const Zy = B > 0 ? Iy / (B / 2) : 0;
+        const Zpx = B * tf * (H - tf) + tw * Math.pow(H / 2 - tf, 2);
+        const Zpy = (tf * Math.pow(B, 2)) / 2 + ((H - 2 * tf) * Math.pow(tw, 2)) / 4;
+        const ix = A > 0 ? Math.sqrt(Ix / A) : 0;
+        const iy = A > 0 ? Math.sqrt(Iy / A) : 0;
+        const Mx = Z * fy;
+        const My = Zy * fy;
+        const Mpx = Zpx * fy;
+        const Mpy = Zpy * fy;
 
-        return { A, Ix, Iy, Z };
+        return { A, Ix, Iy, Z, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     }
 };
 
@@ -225,12 +254,22 @@ const CircleSectionStrategy: CardStrategy<SectionOutputs> = {
     },
     calculate: (inputs) => {
         const D = inputs['D'] || 0;
+        const fy = inputs['fy'] || 0;
         const A = (Math.PI * Math.pow(D, 2)) / 4;
         const Ix = (Math.PI * Math.pow(D, 4)) / 64;
         const Iy = Ix;
         const Z = (Math.PI * Math.pow(D, 3)) / 32;
+        const Zy = Z;
+        const Zpx = Math.pow(D, 3) / 6;
+        const Zpy = Math.pow(D, 3) / 6;
+        const ix = D / 4;
+        const iy = D / 4;
+        const Mx = Z * fy;
+        const My = Zy * fy;
+        const Mpx = Zpx * fy;
+        const Mpy = Zpy * fy;
 
-        return { A, Ix, Iy, Z };
+        return { A, Ix, Iy, Z, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     }
 };
 
@@ -252,12 +291,24 @@ export const SectionCardDef = createStrategyDefinition<SectionOutputs>({
         default: 'rect',
     }],
     strategies: [RectSectionStrategy, HSectionStrategy, CircleSectionStrategy],
+    commonInputConfig: {
+        fy: { label: '降伏応力度 fy', unitType: 'stress', default: 235 },
+    },
     sidebar: { category: 'section', order: 10 },
     outputConfig: {
         A: { label: ja['card.section.outputs.area'], unitType: 'area' },
         Ix: { label: 'I_x', unitType: 'inertia' },
         Iy: { label: 'I_y', unitType: 'inertia' },
-        Z: { label: 'Z', unitType: 'modulus' },
+        Z: { label: 'Z_x', unitType: 'modulus' },
+        Zy: { label: 'Z_y', unitType: 'modulus' },
+        Zpx: { label: 'Z_px', unitType: 'modulus' },
+        Zpy: { label: 'Z_py', unitType: 'modulus' },
+        ix: { label: 'i_x', unitType: 'length' },
+        iy: { label: 'i_y', unitType: 'length' },
+        Mx: { label: 'M_x (弾性)', unitType: 'moment' },
+        My: { label: 'M_y (弾性)', unitType: 'moment' },
+        Mpx: { label: 'M_px (全塑性)', unitType: 'moment' },
+        Mpy: { label: 'M_py (全塑性)', unitType: 'moment' },
     },
     visualization: SectionVisualization,
 });
