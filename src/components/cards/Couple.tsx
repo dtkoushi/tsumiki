@@ -4,7 +4,6 @@ import { Layers } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { formatOutput, type UnitMode } from '../../lib/utils/unitFormatter';
-import { resolveInput } from '../../lib/utils/cardHelpers';
 import { drawArrow, drawDashedLine, drawLabel, drawRect } from './common/svgPrimitives';
 import { ja } from '../../lib/i18n/ja';
 
@@ -13,8 +12,9 @@ import { ja } from '../../lib/i18n/ja';
 // 偶力 (couple): 距離 d_i ごとに NA 上側 (+d_i) に +N_i →、下側 (-d_i) に -N_i ← を描く。
 // 各ペアが対称になることで偶力の本質が視覚化される。
 
-const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
+const CoupleSvg: React.FC<CardComponentProps> = ({ card }) => {
     const unitMode = (card.unitMode ?? 'mm') as UnitMode;
+    const ri = card.resolvedInputs ?? {};
 
     const distKeys = Object.keys(card.inputs)
         .filter(k => /^d_\d+$/.test(k))
@@ -23,7 +23,7 @@ const CoupleSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
     // d_i は NA からの距離（正値）、N_i は上側の偶力（正値）
     const points = distKeys.map(key => {
         const idx = key.split('_')[1];
-        const d = Math.abs(resolveInput(card, key, upstreamCards));
+        const d = Math.abs(ri[key] ?? Number(card.inputs[key]?.value ?? 0));
         const N = Math.abs(card.outputs[`n_${idx}`] ?? 0);
         return { key, d, N };
     }).filter(p => p.d > 0);

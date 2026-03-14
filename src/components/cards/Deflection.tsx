@@ -15,7 +15,6 @@ import {
 } from '../../lib/mechanics/beam';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
 import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './common/svgTheme';
-import { resolveInput } from '../../lib/utils/cardHelpers';
 import { ResultsPanel } from './common/ResultsPanel';
 import { ja } from '../../lib/i18n/ja';
 import type { JaKey } from '../../lib/i18n/ja';
@@ -205,8 +204,9 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
     const hasModel = model != null && typeof model === 'object';
 
     // Resolve E and I for the visualization
-    const E = resolveInput(card, 'E', upstreamCards);
-    const I = resolveInput(card, 'I', upstreamCards);
+    const ri = card.resolvedInputs ?? {};
+    const E = ri['E'] ?? Number(card.inputs['E']?.value ?? 0);
+    const I = ri['I'] ?? Number(card.inputs['I']?.value ?? 0);
 
     const resultFields = [
         { key: 'delta_max',   label: t('card.deflection.outputs.delta_max'),   unitType: 'length' as const },

@@ -9,7 +9,6 @@ import { CardProvider } from './common/CardContext';
 import { CardSmartInput } from './common/CardSmartInput';
 import { getUnitLabel, type OutputUnitType, type UnitMode } from '../../lib/utils/unitFormatter';
 import { evalDiagramAt, type DiagramModel, type BoundaryType } from '../../lib/mechanics/beam';
-import { resolveInput } from '../../lib/utils/cardHelpers';
 import { DrawFixedSupport, DrawPinSupport, DrawRollerSupport } from './common/beamSvgHelpers';
 import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './common/svgTheme';
 import { ResultsPanel } from './common/ResultsPanel';
@@ -200,9 +199,10 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
     };
 
     // Build x positions for SVG
+    const ri = card.resolvedInputs ?? {};
     const xPositions = xIndices.map(n => ({
         n,
-        x: resolveInput(card, `x_${n}`, upstreamCards),
+        x: ri[`x_${n}`] ?? Number(card.inputs[`x_${n}`]?.value ?? 0),
     }));
 
     // Build result fields for outputs panel
