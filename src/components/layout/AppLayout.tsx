@@ -212,7 +212,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     })();
 
     return (
-        <div className="flex h-screen bg-slate-100 text-slate-800 font-sans overflow-hidden">
+        <div className="flex h-dvh bg-slate-100 text-slate-800 font-sans overflow-hidden">
             {/* Mobile backdrop */}
             {sidebarOpen && (
                 <div
@@ -355,7 +355,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-                <header className="h-14 bg-white/80 backdrop-blur-sm border-b border-slate-200 flex items-center px-3 sm:px-6 justify-between shrink-0 z-10 sticky top-0">
+                <header className="h-14 bg-white/80 backdrop-blur-sm border-b border-slate-200 flex items-center px-3 sm:px-6 justify-between shrink-0 z-10">
                     <div className="flex items-center gap-2 min-w-0">
                         <button
                             onClick={() => setSidebarOpen(v => !v)}
