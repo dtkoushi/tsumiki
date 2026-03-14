@@ -1,6 +1,5 @@
 
 import { evaluate } from 'mathjs';
-import type { Card } from '../../types';
 
 const MAX_EXPRESSION_LENGTH = 100;
 
@@ -20,17 +19,4 @@ export function applyExpression(value: number, expression?: string): number | nu
     } catch {
         return null;
     }
-}
-
-export function resolveInput(card: Card, key: string, upstreamCards: Card[]): number {
-    const inp = card.inputs[key];
-    if (!inp) return 0;
-    if (inp.ref) {
-        const src = upstreamCards.find(c => c.id === inp.ref!.cardId);
-        const rawVal = (inp.ref.refType === 'input' && inp.ref.inputKey)
-            ? src?.resolvedInputs?.[inp.ref.inputKey] ?? 0
-            : src?.outputs[inp.ref.outputKey ?? ''] ?? 0;
-        return applyExpression(rawVal, inp.ref.expression) ?? rawVal;
-    }
-    return Number(inp.value ?? 0);
 }
