@@ -112,13 +112,15 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         tw: { value: 5.5 },
         tf: { value: 8 },
         Fy: { value: 235 },
+        sigma_y: { value: 235 },
     },
     inputConfig: {
         H: { label: '断面高さ H', unitType: 'length' },
         B: { label: 'フランジ幅 B', unitType: 'length' },
         tw: { label: 'ウェブ厚 tw', unitType: 'length' },
         tf: { label: 'フランジ厚 tf', unitType: 'length' },
-        Fy: { label: '降伏応力度 Fy', unitType: 'stress' },
+        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
     },
     outputConfig: {
         A: { label: '断面積 A', unitType: 'area' },
@@ -132,18 +134,19 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         lambda_w: { label: 'λ_w ウェブ幅厚比', unitType: 'none' },
         ix: { label: 'i_x', unitType: 'length' },
         iy: { label: 'i_y', unitType: 'length' },
-        Mp: { label: '全塑性モーメント Mp', unitType: 'moment' },
-        Mx: { label: 'M_x（弾性）', unitType: 'moment' },
-        My: { label: 'M_y（弾性）', unitType: 'moment' },
-        Mpy: { label: 'M_py（全塑性）', unitType: 'moment' },
-        Qy: { label: '降伏せん断耐力 Qy', unitType: 'force' },
+        Mp: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
+        Mx: { label: 'M_x（弾性・Fy）', unitType: 'moment' },
+        My: { label: 'M_y（弾性・Fy）', unitType: 'moment' },
+        Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
+        Qy: { label: '降伏せん断耐力 Qy（σy）', unitType: 'force' },
     },
-    calculate: ({ H, B, tw, tf, Fy }) => {
+    calculate: ({ H, B, tw, tf, Fy, sigma_y }) => {
         const h = H || 0;
         const b = B || 0;
         const tw_ = tw || 0;
         const tf_ = tf || 0;
         const fy = Fy || 0;
+        const sy = sigma_y || 0;
 
         const hw = h - 2 * tf_; // ウェブ内法高さ
 
@@ -158,11 +161,11 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         const lambda_w = tw_ > 0 ? hw / tw_ : 0;
         const ix = A > 0 ? Math.sqrt(Ix / A) : 0;
         const iy = A > 0 ? Math.sqrt(Iy / A) : 0;
-        const Mp = fy * Zpx;
+        const Mp = sy * Zpx;
         const Mx = Zx * fy;
         const My = Zy * fy;
-        const Mpy = Zpy * fy;
-        const Qy = (fy / Math.sqrt(3)) * hw * tw_;
+        const Mpy = Zpy * sy;
+        const Qy = (sy / Math.sqrt(3)) * hw * tw_;
 
         return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mp, Mx, My, Mpy, Qy };
     },

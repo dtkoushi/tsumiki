@@ -107,13 +107,15 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         B: { value: 300 },
         H: { value: 600 },
         t: { value: 0 },
-        fy: { value: 235 },
+        Fy: { value: 235 },
+        sigma_y: { value: 235 },
     },
     inputConfig: {
         B: { label: '幅 B', unitType: 'length' },
         H: { label: '高さ H', unitType: 'length' },
         t: { label: '板厚 t（中実=0）', unitType: 'length' },
-        fy: { label: '降伏応力度 Fy', unitType: 'stress' },
+        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
     },
     outputConfig: {
         A: { label: '断面積 A', unitType: 'area' },
@@ -125,12 +127,12 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         Zpy: { label: 'Z_py（塑性）', unitType: 'modulus' },
         ix: { label: 'i_x', unitType: 'length' },
         iy: { label: 'i_y', unitType: 'length' },
-        Mx: { label: 'M_x（弾性）', unitType: 'moment' },
-        My: { label: 'M_y（弾性）', unitType: 'moment' },
-        Mpx: { label: 'M_px（全塑性）', unitType: 'moment' },
-        Mpy: { label: 'M_py（全塑性）', unitType: 'moment' },
+        Mx: { label: 'M_x（弾性・Fy）', unitType: 'moment' },
+        My: { label: 'M_y（弾性・Fy）', unitType: 'moment' },
+        Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
+        Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
     },
-    calculate: ({ B, H, t, fy }) => {
+    calculate: ({ B, H, t, Fy, sigma_y }) => {
         const b  = B || 0;
         const h  = H || 0;
         const tk = t || 0;
@@ -145,10 +147,10 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         const Zpy = (h * Math.pow(b, 2) - hi * Math.pow(bi, 2)) / 4;
         const ix  = A > 0 ? Math.sqrt(Ix / A) : 0;
         const iy  = A > 0 ? Math.sqrt(Iy / A) : 0;
-        const Mx  = Zx * (fy || 0);
-        const My  = Zy * (fy || 0);
-        const Mpx = Zpx * (fy || 0);
-        const Mpy = Zpy * (fy || 0);
+        const Mx  = Zx * (Fy || 0);
+        const My  = Zy * (Fy || 0);
+        const Mpx = Zpx * (sigma_y || 0);
+        const Mpy = Zpy * (sigma_y || 0);
         return { A, Ix, Iy, Zx, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     },
     visualization: SectionRectVisualization,

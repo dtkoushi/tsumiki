@@ -85,13 +85,15 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     defaultInputs: {
         D: { value: 200 },
         t: { value: 0 },
-        fy: { value: 235 },
+        Fy: { value: 235 },
+        sigma_y: { value: 235 },
     },
 
     inputConfig: {
         D: { label: '外径 D', unitType: 'length' },
         t: { label: '板厚 t（中実=0）', unitType: 'length' },
-        fy: { label: '降伏応力度 Fy', unitType: 'stress' },
+        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
     },
 
     outputConfig: {
@@ -100,11 +102,11 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         Z:  { label: '断面係数 Z（弾性）', unitType: 'modulus' },
         Zp: { label: '塑性断面係数 Zp', unitType: 'modulus' },
         ix: { label: 'i', unitType: 'length' },
-        Mx: { label: 'M（弾性）', unitType: 'moment' },
-        Mp: { label: 'M_p（全塑性）', unitType: 'moment' },
+        Mx: { label: 'M（弾性・Fy）', unitType: 'moment' },
+        Mp: { label: 'M_p（全塑性・σy）', unitType: 'moment' },
     },
 
-    calculate: ({ D, t, fy }) => {
+    calculate: ({ D, t, Fy, sigma_y }) => {
         const d  = D || 0;
         const tk = t || 0;
         const Di = tk > 0 ? Math.max(d - 2 * tk, 0) : 0;
@@ -113,8 +115,8 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         const Z  = d > 0 ? I / (d / 2) : 0;
         const Zp = (Math.pow(d, 3) - Math.pow(Di, 3)) / 6;
         const ix = A > 0 ? Math.sqrt(I / A) : 0;
-        const Mx = Z * (fy || 0);
-        const Mp = Zp * (fy || 0);
+        const Mx = Z * (Fy || 0);
+        const Mp = Zp * (sigma_y || 0);
         return { A, I, Z, Zp, ix, Mx, Mp };
     },
 
