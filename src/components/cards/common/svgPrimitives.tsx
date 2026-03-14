@@ -28,7 +28,7 @@ export interface ArrowOpts {
 export const drawArrow = (
     x1: number, y1: number, x2: number, y2: number,
     scale: number, opts: ArrowOpts = {},
-): JSX.Element => {
+): React.JSX.Element => {
     const {
         color = SVG_COLOR.muted,
         strokeWidth = 1.5,
@@ -121,7 +121,7 @@ export interface LabelOpts {
 export const drawLabel = (
     x: number, y: number, text: string,
     scale: number, opts: LabelOpts = {},
-): JSX.Element => {
+): React.JSX.Element => {
     const {
         color = SVG_COLOR.muted,
         fontSize = SVG_FONT_SIZE.xs,
@@ -150,7 +150,7 @@ export interface DashedLineOpts {
 export const drawDashedLine = (
     x1: number, y1: number, x2: number, y2: number,
     scale: number, opts: DashedLineOpts = {},
-): JSX.Element => {
+): React.JSX.Element => {
     const {
         color = '#cbd5e1',
         strokeWidth = 1,
@@ -175,7 +175,7 @@ export interface RectOpts {
 export const drawRect = (
     x: number, y: number, w: number, h: number,
     scale: number, opts: RectOpts = {},
-): JSX.Element => {
+): React.JSX.Element => {
     const {
         fill = '#f1f5f9',
         stroke = '#94a3b8',

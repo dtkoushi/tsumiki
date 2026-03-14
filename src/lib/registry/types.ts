@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Card } from '../../types';
-import type { OutputUnitType } from '../utils/unitFormatter';
 
 /**
  * Unit types that SmartInput can convert between mm-mode and m-mode.
@@ -28,7 +27,7 @@ export interface CardComponentProps {
 
 // TOutputs is the interface for the card's calculation results.
 // Defaults to Record<string, number> for backward compatibility.
-export interface CardStrategy<TOutputs extends Record<string, number> = Record<string, number>> {
+export interface CardStrategy<TOutputs extends object = Record<string, number>> {
     id: string; // The value stored in the selector (e.g., 'rect', 'h_beam')
     label: string;
 
@@ -124,7 +123,7 @@ export interface DynamicMultiGroupConfig {
     fields: DynamicMultiGroupFieldConfig[];
 }
 
-export interface CardDefinition<TOutputs extends Record<string, number> = Record<string, number>> {
+export interface CardDefinition<TOutputs extends object = Record<string, number>> {
     type: string;             // Unique ID (e.g., 'SECTION', 'BEAM')
     title: string;            // Display Name
     icon: React.FC<any>;      // Lucide Icon definition (renders as component)

@@ -70,7 +70,7 @@ export const BeamFormulas = {
     },
 
     // Cantilever - Point Load (Fixed at Left x=0, Load at 'a')
-    cantilever_point: (L: number, P: number, a: number, x: number): BeamResult => {
+    cantilever_point: (_L: number, P: number, a: number, x: number): BeamResult => {
         if (x <= a) {
             return { M: -P * (a - x), Q: P };
         } else {

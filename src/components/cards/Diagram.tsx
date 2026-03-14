@@ -179,8 +179,8 @@ const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstrea
 
     // Resolve diagramModel from upstream
     const diagramRef = card.inputs['diagramModel']?.ref;
-    const model = diagramRef
-        ? (upstreamCards.find(c => c.id === diagramRef.cardId)?.outputs[diagramRef.outputKey] as unknown as DiagramModel)
+    const model = (diagramRef?.outputKey != null)
+        ? (upstreamCards.find(c => c.id === diagramRef!.cardId)?.outputs[diagramRef!.outputKey!] as unknown as DiagramModel)
         : null;
 
     // Dynamic x positions
