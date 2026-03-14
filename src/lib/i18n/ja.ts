@@ -50,6 +50,9 @@ export const ja = {
     'toast.linkCopied': 'リンクをクリップボードにコピーしました',
     'toast.linkFailed': 'リンクのコピーに失敗しました',
 
+    // ── Card: Section (generic onboarding label) ──────────────────────────────
+    'card.section.title': '断面',
+
     // ── Card: Material ────────────────────────────────────────────────────────
     'card.material.axis.grade': '材種',
     'card.material.title': '材料',
