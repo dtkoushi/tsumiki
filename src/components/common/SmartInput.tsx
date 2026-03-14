@@ -257,7 +257,6 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder={ja['ui.picker.search']}
                                 className="w-full text-xs border border-slate-200 rounded px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none bg-white"
-                                autoFocus
                             />
                         </div>
                     </div>
@@ -267,8 +266,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                         </div>
                     ) : (
                         <div className="p-1">
-                            {upstreamCards.map(c => {
+                            {(() => {
                                 const q = searchQuery.toLowerCase();
+                                return upstreamCards.map(c => {
                                 const allOutputEntries = Object.entries(c.outputs);
                                 const inputCfgs = upstreamInputConfigs?.get(c.id) ?? {};
                                 const allInputEntries = Object.entries(inputCfgs).filter(([key]) => {
@@ -276,18 +276,13 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                                     return typeof val === 'number' && isFinite(val);
                                 });
 
-                                const outputEntries = q
+                                const visibleOutputs = q
                                     ? allOutputEntries.filter(([key]) => key.toLowerCase().includes(q))
                                     : allOutputEntries;
-                                const inputEntries = q
+                                const visibleInputs = q
                                     ? allInputEntries.filter(([key, cfg]) =>
                                         key.toLowerCase().includes(q) || cfg.label.toLowerCase().includes(q))
                                     : allInputEntries;
-
-                                const cardMatches = !q || c.alias?.toLowerCase().includes(q) || c.type.toLowerCase().includes(q);
-                                const visibleOutputs = cardMatches ? outputEntries : allOutputEntries.filter(([key]) => key.toLowerCase().includes(q));
-                                const visibleInputs = cardMatches ? inputEntries : allInputEntries.filter(([key, cfg]) =>
-                                    key.toLowerCase().includes(q) || cfg.label.toLowerCase().includes(q));
 
                                 if (visibleOutputs.length === 0 && visibleInputs.length === 0) return null;
 
@@ -364,11 +359,13 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                                         )}
                                     </div>
                                 );
-                            })}
+                            });
+                            })()}
                         </div>
                     )}
                     {(() => {
                         const q = searchQuery.toLowerCase();
+                        const SELF_KEY = '__self__';
                         const cardDef = registry.get(card.type);
                         const cardInputConfig = {
                             ...(cardDef?.inputConfig ?? {}),
@@ -379,22 +376,18 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                             const val = card.resolvedInputs?.[key];
                             return typeof val === 'number' && isFinite(val);
                         });
-                        const selfMatches = !q || ja['ui.picker.thisCard'].toLowerCase().includes(q) || card.type.toLowerCase().includes(q);
-                        const visibleEntries = selfMatches
-                            ? (q ? allSameCardEntries.filter(([key]) => {
+                        const visibleEntries = q
+                            ? allSameCardEntries.filter(([key]) => {
                                 const label = cardInputConfig[key]?.label ?? key;
                                 return key.toLowerCase().includes(q) || label.toLowerCase().includes(q);
-                            }) : allSameCardEntries)
-                            : allSameCardEntries.filter(([key]) => {
-                                const label = cardInputConfig[key]?.label ?? key;
-                                return key.toLowerCase().includes(q) || label.toLowerCase().includes(q);
-                            });
+                            })
+                            : allSameCardEntries;
                         if (visibleEntries.length === 0) return null;
-                        const isCollapsed = !q && collapsedCards.has('__self__');
+                        const isCollapsed = !q && collapsedCards.has(SELF_KEY);
                         return (
                             <div className="p-1 border-t border-slate-100">
                                 <button
-                                    onClick={() => toggleCardCollapse('__self__')}
+                                    onClick={() => toggleCardCollapse(SELF_KEY)}
                                     className="w-full px-2 py-1 text-xs font-semibold text-slate-700 flex items-center gap-1 bg-indigo-50/70 hover:bg-indigo-100 transition-colors"
                                 >
                                     {isCollapsed
