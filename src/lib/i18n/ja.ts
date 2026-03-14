@@ -36,6 +36,7 @@ export const ja = {
     'ui.picker.outputs': '出力値',
     'ui.picker.inputs':  '入力値',
     'ui.picker.thisCard': 'このカード',
+    'ui.picker.search': '検索...',
     'ui.onboarding.step1': 'カードを追加して断面形状を定義',
     'ui.onboarding.step2': 'カードを追加して鋼種とEを設定',
     'ui.onboarding.step3': 'カードを追加してスパン・断面・荷重をリンク',

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link2, Unlink } from 'lucide-react';
+import { Link2, Unlink, ChevronDown, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Card } from '../../types';
 import type { CardActions } from '../../lib/registry/types';
@@ -35,6 +35,8 @@ export const SmartInput: React.FC<SmartInputProps> = ({
     inputType = 'none'
 }) => {
     const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [collapsedCards, setCollapsedCards] = useState<Set<string>>(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
     const [isFocused, setIsFocused] = useState(false);
     const [localValue, setLocalValue] = useState<string>('');
     const [isInvalidInput, setIsInvalidInput] = useState(false);
@@ -126,6 +128,20 @@ export const SmartInput: React.FC<SmartInputProps> = ({
         }
     };
 
+    const openPicker = (open: boolean) => {
+        setIsPickerOpen(open);
+        if (open) setSearchQuery('');
+    };
+
+    const toggleCardCollapse = (cardId: string) => {
+        setCollapsedCards(prev => {
+            const next = new Set(prev);
+            if (next.has(cardId)) next.delete(cardId);
+            else next.add(cardId);
+            return next;
+        });
+    };
+
     const handleSelectReference = (targetCard: Card, outputKey: string) => {
         actions.setReference(cardId, inputKey, targetCard.id, outputKey);
         setIsPickerOpen(false);
@@ -201,7 +217,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                 </div>
 
                 <button
-                    onClick={() => isReferencing ? actions.removeReference(cardId, inputKey) : setIsPickerOpen(!isPickerOpen)}
+                    onClick={() => isReferencing ? actions.removeReference(cardId, inputKey) : openPicker(!isPickerOpen)}
                     className={clsx(
                         "h-full px-2 border border-l-0 rounded-r transition-colors flex items-center justify-center -ml-[1px]",
                         isReferencing
@@ -229,9 +245,21 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             )}
 
             {isPickerOpen && !isReferencing && (
-                <div className="absolute right-0 top-full mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-60 overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="p-2 border-b border-slate-100 bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wide sticky top-0">
-                        {ja['ui.selectSource']}
+                <div className="absolute right-0 top-full mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-72 overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="sticky top-0 z-10 bg-slate-50 border-b border-slate-100">
+                        <div className="p-2 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                            {ja['ui.selectSource']}
+                        </div>
+                        <div className="px-2 pb-2">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder={ja['ui.picker.search']}
+                                className="w-full text-xs border border-slate-200 rounded px-2 py-1 focus:ring-1 focus:ring-blue-400 outline-none bg-white"
+                                autoFocus
+                            />
+                        </div>
                     </div>
                     {upstreamCards.length === 0 ? (
                         <div className="p-4 text-xs text-slate-400 text-center">
@@ -240,71 +268,98 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                     ) : (
                         <div className="p-1">
                             {upstreamCards.map(c => {
-                                const outputs = Object.entries(c.outputs);
+                                const q = searchQuery.toLowerCase();
+                                const allOutputEntries = Object.entries(c.outputs);
                                 const inputCfgs = upstreamInputConfigs?.get(c.id) ?? {};
-                                const inputEntries = Object.entries(inputCfgs).filter(([key]) => {
+                                const allInputEntries = Object.entries(inputCfgs).filter(([key]) => {
                                     const val = c.resolvedInputs?.[key];
                                     return typeof val === 'number' && isFinite(val);
                                 });
-                                if (outputs.length === 0 && inputEntries.length === 0) return null;
+
+                                const outputEntries = q
+                                    ? allOutputEntries.filter(([key]) => key.toLowerCase().includes(q))
+                                    : allOutputEntries;
+                                const inputEntries = q
+                                    ? allInputEntries.filter(([key, cfg]) =>
+                                        key.toLowerCase().includes(q) || cfg.label.toLowerCase().includes(q))
+                                    : allInputEntries;
+
+                                const cardMatches = !q || c.alias?.toLowerCase().includes(q) || c.type.toLowerCase().includes(q);
+                                const visibleOutputs = cardMatches ? outputEntries : allOutputEntries.filter(([key]) => key.toLowerCase().includes(q));
+                                const visibleInputs = cardMatches ? inputEntries : allInputEntries.filter(([key, cfg]) =>
+                                    key.toLowerCase().includes(q) || cfg.label.toLowerCase().includes(q));
+
+                                if (visibleOutputs.length === 0 && visibleInputs.length === 0) return null;
+
+                                const isCollapsed = !q && collapsedCards.has(c.id);
 
                                 return (
                                     <div key={c.id} className="mb-1">
-                                        <div className="px-2 py-1 text-xs font-semibold text-slate-700 flex items-center gap-1 bg-slate-50/50">
+                                        <button
+                                            onClick={() => toggleCardCollapse(c.id)}
+                                            className="w-full px-2 py-1 text-xs font-semibold text-slate-700 flex items-center gap-1 bg-slate-50/50 hover:bg-slate-100 transition-colors"
+                                        >
+                                            {isCollapsed
+                                                ? <ChevronRight size={12} className="text-slate-400 shrink-0" />
+                                                : <ChevronDown size={12} className="text-slate-400 shrink-0" />}
                                             <span className="text-[10px] bg-slate-200 rounded px-1 text-slate-500">{c.type}</span>
                                             {c.alias}
-                                        </div>
+                                        </button>
 
-                                        {/* 出力値セクション */}
-                                        {outputs.length > 0 && (
+                                        {!isCollapsed && (
                                             <>
-                                                <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
-                                                    {ja['ui.picker.outputs']}
-                                                </div>
-                                                <div className="pl-2">
-                                                    {outputs.map(([key, val]) => (
-                                                        <button
-                                                            key={key}
-                                                            onClick={() => handleSelectReference(c, key)}
-                                                            className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 rounded transition-colors group"
-                                                        >
-                                                            <span className="font-mono text-slate-600 group-hover:text-blue-700">{key}</span>
-                                                            <span className="text-slate-400 group-hover:text-blue-500">
-                                                                {typeof val === 'number'
-                                                                    ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                                                                    : (typeof val === 'object' ? '[Model]' : val)}
-                                                            </span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </>
-                                        )}
+                                                {/* 入力値セクション */}
+                                                {visibleInputs.length > 0 && (
+                                                    <>
+                                                        <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                                                            {ja['ui.picker.inputs']}
+                                                        </div>
+                                                        <div className="pl-2">
+                                                            {visibleInputs.map(([key]) => {
+                                                                const val = c.resolvedInputs?.[key];
+                                                                return (
+                                                                    <button
+                                                                        key={key}
+                                                                        onClick={() => handleSelectInputReference(c, key)}
+                                                                        className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-emerald-50 hover:text-emerald-700 rounded transition-colors group"
+                                                                    >
+                                                                        <span className="font-mono text-slate-600 group-hover:text-emerald-700">{key}</span>
+                                                                        <span className="text-slate-400 group-hover:text-emerald-500">
+                                                                            {typeof val === 'number'
+                                                                                ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                                : '-'}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </>
+                                                )}
 
-                                        {/* 入力値セクション */}
-                                        {inputEntries.length > 0 && (
-                                            <>
-                                                <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
-                                                    {ja['ui.picker.inputs']}
-                                                </div>
-                                                <div className="pl-2">
-                                                    {inputEntries.map(([key]) => {
-                                                        const val = c.resolvedInputs?.[key];
-                                                        return (
-                                                            <button
-                                                                key={key}
-                                                                onClick={() => handleSelectInputReference(c, key)}
-                                                                className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-emerald-50 hover:text-emerald-700 rounded transition-colors group"
-                                                            >
-                                                                <span className="font-mono text-slate-600 group-hover:text-emerald-700">{key}</span>
-                                                                <span className="text-slate-400 group-hover:text-emerald-500">
-                                                                    {typeof val === 'number'
-                                                                        ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                                                                        : '-'}
-                                                                </span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
+                                                {/* 出力値セクション */}
+                                                {visibleOutputs.length > 0 && (
+                                                    <>
+                                                        <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                                                            {ja['ui.picker.outputs']}
+                                                        </div>
+                                                        <div className="pl-2">
+                                                            {visibleOutputs.map(([key, val]) => (
+                                                                <button
+                                                                    key={key}
+                                                                    onClick={() => handleSelectReference(c, key)}
+                                                                    className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 rounded transition-colors group"
+                                                                >
+                                                                    <span className="font-mono text-slate-600 group-hover:text-blue-700">{key}</span>
+                                                                    <span className="text-slate-400 group-hover:text-blue-500">
+                                                                        {typeof val === 'number'
+                                                                            ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                            : (typeof val === 'object' ? '[Model]' : val)}
+                                                                    </span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </>
+                                                )}
                                             </>
                                         )}
                                     </div>
@@ -313,46 +368,68 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                         </div>
                     )}
                     {(() => {
+                        const q = searchQuery.toLowerCase();
                         const cardDef = registry.get(card.type);
                         const cardInputConfig = {
                             ...(cardDef?.inputConfig ?? {}),
                             ...(cardDef?.getInputConfig?.(card) ?? {}),
                         };
-                        const sameCardInputEntries = Object.entries(card.inputs).filter(([key]) => {
+                        const allSameCardEntries = Object.entries(card.inputs).filter(([key]) => {
                             if (key === inputKey) return false;
                             const val = card.resolvedInputs?.[key];
                             return typeof val === 'number' && isFinite(val);
                         });
-                        if (sameCardInputEntries.length === 0) return null;
+                        const selfMatches = !q || ja['ui.picker.thisCard'].toLowerCase().includes(q) || card.type.toLowerCase().includes(q);
+                        const visibleEntries = selfMatches
+                            ? (q ? allSameCardEntries.filter(([key]) => {
+                                const label = cardInputConfig[key]?.label ?? key;
+                                return key.toLowerCase().includes(q) || label.toLowerCase().includes(q);
+                            }) : allSameCardEntries)
+                            : allSameCardEntries.filter(([key]) => {
+                                const label = cardInputConfig[key]?.label ?? key;
+                                return key.toLowerCase().includes(q) || label.toLowerCase().includes(q);
+                            });
+                        if (visibleEntries.length === 0) return null;
+                        const isCollapsed = !q && collapsedCards.has('__self__');
                         return (
                             <div className="p-1 border-t border-slate-100">
-                                <div className="px-2 py-1 text-xs font-semibold text-slate-700 flex items-center gap-1 bg-indigo-50/70">
+                                <button
+                                    onClick={() => toggleCardCollapse('__self__')}
+                                    className="w-full px-2 py-1 text-xs font-semibold text-slate-700 flex items-center gap-1 bg-indigo-50/70 hover:bg-indigo-100 transition-colors"
+                                >
+                                    {isCollapsed
+                                        ? <ChevronRight size={12} className="text-slate-400 shrink-0" />
+                                        : <ChevronDown size={12} className="text-slate-400 shrink-0" />}
                                     <span className="text-[10px] bg-indigo-200 rounded px-1 text-indigo-600">{card.type}</span>
                                     {ja['ui.picker.thisCard']}
-                                </div>
-                                <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
-                                    {ja['ui.picker.inputs']}
-                                </div>
-                                <div className="pl-2">
-                                    {sameCardInputEntries.map(([key]) => {
-                                        const val = card.resolvedInputs?.[key];
-                                        const label = cardInputConfig[key]?.label ?? key;
-                                        return (
-                                            <button
-                                                key={key}
-                                                onClick={() => handleSelectInputReference(card, key)}
-                                                className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-indigo-50 hover:text-indigo-700 rounded transition-colors group"
-                                            >
-                                                <span className="text-slate-600 group-hover:text-indigo-700">{label}</span>
-                                                <span className="text-slate-400 group-hover:text-indigo-500">
-                                                    {typeof val === 'number'
-                                                        ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                                                        : '-'}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                </button>
+                                {!isCollapsed && (
+                                    <>
+                                        <div className="px-2 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                                            {ja['ui.picker.inputs']}
+                                        </div>
+                                        <div className="pl-2">
+                                            {visibleEntries.map(([key]) => {
+                                                const val = card.resolvedInputs?.[key];
+                                                const label = cardInputConfig[key]?.label ?? key;
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        onClick={() => handleSelectInputReference(card, key)}
+                                                        className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs hover:bg-indigo-50 hover:text-indigo-700 rounded transition-colors group"
+                                                    >
+                                                        <span className="text-slate-600 group-hover:text-indigo-700">{label}</span>
+                                                        <span className="text-slate-400 group-hover:text-indigo-500">
+                                                            {typeof val === 'number'
+                                                                ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                                                                : '-'}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         );
                     })()}
