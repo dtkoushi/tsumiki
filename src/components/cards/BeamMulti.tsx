@@ -8,7 +8,6 @@ import { CardProvider } from './common/CardContext';
 import { CardSmartInput } from './common/CardSmartInput';
 import { getUnitLabel, type UnitMode } from '../../lib/utils/unitFormatter';
 import { calculateBeamMultiMax, type BoundaryType, type LoadType } from '../../lib/mechanics/beam';
-import { resolveInput } from '../../lib/utils/cardHelpers';
 import {
     getBeamBounds, drawScaledBeamAndSupports, drawScaledDistLoad,
     drawScaledPointLoad, drawScaledMomentLoad, type BoundaryDraw,
@@ -109,8 +108,9 @@ function getLoadIndices(inputs: Record<string, { value: string | number; ref?: u
 
 // ─── SVG Visualization (荷重図) ───────────────────────────────────────────────
 
-const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
-    const L = resolveInput(card, 'L', upstreamCards) || 4000;
+const BeamMultiSvg: React.FC<CardComponentProps> = ({ card }) => {
+    const ri = card.resolvedInputs ?? {};
+    const L = (ri['L'] ?? Number(card.inputs['L']?.value ?? 0)) || 4000;
     const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
     const loadIndices = getLoadIndices(card.inputs);
@@ -118,9 +118,9 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card, upstreamCards }) => 
     const resolvedLoads = loadIndices.map(n => ({
         n,
         type: (card.inputs[`load_type_${n}`]?.value as LoadType) || 'point',
-        a: resolveInput(card, `a_${n}`, upstreamCards),
-        b: resolveInput(card, `b_${n}`, upstreamCards),
-        val: resolveInput(card, `val_${n}`, upstreamCards),
+        a: ri[`a_${n}`] ?? Number(card.inputs[`a_${n}`]?.value ?? 0),
+        b: ri[`b_${n}`] ?? Number(card.inputs[`b_${n}`]?.value ?? 0),
+        val: ri[`val_${n}`] ?? Number(card.inputs[`val_${n}`]?.value ?? 0),
     }));
 
     // Force-type and moment scale independently
@@ -306,7 +306,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
         };
     },
 
-    component: React.memo(BeamMultiComponentInner),
+    component: BeamMultiComponentInner,
     sidebar: { category: 'beam', order: 2 },
 });
 
