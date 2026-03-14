@@ -49,20 +49,6 @@ export const ja = {
     'toast.linkCopied': 'リンクをクリップボードにコピーしました',
     'toast.linkFailed': 'リンクのコピーに失敗しました',
 
-    // ── Card: Section ─────────────────────────────────────────────────────────
-    'card.section.axis.shape': '断面形状',
-    'card.section.title': '断面（汎用）',
-    'card.section.description': '断面形状を定義します（矩形、H形鋼など）。',
-    'card.section.strategies.rect': '矩形',
-    'card.section.strategies.hBeam': 'H形鋼',
-    'card.section.strategies.circle': '円形',
-    'card.section.inputs.widthB': '幅 (B)',
-    'card.section.inputs.heightH': '高さ (H)',
-    'card.section.inputs.webTk': 'ウェブ厚 (tw)',
-    'card.section.inputs.flgTk': 'フランジ厚 (tf)',
-    'card.section.inputs.diameter': '直径 (D)',
-    'card.section.outputs.area': '断面積',
-
     // ── Card: Material ────────────────────────────────────────────────────────
     'card.material.axis.grade': '材種',
     'card.material.title': '材料',
