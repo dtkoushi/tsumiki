@@ -10,6 +10,7 @@ interface MaterialOutputs {
     F: number;
     E: number;
     gamma: number;
+    sigma_y: number;
 }
 
 // --- Strategies ---
@@ -18,28 +19,28 @@ const SS400Strategy: CardStrategy<MaterialOutputs> = {
     id: 'ss400',
     label: 'SS400',
     inputConfig: {},
-    calculate: () => ({ F: 235, E: 205000, gamma: 78.5 })
+    calculate: () => ({ F: 235, E: 205000, gamma: 78.5, sigma_y: 235 * 1.2 })
 };
 
 const SN400BStrategy: CardStrategy<MaterialOutputs> = {
     id: 'sn400b',
     label: 'SN400B',
     inputConfig: {},
-    calculate: () => ({ F: 235, E: 205000, gamma: 78.5 })
+    calculate: () => ({ F: 235, E: 205000, gamma: 78.5, sigma_y: 235 * 1.1 })
 };
 
 const SN490BStrategy: CardStrategy<MaterialOutputs> = {
     id: 'sn490b',
     label: 'SN490B',
     inputConfig: {},
-    calculate: () => ({ F: 325, E: 205000, gamma: 78.5 })
+    calculate: () => ({ F: 325, E: 205000, gamma: 78.5, sigma_y: 325 * 1.1 })
 };
 
 const SM490Strategy: CardStrategy<MaterialOutputs> = {
     id: 'sm490',
     label: 'SM490',
     inputConfig: {},
-    calculate: () => ({ F: 325, E: 205000, gamma: 78.5 })
+    calculate: () => ({ F: 325, E: 205000, gamma: 78.5, sigma_y: 325 * 1.2 })
 };
 
 const ConcreteStrategy: CardStrategy<MaterialOutputs> = {
@@ -51,7 +52,7 @@ const ConcreteStrategy: CardStrategy<MaterialOutputs> = {
     calculate: (inputs) => {
         const Fc = inputs['Fc'] ?? 24;
         const E = 33500 * Math.pow(Fc / 60, 1 / 3);  // AIJ RC規準式
-        return { F: Fc, E, gamma: 24.0 };
+        return { F: Fc, E, gamma: 24.0, sigma_y: 0 };
     },
 };
 
@@ -88,6 +89,7 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
         F: { label: ja['card.material.outputs.designStrength'], unitType: 'stress' },
         E: { label: ja['card.material.outputs.youngsModulus'], unitType: 'stress' },
         gamma: { label: '単位体積重量 γ [kN/m³]', unitType: 'none' },
+        sigma_y: { label: '実勢降伏応力度 σy (SS/SM: Fy×1.2, SN: Fy×1.1)', unitType: 'stress' },
     },
 });
 
