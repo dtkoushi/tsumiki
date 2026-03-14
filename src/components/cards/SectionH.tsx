@@ -18,7 +18,7 @@ interface SectionHOutputs {
     lambda_w: number;
     ix: number;
     iy: number;
-    Mp: number;
+    Mpx: number;
     Mx: number;
     My: number;
     Mpy: number;
@@ -134,7 +134,7 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         lambda_w: { label: 'λ_w ウェブ幅厚比', unitType: 'none' },
         ix: { label: 'i_x', unitType: 'length' },
         iy: { label: 'i_y', unitType: 'length' },
-        Mp: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
+        Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
         Mx: { label: 'M_x（弾性・Fy）', unitType: 'moment' },
         My: { label: 'M_y（弾性・Fy）', unitType: 'moment' },
         Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
@@ -161,13 +161,13 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         const lambda_w = tw_ > 0 ? hw / tw_ : 0;
         const ix = A > 0 ? Math.sqrt(Ix / A) : 0;
         const iy = A > 0 ? Math.sqrt(Iy / A) : 0;
-        const Mp = sy * Zpx;
+        const Mpx = sy * Zpx;
         const Mx = Zx * fy;
         const My = Zy * fy;
         const Mpy = Zpy * sy;
         const Qy = (sy / Math.sqrt(3)) * hw * tw_;
 
-        return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mp, Mx, My, Mpy, Qy };
+        return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mpx, Mx, My, Mpy, Qy };
     },
     visualization: SectionHVisualization,
 });

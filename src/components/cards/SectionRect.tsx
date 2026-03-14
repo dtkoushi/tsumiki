@@ -132,7 +132,8 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
         Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
     },
-    calculate: ({ B, H, t, Fy, sigma_y }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calculate: ({ B, H, t, Fy, fy, sigma_y } : any) => {
         const b  = B || 0;
         const h  = H || 0;
         const tk = t || 0;
@@ -147,10 +148,11 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         const Zpy = (h * Math.pow(b, 2) - hi * Math.pow(bi, 2)) / 4;
         const ix  = A > 0 ? Math.sqrt(Ix / A) : 0;
         const iy  = A > 0 ? Math.sqrt(Iy / A) : 0;
-        const Mx  = Zx * (Fy || 0);
-        const My  = Zy * (Fy || 0);
-        const Mpx = Zpx * (sigma_y || 0);
-        const Mpy = Zpy * (sigma_y || 0);
+        const fyVal = Fy || fy || 0; // fy: backward compat with pre-rename saves
+        const Mx  = Zx * fyVal;
+        const My  = Zy * fyVal;
+        const Mpx = Zpx * (sigma_y || fyVal);
+        const Mpy = Zpy * (sigma_y || fyVal);
         return { A, Ix, Iy, Zx, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     },
     visualization: SectionRectVisualization,

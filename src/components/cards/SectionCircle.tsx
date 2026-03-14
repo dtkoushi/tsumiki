@@ -106,7 +106,8 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         Mp: { label: 'M_p（全塑性・σy）', unitType: 'moment' },
     },
 
-    calculate: ({ D, t, Fy, sigma_y }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calculate: ({ D, t, Fy, fy, sigma_y } : any) => {
         const d  = D || 0;
         const tk = t || 0;
         const Di = tk > 0 ? Math.max(d - 2 * tk, 0) : 0;
@@ -115,8 +116,9 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         const Z  = d > 0 ? I / (d / 2) : 0;
         const Zp = (Math.pow(d, 3) - Math.pow(Di, 3)) / 6;
         const ix = A > 0 ? Math.sqrt(I / A) : 0;
-        const Mx = Z * (Fy || 0);
-        const Mp = Zp * (sigma_y || 0);
+        const fyVal = Fy || fy || 0; // fy: backward compat with pre-rename saves
+        const Mx = Z * fyVal;
+        const Mp = Zp * (sigma_y || fyVal);
         return { A, I, Z, Zp, ix, Mx, Mp };
     },
 
