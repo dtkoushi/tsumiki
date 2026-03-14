@@ -19,6 +19,7 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
     const setRefExpression = useTsumikiStore(state => state.setRefExpression);
     const removeReference = useTsumikiStore(state => state.removeReference);
     const removeInput = useTsumikiStore(state => state.removeInput);
+    const updateCardUnit = useTsumikiStore(state => state.updateCardUnit);
     const actions = {
         updateInput,
         setReference: setInputRef,
@@ -26,6 +27,7 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
         setRefExpression,
         removeReference,
         removeInput,
+        updateCardUnit,
     };
 
     return (

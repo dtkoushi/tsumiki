@@ -69,7 +69,7 @@ const SlidingVisualization: React.FC<CardComponentProps> = ({ card }) => {
                     />
 
                     {/* N_i arrows */}
-                    {nEntries.map(({ key, val }, i) => {
+                    {nEntries.map(({ val }, i) => {
                         const idx = i + 1;
                         const cx = step * idx;
                         const isNeg = val < 0;

@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { RectangleHorizontal } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';

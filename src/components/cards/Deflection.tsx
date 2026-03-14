@@ -197,8 +197,8 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
 
     // Resolve diagramModel from upstream
     const diagramRef = card.inputs['diagramModel']?.ref;
-    const model = diagramRef
-        ? (upstreamCards.find(c => c.id === diagramRef.cardId)?.outputs[diagramRef.outputKey] as unknown as DiagramModel)
+    const model = (diagramRef?.outputKey != null)
+        ? (upstreamCards.find(c => c.id === diagramRef!.cardId)?.outputs[diagramRef!.outputKey!] as unknown as DiagramModel)
         : null;
 
     const hasModel = model != null && typeof model === 'object';

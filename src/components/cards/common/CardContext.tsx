@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import type { Card } from '../../../types';
 import type { CardActions } from '../../../lib/registry/types';
 import type { OutputUnitType, UnitMode } from '../../../lib/utils/unitFormatter';

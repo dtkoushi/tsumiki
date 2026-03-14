@@ -114,6 +114,7 @@ interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Recor
     outputConfig: CardDefinition<TOutputs>['outputConfig'];
     visualization?: React.FC<any>;
     sidebar?: CardDefinition<TOutputs>['sidebar'];
+    shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
 
 export function createStrategyDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: StrategyDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
@@ -224,7 +225,8 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
 
         outputConfig,
         visualization,
-        sidebar: options.sidebar
+        sidebar: options.sidebar,
+        shouldRenderInput: options.shouldRenderInput,
     };
 
     validateCardDefinition(def, 'createStrategyDefinition');

@@ -20,7 +20,7 @@ export const getBeamBounds = (L: number) => {
     return { minX: -VU * 4, maxX: L + VU * 2, minY: -VU * 6, maxY: VU * 4 };
 };
 
-export const drawScaledFixedSupport = (x: number, scale: number, side: 'left' | 'right'): JSX.Element => {
+export const drawScaledFixedSupport = (x: number, scale: number, side: 'left' | 'right'): React.JSX.Element => {
     const h = 14 / scale;
     const dir = side === 'left' ? -1 : 1;
     return (
@@ -34,7 +34,7 @@ export const drawScaledFixedSupport = (x: number, scale: number, side: 'left' | 
     );
 };
 
-export const drawScaledPinSupport = (x: number, scale: number): JSX.Element => {
+export const drawScaledPinSupport = (x: number, scale: number): React.JSX.Element => {
     const ms = 8 / scale;
     return (
         <g>
@@ -46,7 +46,7 @@ export const drawScaledPinSupport = (x: number, scale: number): JSX.Element => {
     );
 };
 
-export const drawScaledRollerSupport = (x: number, scale: number): JSX.Element => {
+export const drawScaledRollerSupport = (x: number, scale: number): React.JSX.Element => {
     const ms = 8 / scale;
     return (
         <g>
@@ -57,7 +57,7 @@ export const drawScaledRollerSupport = (x: number, scale: number): JSX.Element =
     );
 };
 
-export const drawScaledBeamAndSupports = (L: number, scale: number, boundary: BoundaryDraw): JSX.Element => (
+export const drawScaledBeamAndSupports = (L: number, scale: number, boundary: BoundaryDraw): React.JSX.Element => (
     <g>
         <line x1={0} y1={0} x2={L} y2={0} stroke={C_BEAM} strokeWidth={3 / scale} strokeLinecap="round" />
         {(boundary === 'cantilever' || boundary === 'fixed_fixed' || boundary === 'fixed_pinned')
@@ -76,7 +76,7 @@ export const drawScaledBeamAndSupports = (L: number, scale: number, boundary: Bo
  * Draw a distributed load from world position a to b.
  * heightScale (default 1.0): relative magnitude for multi-load diagrams (BeamMulti).
  */
-export const drawScaledDistLoad = (a: number, b: number, scale: number, val: number, label?: string, heightScale = 1.0): JSX.Element => {
+export const drawScaledDistLoad = (a: number, b: number, scale: number, val: number, label?: string, heightScale = 1.0): React.JSX.Element => {
     const ms = 8 / scale;
     const distH = ms * 5 * heightScale;
     const distW = Math.max(b - a, 6 / scale);
@@ -117,7 +117,7 @@ export const drawScaledDistLoad = (a: number, b: number, scale: number, val: num
  * Draw a point load at world position a.
  * heightScale (default 1.0): relative magnitude for multi-load diagrams (BeamMulti).
  */
-export const drawScaledPointLoad = (a: number, scale: number, P: number, label?: string, heightScale = 1.0): JSX.Element => {
+export const drawScaledPointLoad = (a: number, scale: number, P: number, label?: string, heightScale = 1.0): React.JSX.Element => {
     const ms = 8 / scale;
     const loadH = ms * 5 * heightScale;
     const s = P >= 0 ? -1 : 1;
@@ -143,7 +143,7 @@ export const drawScaledPointLoad = (a: number, scale: number, P: number, label?:
  * Draw a moment load (arc + arrowhead) at world position a.
  * heightScale (default 1.0): relative magnitude for multi-load diagrams (BeamMulti).
  */
-export const drawScaledMomentLoad = (a: number, scale: number, val: number, label?: string, heightScale = 1.0): JSX.Element => {
+export const drawScaledMomentLoad = (a: number, scale: number, val: number, label?: string, heightScale = 1.0): React.JSX.Element => {
     const r = 16 / scale * heightScale;
     const clockwise = val >= 0;
     const N_pts = 20;
