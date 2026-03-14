@@ -306,7 +306,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
         };
     },
 
-    component: React.memo(BeamMultiComponentInner),
+    component: BeamMultiComponentInner,
     sidebar: { category: 'beam', order: 2 },
 });
 
