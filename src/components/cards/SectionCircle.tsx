@@ -11,6 +11,9 @@ interface SectionCircleOutputs {
     I: number;
     Z: number;
     Zp: number;
+    ix: number;
+    Mx: number;
+    Mp: number;
 }
 
 // --- Visualization ---
@@ -82,11 +85,15 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     defaultInputs: {
         D: { value: 200 },
         t: { value: 0 },
+        Fy: { value: 235 },
+        sigma_y: { value: 235 },
     },
 
     inputConfig: {
         D: { label: '外径 D', unitType: 'length' },
         t: { label: '板厚 t（中実=0）', unitType: 'length' },
+        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
     },
 
     outputConfig: {
@@ -94,9 +101,13 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         I:  { label: '断面二次モーメント I', unitType: 'inertia' },
         Z:  { label: '断面係数 Z（弾性）', unitType: 'modulus' },
         Zp: { label: '塑性断面係数 Zp', unitType: 'modulus' },
+        ix: { label: 'i', unitType: 'length' },
+        Mx: { label: 'M（弾性・Fy）', unitType: 'moment' },
+        Mp: { label: 'M_p（全塑性・σy）', unitType: 'moment' },
     },
 
-    calculate: ({ D, t }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calculate: ({ D, t, Fy, fy, sigma_y } : any) => {
         const d  = D || 0;
         const tk = t || 0;
         const Di = tk > 0 ? Math.max(d - 2 * tk, 0) : 0;
@@ -104,7 +115,11 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         const I  = (Math.PI / 64) * (Math.pow(d, 4) - Math.pow(Di, 4));
         const Z  = d > 0 ? I / (d / 2) : 0;
         const Zp = (Math.pow(d, 3) - Math.pow(Di, 3)) / 6;
-        return { A, I, Z, Zp };
+        const ix = A > 0 ? Math.sqrt(I / A) : 0;
+        const fyVal = Fy || fy || 0; // fy: backward compat with pre-rename saves
+        const Mx = Z * fyVal;
+        const Mp = Zp * (sigma_y || fyVal);
+        return { A, I, Z, Zp, ix, Mx, Mp };
     },
 
     visualization: SectionCircleVisualization,

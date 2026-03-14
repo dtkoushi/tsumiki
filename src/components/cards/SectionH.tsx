@@ -12,9 +12,16 @@ interface SectionHOutputs {
     Iy: number;
     Zx: number;
     Zpx: number;
+    Zy: number;
+    Zpy: number;
     lambda_f: number;
     lambda_w: number;
-    Mp: number;
+    ix: number;
+    iy: number;
+    Mpx: number;
+    Mx: number;
+    My: number;
+    Mpy: number;
     Qy: number;
 }
 
@@ -105,13 +112,15 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         tw: { value: 5.5 },
         tf: { value: 8 },
         Fy: { value: 235 },
+        sigma_y: { value: 235 },
     },
     inputConfig: {
         H: { label: '断面高さ H', unitType: 'length' },
         B: { label: 'フランジ幅 B', unitType: 'length' },
         tw: { label: 'ウェブ厚 tw', unitType: 'length' },
         tf: { label: 'フランジ厚 tf', unitType: 'length' },
-        Fy: { label: '降伏応力度 Fy', unitType: 'stress' },
+        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
     },
     outputConfig: {
         A: { label: '断面積 A', unitType: 'area' },
@@ -119,17 +128,25 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         Iy: { label: 'I_y', unitType: 'inertia' },
         Zx: { label: 'Z_x（弾性）', unitType: 'modulus' },
         Zpx: { label: 'Z_px（塑性）', unitType: 'modulus' },
+        Zy: { label: 'Z_y（弾性）', unitType: 'modulus' },
+        Zpy: { label: 'Z_py（塑性）', unitType: 'modulus' },
         lambda_f: { label: 'λ_f フランジ幅厚比', unitType: 'none' },
         lambda_w: { label: 'λ_w ウェブ幅厚比', unitType: 'none' },
-        Mp: { label: '全塑性モーメント Mp', unitType: 'moment' },
-        Qy: { label: '降伏せん断耐力 Qy', unitType: 'force' },
+        ix: { label: 'i_x', unitType: 'length' },
+        iy: { label: 'i_y', unitType: 'length' },
+        Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
+        Mx: { label: 'M_x（弾性・Fy）', unitType: 'moment' },
+        My: { label: 'M_y（弾性・Fy）', unitType: 'moment' },
+        Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
+        Qy: { label: '降伏せん断耐力 Qy（σy）', unitType: 'force' },
     },
-    calculate: ({ H, B, tw, tf, Fy }) => {
+    calculate: ({ H, B, tw, tf, Fy, sigma_y }) => {
         const h = H || 0;
         const b = B || 0;
         const tw_ = tw || 0;
         const tf_ = tf || 0;
         const fy = Fy || 0;
+        const sy = sigma_y || 0;
 
         const hw = h - 2 * tf_; // ウェブ内法高さ
 
@@ -137,13 +154,20 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         const Ix = (b * Math.pow(h, 3)) / 12 - ((b - tw_) * Math.pow(hw, 3)) / 12;
         const Iy = (2 * tf_ * Math.pow(b, 3)) / 12 + (hw * Math.pow(tw_, 3)) / 12;
         const Zx = h > 0 ? Ix / (h / 2) : 0;
+        const Zy = b > 0 ? Iy / (b / 2) : 0;
         const Zpx = tf_ * b * hw + (tw_ * Math.pow(hw, 2)) / 4;
+        const Zpy = (tf_ * Math.pow(b, 2)) / 2 + (hw * Math.pow(tw_, 2)) / 4;
         const lambda_f = tf_ > 0 ? (b / 2) / tf_ : 0;
         const lambda_w = tw_ > 0 ? hw / tw_ : 0;
-        const Mp = fy * Zpx;
-        const Qy = (fy / Math.sqrt(3)) * hw * tw_;
+        const ix = A > 0 ? Math.sqrt(Ix / A) : 0;
+        const iy = A > 0 ? Math.sqrt(Iy / A) : 0;
+        const Mpx = sy * Zpx;
+        const Mx = Zx * fy;
+        const My = Zy * fy;
+        const Mpy = Zpy * sy;
+        const Qy = (sy / Math.sqrt(3)) * hw * tw_;
 
-        return { A, Ix, Iy, Zx, Zpx, lambda_f, lambda_w, Mp, Qy };
+        return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mpx, Mx, My, Mpy, Qy };
     },
     visualization: SectionHVisualization,
 });

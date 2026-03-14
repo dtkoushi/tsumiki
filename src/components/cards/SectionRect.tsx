@@ -13,6 +13,13 @@ interface SectionRectOutputs {
     Zx: number;
     Zy: number;
     Zpx: number;
+    Zpy: number;
+    ix: number;
+    iy: number;
+    Mx: number;
+    My: number;
+    Mpx: number;
+    Mpy: number;
 }
 
 // --- Visualization ---
@@ -100,11 +107,15 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         B: { value: 300 },
         H: { value: 600 },
         t: { value: 0 },
+        Fy: { value: 235 },
+        sigma_y: { value: 235 },
     },
     inputConfig: {
         B: { label: '幅 B', unitType: 'length' },
         H: { label: '高さ H', unitType: 'length' },
         t: { label: '板厚 t（中実=0）', unitType: 'length' },
+        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
     },
     outputConfig: {
         A: { label: '断面積 A', unitType: 'area' },
@@ -113,8 +124,16 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         Zx: { label: 'Z_x（弾性）', unitType: 'modulus' },
         Zy: { label: 'Z_y（弾性）', unitType: 'modulus' },
         Zpx: { label: 'Z_px（塑性）', unitType: 'modulus' },
+        Zpy: { label: 'Z_py（塑性）', unitType: 'modulus' },
+        ix: { label: 'i_x', unitType: 'length' },
+        iy: { label: 'i_y', unitType: 'length' },
+        Mx: { label: 'M_x（弾性・Fy）', unitType: 'moment' },
+        My: { label: 'M_y（弾性・Fy）', unitType: 'moment' },
+        Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
+        Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
     },
-    calculate: ({ B, H, t }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calculate: ({ B, H, t, Fy, fy, sigma_y } : any) => {
         const b  = B || 0;
         const h  = H || 0;
         const tk = t || 0;
@@ -126,7 +145,15 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         const Zx  = h > 0 ? Ix / (h / 2) : 0;
         const Zy  = b > 0 ? Iy / (b / 2) : 0;
         const Zpx = (b * Math.pow(h, 2) - bi * Math.pow(hi, 2)) / 4;
-        return { A, Ix, Iy, Zx, Zy, Zpx };
+        const Zpy = (h * Math.pow(b, 2) - hi * Math.pow(bi, 2)) / 4;
+        const ix  = A > 0 ? Math.sqrt(Ix / A) : 0;
+        const iy  = A > 0 ? Math.sqrt(Iy / A) : 0;
+        const fyVal = Fy || fy || 0; // fy: backward compat with pre-rename saves
+        const Mx  = Zx * fyVal;
+        const My  = Zy * fyVal;
+        const Mpx = Zpx * (sigma_y || fyVal);
+        const Mpy = Zpy * (sigma_y || fyVal);
+        return { A, Ix, Iy, Zx, Zy, Zpx, Zpy, ix, iy, Mx, My, Mpx, Mpy };
     },
     visualization: SectionRectVisualization,
 });
