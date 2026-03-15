@@ -34,9 +34,9 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
     },
 
     outputConfig: {
-        sigma_b: { label: ja['card.stress.outputs.sigma_b'], unitType: 'stress' },
-        tau:     { label: ja['card.stress.outputs.tau'],     unitType: 'stress' },
-        sigma_eq:{ label: ja['card.stress.outputs.sigma_eq'],unitType: 'stress' },
+        sigma_b:  { label: ja['card.stress.outputs.sigma_b'],  unitType: 'stress', formula: 'M / Z' },
+        tau:      { label: ja['card.stress.outputs.tau'],       unitType: 'stress', formula: '1.5 × |V| / A' },
+        sigma_eq: { label: ja['card.stress.outputs.sigma_eq'], unitType: 'stress', formula: '√(σ_b² + 3τ²)' },
     },
 
     sidebar: { category: 'cross_section', order: 2 },

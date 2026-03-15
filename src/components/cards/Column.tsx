@@ -80,11 +80,11 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     },
 
     outputConfig: {
-        Le:         { label: ja['card.column.outputs.Le'],          unitType: 'length' },
-        i_gyration: { label: ja['card.column.outputs.i_gyration'],  unitType: 'length' },
-        lambda:     { label: ja['card.column.outputs.lambda'],      unitType: 'none' },
-        N_cr:       { label: ja['card.column.outputs.N_cr'],        unitType: 'force' },
-        sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],    unitType: 'stress' },
+        Le:         { label: ja['card.column.outputs.Le'],         unitType: 'length', formula: 'k × L' },
+        i_gyration: { label: ja['card.column.outputs.i_gyration'], unitType: 'length', formula: '√(I/A)' },
+        lambda:     { label: ja['card.column.outputs.lambda'],     unitType: 'none',   formula: 'Le / i' },
+        N_cr:       { label: ja['card.column.outputs.N_cr'],       unitType: 'force',  formula: 'π²EI / Le²' },
+        sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],   unitType: 'stress', formula: 'N_cr / A' },
     },
 
     reportNarrative: (ins, outs) => {

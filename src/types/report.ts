@@ -35,5 +35,6 @@ export interface ReportFieldRow {
     unitType: string;
     value: number;
     displayValue: string;
+    formula?: string;
     refInfo?: string;
 }

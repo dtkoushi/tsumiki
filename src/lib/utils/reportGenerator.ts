@@ -127,6 +127,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             unitType,
             value,
             displayValue: formatDisplayValue(value, unitType as OutputUnitType, unitMode),
+            ...(cfg.formula ? { formula: cfg.formula } : {}),
         };
     });
 
@@ -176,31 +177,22 @@ export function renderReportHtml(data: ReportData): string {
   .report-header { border-bottom: 2px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px; }
   .report-header h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
   .report-header .meta { margin-top: 6px; color: #64748b; font-size: 11px; display: flex; gap: 16px; flex-wrap: wrap; }
-  .report-header .meta .memo { color: #475569; font-size: 11px; margin-top: 4px; white-space: pre-wrap; }
+  .report-header .memo { color: #475569; font-size: 11px; margin-top: 4px; white-space: pre-wrap; }
   .card-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 16px; overflow: hidden; }
   .card-header { background: #f1f5f9; padding: 8px 14px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: baseline; gap: 8px; }
   .card-header .alias { font-weight: 700; font-size: 13px; color: #0f172a; }
   .card-header .type-badge { font-size: 10px; color: #94a3b8; background: #e2e8f0; padding: 1px 6px; border-radius: 9999px; }
   .card-memo { padding: 6px 14px; font-size: 11px; color: #64748b; border-bottom: 1px solid #f1f5f9; background: #fffbeb; white-space: pre-wrap; }
   .card-error { padding: 8px 14px; font-size: 11px; color: #b91c1c; background: #fef2f2; border-bottom: 1px solid #fecaca; }
-  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; padding: 6px 14px 2px; }
-  table { width: 100%; border-collapse: collapse; }
-  td, th { padding: 4px 14px; font-size: 11px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-  thead th { background: #f8fafc; font-weight: 600; color: #475569; text-align: left; }
-  tr:last-child td { border-bottom: none; }
-  .label-col { color: #475569; width: 35%; }
-  .value-col { font-family: 'Courier New', monospace; font-weight: 600; color: #0f172a; text-align: right; width: 25%; }
-  .ref-col { color: #94a3b8; font-size: 10px; }
-  .formulas-block { padding: 6px 14px 8px; }
-  .formula-item { font-family: 'Courier New', monospace; font-size: 11px; color: #1e40af; background: #eff6ff; padding: 2px 8px; border-radius: 3px; margin-bottom: 3px; display: inline-block; margin-right: 6px; }
-  .narrative-block { padding: 8px 14px 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; }
-  .narrative-line { font-family: 'Courier New', monospace; font-size: 12.5px; color: #1e293b; line-height: 1.8; white-space: pre-wrap; }
-  .inputs-small td, .inputs-small th { padding: 3px 14px; font-size: 10px; }
-  .inputs-small .label-col { color: #94a3b8; }
-  .inputs-small .value-col { color: #64748b; font-size: 10px; }
-  .inputs-small .ref-col { font-size: 9px; color: #cbd5e1; }
-  tr.ratio-ok td { color: #059669; }
-  tr.ratio-ng td { color: #dc2626; font-weight: 700; }
+  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; padding: 8px 14px 4px; }
+  .vars-section { padding: 4px 14px 12px; }
+  .var-block { margin-bottom: 12px; }
+  .var-block:last-child { margin-bottom: 0; }
+  .var-block h3 { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; }
+  .var-block p { font-family: 'Courier New', monospace; font-size: 13px; color: #0f172a; white-space: pre-wrap; }
+  .var-ref { font-size: 10px; color: #94a3b8; margin-left: 8px; }
+  .var-block.ratio-ok p { color: #059669; }
+  .var-block.ratio-ng p { color: #dc2626; font-weight: 700; }
   .note-content { padding: 10px 14px; font-size: 12px; white-space: pre-wrap; color: #334155; line-height: 1.6; }
   .report-footer { margin-top: 32px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: right; font-size: 10px; color: #94a3b8; }
   @media print {
@@ -249,90 +241,68 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
 </div>`;
     }
 
+    // 使用値 section (inputs as var-blocks)
+    const inputsHtml = card.inputs.length > 0 ? `
+  <div class="section-label">使用値</div>
+  <div class="vars-section">
+    ${card.inputs.map(row => {
+        const refSpan = row.refInfo ? ` <span class="var-ref">${escHtml(row.refInfo)}</span>` : '';
+        return `<div class="var-block">
+      <h3>${escHtml(row.label)}</h3>
+      <p>${escHtml(row.key)} = ${escHtml(row.displayValue)}${refSpan}</p>
+    </div>`;
+    }).join('')}
+  </div>` : '';
+
     const hasNarrative = card.narrative.length > 0;
 
     if (hasNarrative) {
-        // New layout: 使用値（小さく灰色）→ 計算（主役）→ 結果
-        const usedValuesHtml = card.inputs.length > 0 ? `
-  <div class="section-label">使用値</div>
-  <table class="inputs-small">
-    <tbody>
-      ${card.inputs.map(row => `<tr>
-        <td class="label-col">${escHtml(row.label)}</td>
-        <td class="value-col">${escHtml(row.displayValue)}</td>
-        <td class="ref-col">${row.refInfo ? escHtml(row.refInfo) : ''}</td>
-      </tr>`).join('')}
-    </tbody>
-  </table>` : '';
-
-        const narrativeHtml = `
+        // 計算 section: each narrative line as a var-block
+        const calcHtml = `
   <div class="section-label">計算</div>
-  <div class="narrative-block">
-    ${card.narrative.map(line => `<div class="narrative-line">${escHtml(line)}</div>`).join('')}
+  <div class="vars-section">
+    ${card.narrative.map(line => {
+        const eqIdx = line.indexOf(' = ');
+        const startsWithSpace = /^\s/.test(line);
+        if (!startsWithSpace && eqIdx > 0) {
+            const symbol = escHtml(line.substring(0, eqIdx).trim());
+            return `<div class="var-block">
+      <h3>${symbol}</h3>
+      <p>${escHtml(line)}</p>
+    </div>`;
+        }
+        return `<div class="var-block">
+      <p>${escHtml(line)}</p>
+    </div>`;
+    }).join('')}
   </div>`;
 
-        const outputsHtml = card.outputs.length > 0 ? `
-  <div class="section-label">結果</div>
-  <table>
-    <tbody>
-      ${card.outputs.map(row => {
-            const isRatio = row.unitType === 'ratio';
-            const rowClass = isRatio
-                ? (row.value <= 1.0 ? ' class="ratio-ok"' : ' class="ratio-ng"')
-                : '';
-            return `<tr${rowClass}>
-        <td class="label-col">${escHtml(row.label)}</td>
-        <td class="value-col">${escHtml(row.displayValue)}</td>
-        <td class="ref-col"></td>
-      </tr>`;
-        }).join('')}
-    </tbody>
-  </table>` : '';
-
         return `<div class="card-section">
-  ${header}${memoHtml}${errorHtml}${usedValuesHtml}${narrativeHtml}${outputsHtml}
+  ${header}${memoHtml}${errorHtml}${inputsHtml}${calcHtml}
 </div>`;
     }
 
-    // Fallback layout (no narrative): 入力テーブル + formula badges + 結果テーブル
-    const inputsHtml = card.inputs.length > 0 ? `
-  <div class="section-label">入力</div>
-  <table>
-    <tbody>
-      ${card.inputs.map(row => `<tr>
-        <td class="label-col">${escHtml(row.label)}</td>
-        <td class="value-col">${escHtml(row.displayValue)}</td>
-        <td class="ref-col">${row.refInfo ? escHtml(row.refInfo) : ''}</td>
-      </tr>`).join('')}
-    </tbody>
-  </table>` : '';
-
-    const formulasHtml = card.formulas.length > 0 ? `
-  <div class="section-label">計算式</div>
-  <div class="formulas-block">
-    ${card.formulas.map(f => `<span class="formula-item">${escHtml(f)}</span>`).join('')}
+    // No-narrative: outputs as var-blocks with formula (key = formula = value)
+    const outputsHtml = card.outputs.length > 0 ? `
+  <div class="section-label">計算 / 結果</div>
+  <div class="vars-section">
+    ${card.outputs.map(row => {
+        const isRatio = row.unitType === 'ratio';
+        const ratioClass = isRatio
+            ? (row.value <= 1.0 ? ' ratio-ok' : ' ratio-ng')
+            : '';
+        const content = row.formula
+            ? `${escHtml(row.key)} = ${escHtml(row.formula)} = ${escHtml(row.displayValue)}`
+            : `${escHtml(row.key)} = ${escHtml(row.displayValue)}`;
+        return `<div class="var-block${ratioClass}">
+      <h3>${escHtml(row.label)}</h3>
+      <p>${content}</p>
+    </div>`;
+    }).join('')}
   </div>` : '';
 
-    const outputsHtml = card.outputs.length > 0 ? `
-  <div class="section-label">結果</div>
-  <table>
-    <tbody>
-      ${card.outputs.map(row => {
-            const isRatio = row.unitType === 'ratio';
-            const rowClass = isRatio
-                ? (row.value <= 1.0 ? ' class="ratio-ok"' : ' class="ratio-ng"')
-                : '';
-            return `<tr${rowClass}>
-        <td class="label-col">${escHtml(row.label)}</td>
-        <td class="value-col">${escHtml(row.displayValue)}</td>
-        <td class="ref-col"></td>
-      </tr>`;
-        }).join('')}
-    </tbody>
-  </table>` : '';
-
     return `<div class="card-section">
-  ${header}${memoHtml}${errorHtml}${inputsHtml}${formulasHtml}${outputsHtml}
+  ${header}${memoHtml}${errorHtml}${inputsHtml}${outputsHtml}
 </div>`;
 }
 

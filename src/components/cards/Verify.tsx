@@ -74,9 +74,9 @@ export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
         allowable: { label: ja['card.verify.inputs.allowable'], unitType: 'none' },
     },
     outputConfig: {
-        ratio: { label: ja['card.verify.outputs.ratio'], unitType: 'ratio' },
-        margin: { label: ja['card.verify.outputs.margin'], unitType: 'ratio' },
-        isOk: { label: ja['card.verify.outputs.status'], unitType: 'none' },
+        ratio:  { label: ja['card.verify.outputs.ratio'],  unitType: 'ratio', formula: '|value| / allowable' },
+        margin: { label: ja['card.verify.outputs.margin'], unitType: 'ratio', formula: '1 − ratio' },
+        isOk:   { label: ja['card.verify.outputs.status'], unitType: 'none' },
     },
     visualization: VerifyUI,
     sidebar: { category: 'verify', order: 1 },

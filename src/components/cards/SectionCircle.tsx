@@ -96,13 +96,13 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     },
 
     outputConfig: {
-        A:  { label: '断面積 A',       unitType: 'area' },
-        I:  { label: '断面二次モーメント I', unitType: 'inertia' },
-        Z:  { label: '断面係数 Z（弾性）', unitType: 'modulus' },
-        Zp: { label: '塑性断面係数 Zp', unitType: 'modulus' },
-        ix: { label: 'i', unitType: 'length' },
-        Mx: { label: 'M（弾性・Fy）', unitType: 'moment' },
-        Mp: { label: 'M_p（全塑性・σy）', unitType: 'moment' },
+        A:  { label: '断面積 A',           unitType: 'area',    formula: 'π/4 × D²' },
+        I:  { label: '断面二次モーメント I', unitType: 'inertia', formula: 'π/64 × D⁴' },
+        Z:  { label: '断面係数 Z（弾性）',  unitType: 'modulus', formula: 'I / (D/2)' },
+        Zp: { label: '塑性断面係数 Zp',    unitType: 'modulus' },
+        ix: { label: 'i',                  unitType: 'length',  formula: '√(I / A)' },
+        Mx: { label: 'M（弾性・Fy）',      unitType: 'moment',  formula: 'Z × Fy' },
+        Mp: { label: 'M_p（全塑性・σy）',  unitType: 'moment',  formula: 'Zp × σy' },
     },
 
     reportNarrative: (ins, outs) => {

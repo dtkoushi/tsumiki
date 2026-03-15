@@ -154,10 +154,12 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
 
     // Output Config: Enforce keys match TOutputs
     // hidden: true means the output is available for references but not shown in the Results panel
+    // formula: symbolic expression string shown in the calculation report (e.g. 'B × H', 'π/4 × D²')
     outputConfig: Record<keyof TOutputs, {
         label: string;
         unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
         hidden?: boolean;
+        formula?: string;
     }>;
 
     // Optional: Determine if an input should be rendered based on card state
