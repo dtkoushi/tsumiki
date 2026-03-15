@@ -105,6 +105,33 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         Mp: { label: 'M_p（全塑性・σy）', unitType: 'moment' },
     },
 
+    reportNarrative: (ins, outs) => {
+        const D_  = ins.find(r => r.key === 'D')?.displayValue  ?? '–';
+        const t_  = ins.find(r => r.key === 't')?.displayValue  ?? '–';
+        const Fy_ = ins.find(r => r.key === 'Fy')?.displayValue ?? '–';
+        const A_  = outs.find(r => r.key === 'A')?.displayValue ?? '–';
+        const I_  = outs.find(r => r.key === 'I')?.displayValue ?? '–';
+        const Z_  = outs.find(r => r.key === 'Z')?.displayValue ?? '–';
+        const Mx_ = outs.find(r => r.key === 'Mx')?.displayValue ?? '–';
+        const tVal = ins.find(r => r.key === 't')?.value ?? 0;
+
+        if (tVal > 0) {
+            return [
+                `D_i = D − 2t = ${D_} − 2×${t_}`,
+                `A = π/4 × (D² − D_i²) = ${A_}`,
+                `I = π/64 × (D⁴ − D_i⁴) = ${I_}`,
+                `Z = I / (D/2) = ${Z_}`,
+                `M = Z × Fy = ${Z_} × ${Fy_} = ${Mx_}`,
+            ];
+        }
+        return [
+            `A = π/4 × D² = π/4 × ${D_}² = ${A_}`,
+            `I = π/64 × D⁴ = ${I_}`,
+            `Z = I / (D/2) = ${Z_}`,
+            `M = Z × Fy = ${Z_} × ${Fy_} = ${Mx_}`,
+        ];
+    },
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calculate: ({ D, t, Fy, fy, sigma_y } : any) => {
         const d  = D || 0;

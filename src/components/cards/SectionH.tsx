@@ -139,6 +139,30 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
         Qy: { label: '降伏せん断耐力 Qy（σy）', unitType: 'force' },
     },
+    reportNarrative: (ins, outs) => {
+        const H_  = ins.find(r => r.key === 'H')?.displayValue   ?? '–';
+        const B_  = ins.find(r => r.key === 'B')?.displayValue   ?? '–';
+        const tw_ = ins.find(r => r.key === 'tw')?.displayValue  ?? '–';
+        const tf_ = ins.find(r => r.key === 'tf')?.displayValue  ?? '–';
+        const sy_ = ins.find(r => r.key === 'sigma_y')?.displayValue ?? '–';
+        const A_  = outs.find(r => r.key === 'A')?.displayValue   ?? '–';
+        const Ix_ = outs.find(r => r.key === 'Ix')?.displayValue  ?? '–';
+        const Zx_  = outs.find(r => r.key === 'Zx')?.displayValue   ?? '–';
+        const Zpx_ = outs.find(r => r.key === 'Zpx')?.displayValue  ?? '–';
+        const lf_  = outs.find(r => r.key === 'lambda_f')?.displayValue ?? '–';
+        const lw_  = outs.find(r => r.key === 'lambda_w')?.displayValue ?? '–';
+        const Mpx_ = outs.find(r => r.key === 'Mpx')?.displayValue  ?? '–';
+        return [
+            `hw = H − 2×tf = ${H_} − 2×${tf_}`,
+            `A = 2×B×tf + hw×tw = ${A_}`,
+            `I_x = B×H³/12 − (B−tw)×hw³/12 = ${Ix_}`,
+            `Z_x = I_x / (H/2) = ${Zx_}`,
+            `λ_f = (B/2) / tf = ${lf_}（フランジ幅厚比）`,
+            `λ_w = hw / tw = ${lw_}（ウェブ幅厚比）`,
+            `M_px = σy × Z_px = ${sy_} × ${Zpx_} = ${Mpx_}`,
+        ];
+    },
+
     calculate: ({ H, B, tw, tf, Fy, sigma_y }) => {
         const h = H || 0;
         const b = B || 0;

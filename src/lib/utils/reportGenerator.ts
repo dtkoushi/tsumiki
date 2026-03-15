@@ -133,7 +133,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
     const allInputRows = [...inputRows, ...dynamicInputRows];
     const allOutputRows = [...outputRows, ...dynamicOutputRows];
     const narrative = def.reportNarrative
-        ? def.reportNarrative(allInputRows, allOutputRows)
+        ? def.reportNarrative(allInputRows, allOutputRows, card.inputs)
         : [];
 
     return {

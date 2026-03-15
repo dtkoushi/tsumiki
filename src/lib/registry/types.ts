@@ -201,6 +201,7 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
     reportNarrative?: (
         inputRows: import('../../types/report').ReportFieldRow[],
         outputRows: import('../../types/report').ReportFieldRow[],
+        rawInputs?: Record<string, { value: any }>,
     ) => string[];
 
     /**

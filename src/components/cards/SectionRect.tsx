@@ -131,6 +131,34 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
         Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
     },
+    reportNarrative: (ins, outs) => {
+        const B_  = ins.find(r => r.key === 'B')?.displayValue  ?? '–';
+        const H_  = ins.find(r => r.key === 'H')?.displayValue  ?? '–';
+        const t_  = ins.find(r => r.key === 't')?.displayValue  ?? '–';
+        const Fy_ = ins.find(r => r.key === 'Fy')?.displayValue ?? '–';
+        const A_  = outs.find(r => r.key === 'A')?.displayValue  ?? '–';
+        const Ix_ = outs.find(r => r.key === 'Ix')?.displayValue ?? '–';
+        const Zx_ = outs.find(r => r.key === 'Zx')?.displayValue ?? '–';
+        const Mx_ = outs.find(r => r.key === 'Mx')?.displayValue ?? '–';
+        const tVal = ins.find(r => r.key === 't')?.value ?? 0;
+
+        if (tVal > 0) {
+            return [
+                `A = B×H − (B−2t)×(H−2t)  (t = ${t_})`,
+                `  = ${A_}`,
+                `I_x = (B×H³ − (B−2t)×(H−2t)³) / 12 = ${Ix_}`,
+                `Z_x = I_x / (H/2) = ${Zx_}`,
+                `M_x = Z_x × Fy = ${Zx_} × ${Fy_} = ${Mx_}`,
+            ];
+        }
+        return [
+            `A = B × H = ${B_} × ${H_} = ${A_}`,
+            `I_x = B × H³ / 12 = ${Ix_}`,
+            `Z_x = I_x / (H/2) = ${Zx_}`,
+            `M_x = Z_x × Fy = ${Zx_} × ${Fy_} = ${Mx_}`,
+        ];
+    },
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calculate: ({ B, H, t, Fy, fy, sigma_y } : any) => {
         const b  = B || 0;
