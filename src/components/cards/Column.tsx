@@ -86,6 +86,22 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
         N_cr:       { label: ja['card.column.outputs.N_cr'],        unitType: 'force' },
         sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],    unitType: 'stress' },
     },
+
+    reportNarrative: (ins, outs) => {
+        const L       = ins.find(r => r.key === 'L')?.displayValue          ?? '–';
+        const Le      = outs.find(r => r.key === 'Le')?.displayValue        ?? '–';
+        const i_gyra  = outs.find(r => r.key === 'i_gyration')?.displayValue ?? '–';
+        const lambda  = outs.find(r => r.key === 'lambda')?.displayValue    ?? '–';
+        const Ncr     = outs.find(r => r.key === 'N_cr')?.displayValue      ?? '–';
+        const sig_cr  = outs.find(r => r.key === 'sigma_cr')?.displayValue  ?? '–';
+        return [
+            `Le = k × L  (L = ${L}) → Le = ${Le}`,
+            `i = √(I / A) = ${i_gyra}`,
+            `λ = Le / i = ${lambda}`,
+            `N_cr = π²EI / Le² = ${Ncr}`,
+            `σ_cr = N_cr / A = ${sig_cr}`,
+        ];
+    },
 });
 
 import { registry } from '../../lib/registry/registry';

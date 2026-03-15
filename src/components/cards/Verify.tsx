@@ -80,6 +80,17 @@ export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
     },
     visualization: VerifyUI,
     sidebar: { category: 'verify', order: 1 },
+
+    reportNarrative: (ins, outs) => {
+        const val   = ins.find(r => r.key === 'value')?.displayValue     ?? '–';
+        const allow = ins.find(r => r.key === 'allowable')?.displayValue ?? '–';
+        const ratio = outs.find(r => r.key === 'ratio')?.displayValue    ?? '–';
+        const isOk  = (outs.find(r => r.key === 'isOk')?.value ?? 0) === 1;
+        return [
+            `検定比 = |値| / 許容値 = ${val} / ${allow} = ${ratio}`,
+            `判定: ${isOk ? 'OK (ratio ≤ 1.0)' : 'NG (ratio > 1.0)'}`,
+        ];
+    },
 });
 
 import { registry } from '../../lib/registry/registry';
