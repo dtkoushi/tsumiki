@@ -344,7 +344,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
                 <div className="p-4 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center">
                     <span className="flex items-center gap-1.5">
-                        v0.6.5
+                        v{__APP_VERSION__}
                         <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-600 rounded-full border border-amber-200">
                             alpha
                         </span>
