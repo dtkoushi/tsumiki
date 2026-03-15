@@ -125,17 +125,26 @@ function calcHSection(inputs: Record<string, number>, rawInputs?: Record<string,
 
     const hw = h - 2 * tf_;
 
-    const A        = 2 * b * tf_ + hw * tw_;
-    const Ix       = (b * Math.pow(h, 3)) / 12 - ((b - tw_) * Math.pow(hw, 3)) / 12;
-    const Iy       = (2 * tf_ * Math.pow(b, 3)) / 12 + (hw * Math.pow(tw_, 3)) / 12;
-    const Zx       = h > 0 ? Ix / (h / 2) : 0;
-    const Zy       = b > 0 ? Iy / (b / 2) : 0;
-    const Zpx      = tf_ * b * hw + (tw_ * Math.pow(hw, 2)) / 4;
-    const Zpy      = (tf_ * Math.pow(b, 2)) / 2 + (hw * Math.pow(tw_, 2)) / 4;
-    const lambda_f = tf_ > 0 ? (b / 2) / tf_ : 0;
-    const lambda_w = tw_ > 0 ? hw / tw_ : 0;
-    const ix       = A > 0 ? Math.sqrt(Ix / A) : 0;
-    const iy       = A > 0 ? Math.sqrt(Iy / A) : 0;
+    // 規格値があればそれを使い、なければ幾何式でフォールバック
+    const A_calc        = 2 * b * tf_ + hw * tw_;
+    const Ix_calc       = (b * Math.pow(h, 3)) / 12 - ((b - tw_) * Math.pow(hw, 3)) / 12;
+    const Iy_calc       = (2 * tf_ * Math.pow(b, 3)) / 12 + (hw * Math.pow(tw_, 3)) / 12;
+    const Zpx_calc      = tf_ * b * hw + (tw_ * Math.pow(hw, 2)) / 4;
+    const Zpy_calc      = (tf_ * Math.pow(b, 2)) / 2 + (hw * Math.pow(tw_, 2)) / 4;
+
+    const A        = sec.A        ?? A_calc;
+    const Ix       = sec.Ix       ?? Ix_calc;
+    const Iy       = sec.Iy       ?? Iy_calc;
+    const Zpx      = sec.Zpx      ?? Zpx_calc;
+    const Zpy      = sec.Zpy      ?? Zpy_calc;
+    const Zx       = sec.Zx       ?? (h > 0 ? Ix / (h / 2) : 0);
+    const Zy       = sec.Zy       ?? (b > 0 ? Iy / (b / 2) : 0);
+    const lambda_f = sec.lambda_f ?? (tf_ > 0 ? (b / 2) / tf_ : 0);
+    const lambda_w = sec.lambda_w ?? (tw_ > 0 ? hw / tw_ : 0);
+    const ix       = sec.ix       ?? (A > 0 ? Math.sqrt(Ix / A) : 0);
+    const iy       = sec.iy       ?? (A > 0 ? Math.sqrt(Iy / A) : 0);
+
+    // 応力依存値は常に計算（Fy/σy は規格値に含まれない）
     const Mpx      = sy * Zpx;
     const Mx       = Zx * fy;
     const My       = Zy * fy;

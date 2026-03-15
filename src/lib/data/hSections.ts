@@ -8,6 +8,19 @@ export interface HSection {
     tw: number;
     tf: number;
     category: HFlangeCategory;
+
+    // JIS G 3192 規格テーブル値（optional: 未設定時は幾何式でフォールバック）
+    A?:        number;   // 断面積 [mm²]
+    Ix?:       number;   // 強軸断面二次モーメント [mm⁴]
+    Iy?:       number;   // 弱軸断面二次モーメント [mm⁴]
+    Zx?:       number;   // 強軸弾性断面係数 [mm³]
+    Zpx?:      number;   // 強軸塑性断面係数 [mm³]
+    Zy?:       number;   // 弱軸弾性断面係数 [mm³]
+    Zpy?:      number;   // 弱軸塑性断面係数 [mm³]
+    ix?:       number;   // 強軸断面二次半径 [mm]
+    iy?:       number;   // 弱軸断面二次半径 [mm]
+    lambda_f?: number;   // フランジ幅厚比
+    lambda_w?: number;   // ウェブ幅厚比
 }
 
 export const H_SECTIONS: HSection[] = [
