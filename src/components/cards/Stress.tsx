@@ -41,12 +41,6 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
 
     sidebar: { category: 'cross_section', order: 2 },
 
-    reportFormulas: [
-        'σ_b = M / Z',
-        'τ = 1.5 × |V| / A',
-        'σ_eq = √(σ_b² + 3τ²)',
-    ],
-
     reportNarrative: (ins, outs) => {
         const M   = ins.find(r => r.key === 'M')?.displayValue  ?? '–';
         const V   = ins.find(r => r.key === 'V')?.displayValue  ?? '–';

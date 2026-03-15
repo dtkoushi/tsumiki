@@ -20,8 +20,7 @@ export interface ReportCardData {
     error?: string;
 
     inputs: ReportFieldRow[];
-    formulas: string[];
-    narrative: string[];   // 値込み導出行（空なら formulas にフォールバック）
+    narrative: string[];
     outputs: ReportFieldRow[];
 
     /** NOTE カードのみ: Markdown 生テキスト */

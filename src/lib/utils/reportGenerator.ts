@@ -39,7 +39,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             memo: card.memo,
             error: card.error,
             inputs: [],
-            formulas: [],
             narrative: [],
             outputs: [],
             noteContent: String(card.inputs['content']?.value ?? ''),
@@ -56,7 +55,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             memo: card.memo,
             error: card.error,
             inputs: [],
-            formulas: [],
             narrative: [],
             outputs: [],
         };
@@ -145,7 +143,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         memo: card.memo,
         error: card.error,
         inputs: allInputRows,
-        formulas: def.reportFormulas ?? [],
         narrative,
         outputs: allOutputRows,
     };

@@ -188,16 +188,10 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
     visualization?: React.FC<CardComponentProps>;
 
     /**
-     * Symbolic formula strings shown in the calculation report.
-     * Example: ['σ_b = M / Z', 'τ = 1.5 × |V| / A', 'σ_eq = √(σ_b² + 3τ²)']
-     */
-    reportFormulas?: string[];
-
-    /**
      * Value-substituted derivation lines for the calculation report.
      * Receives formatted input/output rows (displayValue already includes units).
      * Returns plain-text lines shown in the "計算" section.
-     * When present, takes priority over reportFormulas in the report layout.
+     * When present, each line is rendered as a derivation row in the report.
      * Example: (ins, outs) => [`σ_b = M / Z = ${M} / ${Z} = ${sb}`]
      */
     reportNarrative?: (

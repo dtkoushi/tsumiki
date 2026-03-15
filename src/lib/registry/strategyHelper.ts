@@ -254,7 +254,6 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     /** Variable-length multi-field row groups (select + SmartInput mix) rendered by GenericCard. */
     dynamicRowGroups?: CardDefinition<TOutputs>['dynamicRowGroups'];
     sidebar?: CardDefinition<TOutputs>['sidebar'];
-    reportFormulas?: CardDefinition<TOutputs>['reportFormulas'];
     reportNarrative?: CardDefinition<TOutputs>['reportNarrative'];
 }
 
@@ -273,7 +272,6 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         dynamicInputGroups,
         dynamicRowGroups,
         sidebar,
-        reportFormulas,
         reportNarrative,
     } = options;
 
@@ -291,7 +289,6 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         dynamicInputGroups,
         dynamicRowGroups,
         sidebar,
-        reportFormulas,
         reportNarrative,
     };
 
