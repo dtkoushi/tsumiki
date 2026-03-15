@@ -24,6 +24,10 @@ interface SectionHSelectOutputs {
     My: number;
     Mpy: number;
     Qy: number;
+    H: number;
+    B: number;
+    tw: number;
+    tf: number;
 }
 
 // --- Visualization ---
@@ -138,7 +142,7 @@ function calcHSection(inputs: Record<string, number>, rawInputs?: Record<string,
     const Mpy      = Zpy * sy;
     const Qy       = (sy / Math.sqrt(3)) * hw * tw_;
 
-    return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mpx, Mx, My, Mpy, Qy };
+    return { A, Ix, Iy, Zx, Zpx, Zy, Zpy, lambda_f, lambda_w, ix, iy, Mpx, Mx, My, Mpy, Qy, H: sec.H, B: sec.B, tw: sec.tw, tf: sec.tf };
 }
 
 // --- Definition ---
@@ -214,6 +218,10 @@ export const SectionHSelectDef: CardDefinition<SectionHSelectOutputs> = {
         My:       { label: 'M_y（弾性・Fy）',       unitType: 'moment' },
         Mpy:      { label: 'M_py（全塑性・σy）',    unitType: 'moment' },
         Qy:       { label: '降伏せん断耐力 Qy（σy）', unitType: 'force' },
+        H:        { label: '断面高さ H',              unitType: 'length', hidden: true },
+        B:        { label: 'フランジ幅 B',            unitType: 'length', hidden: true },
+        tw:       { label: 'ウェブ厚 tw',             unitType: 'length', hidden: true },
+        tf:       { label: 'フランジ厚 tf',           unitType: 'length', hidden: true },
     },
 
     visualization: SectionHSelectVisualization,
