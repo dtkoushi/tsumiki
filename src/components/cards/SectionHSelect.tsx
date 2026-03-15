@@ -107,7 +107,10 @@ const SectionHSelectVisualization = createVisualizationComponent({
 
 function calcHSection(inputs: Record<string, number>, rawInputs?: Record<string, any>): SectionHSelectOutputs {
     const sectionName = rawInputs?.['section']?.value ?? '';
-    const sec = findHSection(sectionName) ?? H_SECTIONS[0];
+    const sec = findHSection(sectionName);
+    if (!sec) {
+        throw new Error(`断面 "${sectionName}" が見つかりません。フランジ幅カテゴリを変更した場合は断面形状を再選択してください。`);
+    }
 
     const h   = sec.H;
     const b   = sec.B;
