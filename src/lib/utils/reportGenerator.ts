@@ -73,6 +73,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             unitType,
             value,
             displayValue: formatDisplayValue(value, unitType as OutputUnitType, unitMode),
+            ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
             ...(refInfo ? { refInfo } : {}),
         };
     });
@@ -115,8 +116,62 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         }
     }
 
-    // --- Standard outputs (include hidden ones for report) ---
-    const outputRows: ReportFieldRow[] = Object.entries(def.outputConfig).map(([key, cfg]) => {
+    // --- dynamicRowGroups ---
+    for (const group of def.dynamicRowGroups ?? []) {
+        const firstKeyPrefix = group.fields[0]?.keyPrefix;
+        if (!firstKeyPrefix) continue;
+
+        const rowIndices = Object.keys(card.inputs)
+            .filter(k => new RegExp(`^${firstKeyPrefix}_\\d+$`).test(k))
+            .map(k => parseInt(k.split('_').pop()!))
+            .sort((a, b) => a - b);
+
+        for (const idx of rowIndices) {
+            // Build rowRaw for hidden() evaluation
+            const rowRaw: Record<string, string> = {};
+            for (const field of group.fields) {
+                rowRaw[field.keyPrefix] = String(card.inputs[`${field.keyPrefix}_${idx}`]?.value ?? '');
+            }
+
+            for (const field of group.fields) {
+                if (field.hidden?.(rowRaw)) continue;
+
+                const key = `${field.keyPrefix}_${idx}`;
+                const rawVal = String(card.inputs[key]?.value ?? '');
+                const refInfo = buildRefInfo(card, key, allCards);
+
+                const resolvedUnitType = field.getUnitType?.(rowRaw) ?? field.unitType ?? 'none';
+                const resolvedLabel = field.getLabel?.(rowRaw) ?? field.label;
+
+                if (field.options) {
+                    const optLabel = field.options.find(o => o.value === rawVal)?.label ?? rawVal;
+                    dynamicInputRows.push({
+                        key,
+                        label: `${resolvedLabel} (行${idx})`,
+                        unitType: 'none',
+                        value: 0,
+                        displayValue: optLabel,
+                        ...(refInfo ? { refInfo } : {}),
+                    });
+                } else {
+                    const numVal = card.resolvedInputs?.[key] ?? parseFloat(rawVal) ?? 0;
+                    dynamicInputRows.push({
+                        key,
+                        label: `${resolvedLabel} (行${idx})`,
+                        unitType: resolvedUnitType,
+                        value: numVal,
+                        displayValue: formatDisplayValue(numVal, resolvedUnitType as OutputUnitType, unitMode),
+                        ...(refInfo ? { refInfo } : {}),
+                    });
+                }
+            }
+        }
+    }
+
+    // --- Standard outputs (exclude hidden fields — they are object-valued or redundant) ---
+    const outputRows: ReportFieldRow[] = Object.entries(def.outputConfig)
+        .filter(([, cfg]) => !cfg.hidden)
+        .map(([key, cfg]) => {
         const unitType = cfg.unitType ?? 'none';
         const value = card.outputs[key] ?? 0;
         return {
@@ -126,6 +181,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             value,
             displayValue: formatDisplayValue(value, unitType as OutputUnitType, unitMode),
             ...(cfg.formula ? { formula: cfg.formula } : {}),
+            ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
         };
     });
 
@@ -244,9 +300,10 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
   <div class="vars-section">
     ${card.inputs.map(row => {
         const refSpan = row.refInfo ? ` <span class="var-ref">${escHtml(row.refInfo)}</span>` : '';
+        const inputDisplayKey = row.symbol ?? row.key;
         return `<div class="var-block">
       <h3>${escHtml(row.label)}</h3>
-      <p>${escHtml(row.key)} = ${escHtml(row.displayValue)}${refSpan}</p>
+      <p>${escHtml(inputDisplayKey)} = ${escHtml(row.displayValue)}${refSpan}</p>
     </div>`;
     }).join('')}
   </div>` : '';
@@ -259,17 +316,9 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
   <div class="section-label">計算</div>
   <div class="vars-section">
     ${card.narrative.map(line => {
-        const eqIdx = line.indexOf(' = ');
-        const startsWithSpace = /^\s/.test(line);
-        if (!startsWithSpace && eqIdx > 0) {
-            const symbol = escHtml(line.substring(0, eqIdx).trim());
-            return `<div class="var-block">
-      <h3>${symbol}</h3>
-      <p>${escHtml(line)}</p>
-    </div>`;
-        }
-        return `<div class="var-block">
-      <p>${escHtml(line)}</p>
+        const labelHtml = line.label ? `\n      <h3>${escHtml(line.label)}</h3>` : '';
+        return `<div class="var-block">${labelHtml}
+      <p>${escHtml(line.content)}</p>
     </div>`;
     }).join('')}
   </div>`;
@@ -288,9 +337,10 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
         const ratioClass = isRatio
             ? (row.value <= 1.0 ? ' ratio-ok' : ' ratio-ng')
             : '';
+        const displayKey = row.symbol ?? row.key;
         const content = row.formula
-            ? `${escHtml(row.key)} = ${escHtml(row.formula)} = ${escHtml(row.displayValue)}`
-            : `${escHtml(row.key)} = ${escHtml(row.displayValue)}`;
+            ? `${escHtml(displayKey)} = ${escHtml(row.formula)} = ${escHtml(row.displayValue)}`
+            : `${escHtml(displayKey)} = ${escHtml(row.displayValue)}`;
         return `<div class="var-block${ratioClass}">
       <h3>${escHtml(row.label)}</h3>
       <p>${content}</p>
@@ -332,5 +382,6 @@ function buildRefInfo(card: Card, inputKey: string, allCards: Card[]): string | 
 
     const outputKey = ref.outputKey ?? '';
     const outputLabel = upstreamDef?.outputConfig[outputKey]?.label ?? outputKey;
-    return `← ${upstream.alias} / ${outputLabel}`;
+    const exprStr = ref.expression ? ` × [${ref.expression}]` : '';
+    return `← ${upstream.alias} / ${outputLabel}${exprStr}`;
 }
