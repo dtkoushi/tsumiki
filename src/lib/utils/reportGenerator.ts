@@ -170,19 +170,19 @@ export function renderReportHtml(data: ReportData): string {
 <title>${escHtml(meta.title)} — 計算書</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif; font-size: 12px; color: #1e293b; background: #f8fafc; padding: 24px; }
+  body { font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif; font-size: 12px; color: #1e293b; background: #fff; padding: 24px; }
   .report-header { border-bottom: 2px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px; }
   .report-header h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
   .report-header .meta { margin-top: 6px; color: #64748b; font-size: 11px; display: flex; gap: 16px; flex-wrap: wrap; }
   .report-header .memo { color: #475569; font-size: 11px; margin-top: 4px; white-space: pre-wrap; }
-  .card-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 16px; overflow: hidden; }
-  .card-header { background: #f1f5f9; padding: 8px 14px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: baseline; gap: 8px; }
+  .card-section { border: none; border-bottom: 1px solid #94a3b8; margin-bottom: 24px; padding-bottom: 8px; }
+  .card-header { background: none; padding: 6px 0 6px; border-bottom: 1px solid #cbd5e1; display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
   .card-header .alias { font-weight: 700; font-size: 13px; color: #0f172a; }
   .card-header .type-badge { font-size: 10px; color: #94a3b8; background: #e2e8f0; padding: 1px 6px; border-radius: 9999px; }
-  .card-memo { padding: 6px 14px; font-size: 11px; color: #64748b; border-bottom: 1px solid #f1f5f9; background: #fffbeb; white-space: pre-wrap; }
-  .card-error { padding: 8px 14px; font-size: 11px; color: #b91c1c; background: #fef2f2; border-bottom: 1px solid #fecaca; }
-  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; padding: 8px 14px 4px; }
-  .vars-section { padding: 4px 14px 12px; }
+  .card-memo { padding: 6px 0; font-size: 11px; color: #64748b; border-bottom: 1px solid #f1f5f9; background: #fffbeb; white-space: pre-wrap; }
+  .card-error { padding: 8px 0; font-size: 11px; color: #b91c1c; background: #fef2f2; border-bottom: 1px solid #fecaca; }
+  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; padding: 8px 0 4px; }
+  .vars-section { padding: 4px 0 12px; }
   .var-block { margin-bottom: 12px; }
   .var-block:last-child { margin-bottom: 0; }
   .var-block h3 { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; }
@@ -190,11 +190,11 @@ export function renderReportHtml(data: ReportData): string {
   .var-ref { font-size: 10px; color: #94a3b8; margin-left: 8px; }
   .var-block.ratio-ok p { color: #059669; }
   .var-block.ratio-ng p { color: #dc2626; font-weight: 700; }
-  .note-content { padding: 10px 14px; font-size: 12px; white-space: pre-wrap; color: #334155; line-height: 1.6; }
+  .note-content { padding: 10px 0; font-size: 12px; white-space: pre-wrap; color: #334155; line-height: 1.6; }
   .report-footer { margin-top: 32px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: right; font-size: 10px; color: #94a3b8; }
   @media print {
     body { background: #fff; padding: 10mm 12mm; font-size: 11px; }
-    .card-section { break-inside: avoid; box-shadow: none; border: 1px solid #cbd5e1; }
+    .card-section { break-inside: avoid; }
     .report-header { break-after: avoid; }
   }
 </style>
