@@ -344,7 +344,7 @@ const OutputRow = ({
     name, config, card, unitMode, isPinned, onPinToggle
 }: {
     name: string;
-    config: { label: string; unitType: OutputUnitType };
+    config: { label: string; unitType: OutputUnitType; symbol?: string };
     card: any;
     unitMode: UnitMode;
     isPinned: boolean;
@@ -362,7 +362,10 @@ const OutputRow = ({
             >
                 <Pin size={10} />
             </button>
-            <span className="text-slate-400 text-xs">{t(config.label)}:</span>
+            {config.symbol
+                ? <><span className="font-mono text-slate-300 text-xs mr-1">{config.symbol}</span><span className="text-slate-400 text-xs">{t(config.label)}:</span></>
+                : <span className="text-slate-400 text-xs">{t(config.label)}:</span>
+            }
         </div>
         <span className="truncate text-right w-full font-mono text-emerald-400" title={card.outputs[name]?.toString()}>
             {formatOutput(card.outputs[name], config.unitType, unitMode)}

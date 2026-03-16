@@ -26,6 +26,28 @@ export function buildReportData(
     };
 }
 
+/**
+ * Substitutes input display values into a formula string.
+ * Example: formula='M / Z', formulaInputKeys=['M','Z'], allInputRows has M=100 kNm, Z=500 cm³
+ *   → 'M / Z' becomes '100.0 kNm / 500.0 cm³'
+ */
+function expandFormulaWithValues(
+    formula: string,
+    formulaInputKeys: string[],
+    allInputRows: ReportFieldRow[],
+): string {
+    let result = formula;
+    for (const key of formulaInputKeys) {
+        const displayVal = allInputRows.find(r => r.key === key)?.displayValue ?? key;
+        // Replace whole-word occurrences of `key` only (not substrings of other identifiers)
+        result = result.replace(
+            new RegExp(`(?<![A-Za-z_])${key}(?![A-Za-z_0-9])`, 'g'),
+            displayVal,
+        );
+    }
+    return result;
+}
+
 function buildCardData(card: Card, allCards: Card[]): ReportCardData {
     const unitMode = card.unitMode ?? 'mm';
 
@@ -39,7 +61,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             memo: card.memo,
             error: card.error,
             inputs: [],
-            narrative: [],
             outputs: [],
             noteContent: String(card.inputs['content']?.value ?? ''),
         };
@@ -55,7 +76,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             memo: card.memo,
             error: card.error,
             inputs: [],
-            narrative: [],
             outputs: [],
         };
     }
@@ -168,28 +188,35 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         }
     }
 
+    const allInputRows = [...inputRows, ...dynamicInputRows];
+
     // --- Standard outputs (exclude hidden fields — they are object-valued or redundant) ---
-    const outputRows: ReportFieldRow[] = Object.entries(def.outputConfig)
+    // Use getOutputConfig if available, merged over outputConfig
+    const effectiveOutputConfig = def.getOutputConfig
+        ? { ...def.outputConfig, ...def.getOutputConfig(card) }
+        : def.outputConfig;
+
+    const outputRows: ReportFieldRow[] = Object.entries(effectiveOutputConfig)
         .filter(([, cfg]) => !cfg.hidden)
         .map(([key, cfg]) => {
-        const unitType = cfg.unitType ?? 'none';
-        const value = card.outputs[key] ?? 0;
-        return {
-            key,
-            label: cfg.label,
-            unitType,
-            value,
-            displayValue: formatDisplayValue(value, unitType, unitMode),
-            ...(cfg.formula ? { formula: cfg.formula } : {}),
-            ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
-        };
-    });
+            const unitType = cfg.unitType ?? 'none';
+            const value = card.outputs[key] ?? 0;
+            const formulaWithValues = cfg.formula && cfg.formulaInputKeys
+                ? expandFormulaWithValues(cfg.formula, cfg.formulaInputKeys, allInputRows)
+                : undefined;
+            return {
+                key,
+                label: cfg.label,
+                unitType,
+                value,
+                displayValue: formatDisplayValue(value, unitType, unitMode),
+                ...(cfg.formula ? { formula: cfg.formula } : {}),
+                ...(formulaWithValues ? { formulaWithValues } : {}),
+                ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
+            };
+        });
 
-    const allInputRows = [...inputRows, ...dynamicInputRows];
     const allOutputRows = [...outputRows, ...dynamicOutputRows];
-    const narrative = def.reportNarrative
-        ? def.reportNarrative(allInputRows, allOutputRows, card.inputs)
-        : [];
 
     return {
         id: card.id,
@@ -199,7 +226,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         memo: card.memo,
         error: card.error,
         inputs: allInputRows,
-        narrative,
         outputs: allOutputRows,
     };
 }
@@ -308,27 +334,7 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
     }).join('')}
   </div>` : '';
 
-    const hasNarrative = card.narrative.length > 0;
-
-    if (hasNarrative) {
-        // 計算 section: each narrative line as a var-block
-        const calcHtml = `
-  <div class="section-label">計算</div>
-  <div class="vars-section">
-    ${card.narrative.map(line => {
-        const labelHtml = line.label ? `\n      <h3>${escHtml(line.label)}</h3>` : '';
-        return `<div class="var-block">${labelHtml}
-      <p>${escHtml(line.content)}</p>
-    </div>`;
-    }).join('')}
-  </div>`;
-
-        return `<div class="card-section">
-  ${header}${memoHtml}${errorHtml}${inputsHtml}${calcHtml}
-</div>`;
-    }
-
-    // No-narrative: outputs as var-blocks with formula (key = formula = value)
+    // 計算 / 結果 section: outputs as var-blocks
     const outputsHtml = card.outputs.length > 0 ? `
   <div class="section-label">計算 / 結果</div>
   <div class="vars-section">
@@ -338,9 +344,11 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
             ? (row.value <= 1.0 ? ' ratio-ok' : ' ratio-ng')
             : '';
         const displayKey = row.symbol ?? row.key;
-        const content = row.formula
-            ? `${escHtml(displayKey)} = ${escHtml(row.formula)} = ${escHtml(row.displayValue)}`
-            : `${escHtml(displayKey)} = ${escHtml(row.displayValue)}`;
+        const content = row.formula && row.formulaWithValues
+            ? `${escHtml(displayKey)} = ${escHtml(row.formula)} = ${escHtml(row.formulaWithValues)} = ${escHtml(row.displayValue)}`
+            : row.formula
+                ? `${escHtml(displayKey)} = ${escHtml(row.formula)} = ${escHtml(row.displayValue)}`
+                : `${escHtml(displayKey)} = ${escHtml(row.displayValue)}`;
         return `<div class="var-block${ratioClass}">
       <h3>${escHtml(row.label)}</h3>
       <p>${content}</p>

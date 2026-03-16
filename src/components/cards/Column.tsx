@@ -73,34 +73,18 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     sidebar: { category: 'beam', order: 4 },
 
     commonInputConfig: {
-        L: { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000 },
-        E: { label: ja['card.column.inputs.E'],  unitType: 'modulus' as const, default: 205000 },
-        A: { label: ja['card.column.inputs.A'],  unitType: 'area'    as const, default: 5000 },
-        I: { label: ja['card.column.inputs.I'],  unitType: 'inertia' as const, default: 1e7 },
+        L: { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000,   symbol: 'L' },
+        E: { label: ja['card.column.inputs.E'],  unitType: 'modulus' as const, default: 205000, symbol: 'E' },
+        A: { label: ja['card.column.inputs.A'],  unitType: 'area'    as const, default: 5000,   symbol: 'A' },
+        I: { label: ja['card.column.inputs.I'],  unitType: 'inertia' as const, default: 1e7,    symbol: 'I' },
     },
 
     outputConfig: {
-        Le:         { label: ja['card.column.outputs.Le'],         unitType: 'length', formula: 'k × L' },
-        i_gyration: { label: ja['card.column.outputs.i_gyration'], unitType: 'length', formula: '√(I/A)' },
-        lambda:     { label: ja['card.column.outputs.lambda'],     unitType: 'none',   formula: 'Le / i' },
-        N_cr:       { label: ja['card.column.outputs.N_cr'],       unitType: 'force',  formula: 'π²EI / Le²' },
-        sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],   unitType: 'stress', formula: 'N_cr / A' },
-    },
-
-    reportNarrative: (ins, outs) => {
-        const L       = ins.find(r => r.key === 'L')?.displayValue          ?? '–';
-        const Le      = outs.find(r => r.key === 'Le')?.displayValue        ?? '–';
-        const i_gyra  = outs.find(r => r.key === 'i_gyration')?.displayValue ?? '–';
-        const lambda  = outs.find(r => r.key === 'lambda')?.displayValue    ?? '–';
-        const Ncr     = outs.find(r => r.key === 'N_cr')?.displayValue      ?? '–';
-        const sig_cr  = outs.find(r => r.key === 'sigma_cr')?.displayValue  ?? '–';
-        return [
-            `Le = k × L  (L = ${L}) → Le = ${Le}`,
-            `i = √(I / A) = ${i_gyra}`,
-            `λ = Le / i = ${lambda}`,
-            `N_cr = π²EI / Le² = ${Ncr}`,
-            `σ_cr = N_cr / A = ${sig_cr}`,
-        ];
+        Le:         { label: ja['card.column.outputs.Le'],         unitType: 'length', formula: 'k × L',      symbol: 'L_e',   formulaInputKeys: ['L'] },
+        i_gyration: { label: ja['card.column.outputs.i_gyration'], unitType: 'length', formula: '√(I / A)',   symbol: 'i',     formulaInputKeys: ['I', 'A'] },
+        lambda:     { label: ja['card.column.outputs.lambda'],     unitType: 'none',   formula: 'Le / i',     symbol: 'λ' },
+        N_cr:       { label: ja['card.column.outputs.N_cr'],       unitType: 'force',  formula: 'π²EI / Le²', symbol: 'N_cr' },
+        sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],   unitType: 'stress', formula: 'N_cr / A',   symbol: 'σ_cr' },
     },
 });
 

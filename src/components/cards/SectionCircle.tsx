@@ -89,47 +89,32 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     },
 
     inputConfig: {
-        D: { label: '外径 D', unitType: 'length' },
-        t: { label: '板厚 t（中実=0）', unitType: 'length' },
-        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
+        D:       { label: '外径 D',                unitType: 'length', symbol: 'D' },
+        t:       { label: '板厚 t（中実=0）',       unitType: 'length', symbol: 't' },
+        Fy:      { label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' },
     },
 
     outputConfig: {
-        A:  { label: '断面積 A',           unitType: 'area',    formula: 'π/4 × D²' },
-        I:  { label: '断面二次モーメント I', unitType: 'inertia', formula: 'π/64 × D⁴' },
-        Z:  { label: '断面係数 Z（弾性）',  unitType: 'modulus', formula: 'I / (D/2)' },
-        Zp: { label: '塑性断面係数 Zp',    unitType: 'modulus' },
-        ix: { label: 'i',                  unitType: 'length',  formula: '√(I / A)' },
-        Mx: { label: 'M（弾性・Fy）',      unitType: 'moment',  formula: 'Z × Fy' },
-        Mp: { label: 'M_p（全塑性・σy）',  unitType: 'moment',  formula: 'Zp × σy' },
+        A:  { label: '断面積',             unitType: 'area',    formula: 'π/4 × D²',  symbol: 'A',   formulaInputKeys: ['D'] },
+        I:  { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × D⁴', symbol: 'I',   formulaInputKeys: ['D'] },
+        Z:  { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',  symbol: 'Z',   formulaInputKeys: ['D'] },
+        Zp: { label: '塑性断面係数',       unitType: 'modulus',                        symbol: 'Z_p' },
+        ix: { label: '断面二次半径',       unitType: 'length',  formula: '√(I / A)',   symbol: 'i' },
+        Mx: { label: '弾性曲げ耐力（Fy）', unitType: 'moment',  formula: 'Z × Fy',    symbol: 'M_x', formulaInputKeys: ['Fy'] },
+        Mp: { label: '全塑性モーメント（σy）', unitType: 'moment', formula: 'Zp × σy', symbol: 'M_p', formulaInputKeys: ['sigma_y'] },
     },
 
-    reportNarrative: (ins, outs) => {
-        const D_  = ins.find(r => r.key === 'D')?.displayValue  ?? '–';
-        const t_  = ins.find(r => r.key === 't')?.displayValue  ?? '–';
-        const Fy_ = ins.find(r => r.key === 'Fy')?.displayValue ?? '–';
-        const A_  = outs.find(r => r.key === 'A')?.displayValue ?? '–';
-        const I_  = outs.find(r => r.key === 'I')?.displayValue ?? '–';
-        const Z_  = outs.find(r => r.key === 'Z')?.displayValue ?? '–';
-        const Mx_ = outs.find(r => r.key === 'Mx')?.displayValue ?? '–';
-        const tVal = ins.find(r => r.key === 't')?.value ?? 0;
-
+    getOutputConfig: (card) => {
+        const tVal = parseFloat(String(card.inputs['t']?.value ?? '0')) || 0;
         if (tVal > 0) {
-            return [
-                `D_i = D − 2t = ${D_} − 2×${t_}`,
-                `A = π/4 × (D² − D_i²) = ${A_}`,
-                `I = π/64 × (D⁴ − D_i⁴) = ${I_}`,
-                `Z = I / (D/2) = ${Z_}`,
-                `M = Z × Fy = ${Z_} × ${Fy_} = ${Mx_}`,
-            ];
+            return {
+                A: { label: '断面積',             unitType: 'area',    formula: 'π/4 × (D² − (D−2t)²)', symbol: 'A', formulaInputKeys: ['D', 't'] },
+                I: { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × (D⁴ − (D−2t)⁴)', symbol: 'I', formulaInputKeys: ['D', 't'] },
+                Z: { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',              symbol: 'Z', formulaInputKeys: ['D'] },
+            };
         }
-        return [
-            `A = π/4 × D² = π/4 × ${D_}² = ${A_}`,
-            `I = π/64 × D⁴ = ${I_}`,
-            `Z = I / (D/2) = ${Z_}`,
-            `M = Z × Fy = ${Z_} × ${Fy_} = ${Mx_}`,
-        ];
+        return {};
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

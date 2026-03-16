@@ -121,10 +121,10 @@ interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Recor
      */
     commonInputConfig?: CardDefinition<TOutputs>['inputConfig'];
     outputConfig: CardDefinition<TOutputs>['outputConfig'];
+    getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
     visualization?: React.FC<any>;
     sidebar?: CardDefinition<TOutputs>['sidebar'];
     shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
-    reportNarrative?: CardDefinition<TOutputs>['reportNarrative'];
 }
 
 export function createStrategyDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: StrategyDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
@@ -234,10 +234,10 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         },
 
         outputConfig,
+        getOutputConfig: options.getOutputConfig,
         visualization,
         sidebar: options.sidebar,
         shouldRenderInput: options.shouldRenderInput,
-        reportNarrative: options.reportNarrative,
     };
 
     validateCardDefinition(def, 'createStrategyDefinition');
@@ -263,7 +263,7 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     /** Variable-length multi-field row groups (select + SmartInput mix) rendered by GenericCard. */
     dynamicRowGroups?: CardDefinition<TOutputs>['dynamicRowGroups'];
     sidebar?: CardDefinition<TOutputs>['sidebar'];
-    reportNarrative?: CardDefinition<TOutputs>['reportNarrative'];
+    getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
 }
 
 export function createCardDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: SimpleCardDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
@@ -281,7 +281,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         dynamicInputGroups,
         dynamicRowGroups,
         sidebar,
-        reportNarrative,
+        getOutputConfig,
     } = options;
 
     const def: CardDefinition<TOutputs> = {
@@ -292,13 +292,13 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         defaultInputs,
         inputConfig,
         outputConfig,
+        getOutputConfig,
         calculate,
         visualization,
         component,
         dynamicInputGroups,
         dynamicRowGroups,
         sidebar,
-        reportNarrative,
     };
 
     validateCardDefinition(def, 'createCardDefinition');

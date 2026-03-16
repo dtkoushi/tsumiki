@@ -36,6 +36,7 @@ export interface CardStrategy<TOutputs extends Record<string, any> = Record<stri
         label: string;
         unitType?: SmartInputUnitType;
         default?: any;
+        symbol?: string;
     }>;
 
     // Calculation logic for this strategy
@@ -141,6 +142,7 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
         default?: any;
         type?: 'number' | 'text' | 'select';
         options?: { label: string; value: string | number }[];
+        symbol?: string;
     }>;
 
     // Dynamic input config based on card state (Strategy Pattern)
@@ -150,16 +152,35 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
         default?: any;
         type?: 'number' | 'text' | 'select';
         options?: { label: string; value: string | number }[];
+        symbol?: string;
     }>;
 
     // Output Config: Enforce keys match TOutputs
     // hidden: true means the output is available for references but not shown in the Results panel
     // formula: symbolic expression string shown in the calculation report (e.g. 'B × H', 'π/4 × D²')
+    // symbol: math symbol for the field (e.g. 'Z_x', 'σ_b'); used in report row headers and output panel
+    // formulaInputKeys: input keys whose display values are substituted into formula for value-substituted form
     outputConfig: Record<keyof TOutputs, {
         label: string;
         unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
         hidden?: boolean;
         formula?: string;
+        symbol?: string;
+        formulaInputKeys?: string[];
+    }>;
+
+    /**
+     * Dynamic output config based on card state (e.g. solid vs hollow).
+     * When present, overrides outputConfig for report generation.
+     * Returns a partial or full override of outputConfig fields.
+     */
+    getOutputConfig?: (card: import('../../types').Card) => Record<string, {
+        label: string;
+        unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
+        hidden?: boolean;
+        formula?: string;
+        symbol?: string;
+        formulaInputKeys?: string[];
     }>;
 
     // Optional: Determine if an input should be rendered based on card state
@@ -186,19 +207,6 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
 
     // Optional visualization component (renders in the visual area of GenericCard)
     visualization?: React.FC<CardComponentProps>;
-
-    /**
-     * Value-substituted derivation lines for the calculation report.
-     * Receives formatted input/output rows (displayValue already includes units).
-     * Returns plain-text lines shown in the "計算" section.
-     * When present, each line is rendered as a derivation row in the report.
-     * Example: (ins, outs) => [`σ_b = M / Z = ${M} / ${Z} = ${sb}`]
-     */
-    reportNarrative?: (
-        inputRows: import('../../types/report').ReportFieldRow[],
-        outputRows: import('../../types/report').ReportFieldRow[],
-        rawInputs?: Record<string, { value: any }>,
-    ) => string[];
 
     /**
      * Sidebar registration. When present, this card appears in the sidebar under

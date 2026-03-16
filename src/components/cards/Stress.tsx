@@ -1,4 +1,3 @@
-
 import { Activity } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
 import { ja } from '../../lib/i18n/ja';
@@ -27,34 +26,19 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
     },
 
     inputConfig: {
-        M: { label: ja['card.stress.inputs.M'], unitType: 'moment' },
-        V: { label: ja['card.stress.inputs.V'], unitType: 'force' },
-        Z: { label: ja['card.stress.inputs.Z'], unitType: 'modulus' },
-        A: { label: ja['card.stress.inputs.A'], unitType: 'area' },
+        M: { label: ja['card.stress.inputs.M'], unitType: 'moment',  symbol: 'M' },
+        V: { label: ja['card.stress.inputs.V'], unitType: 'force',   symbol: 'V' },
+        Z: { label: ja['card.stress.inputs.Z'], unitType: 'modulus', symbol: 'Z' },
+        A: { label: ja['card.stress.inputs.A'], unitType: 'area',    symbol: 'A' },
     },
 
     outputConfig: {
-        sigma_b:  { label: ja['card.stress.outputs.sigma_b'],  unitType: 'stress', formula: 'M / Z' },
-        tau:      { label: ja['card.stress.outputs.tau'],       unitType: 'stress', formula: '1.5 × |V| / A' },
-        sigma_eq: { label: ja['card.stress.outputs.sigma_eq'], unitType: 'stress', formula: '√(σ_b² + 3τ²)' },
+        sigma_b:  { label: ja['card.stress.outputs.sigma_b'],  unitType: 'stress', formula: 'M / Z',          symbol: 'σ_b',  formulaInputKeys: ['M', 'Z'] },
+        tau:      { label: ja['card.stress.outputs.tau'],       unitType: 'stress', formula: '1.5 × |V| / A', symbol: 'τ',    formulaInputKeys: ['V', 'A'] },
+        sigma_eq: { label: ja['card.stress.outputs.sigma_eq'], unitType: 'stress', formula: '√(σ_b² + 3τ²)', symbol: 'σ_eq' },
     },
 
     sidebar: { category: 'cross_section', order: 2 },
-
-    reportNarrative: (ins, outs) => {
-        const M   = ins.find(r => r.key === 'M')?.displayValue  ?? '–';
-        const V   = ins.find(r => r.key === 'V')?.displayValue  ?? '–';
-        const Z   = ins.find(r => r.key === 'Z')?.displayValue  ?? '–';
-        const A   = ins.find(r => r.key === 'A')?.displayValue  ?? '–';
-        const sb  = outs.find(r => r.key === 'sigma_b')?.displayValue ?? '–';
-        const tau = outs.find(r => r.key === 'tau')?.displayValue     ?? '–';
-        const seq = outs.find(r => r.key === 'sigma_eq')?.displayValue ?? '–';
-        return [
-            `σ_b = M / Z = ${M} / ${Z} = ${sb}`,
-            `τ = 1.5 × |V| / A = 1.5 × ${V} / ${A} = ${tau}`,
-            `σ_eq = √(σ_b² + 3τ²) = ${seq}`,
-        ];
-    },
 
     calculate: (inputs) => {
         const M = inputs['M'] || 0;

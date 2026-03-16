@@ -1,9 +1,3 @@
-/** 計算セクションの 1 行 */
-export interface ReportNarrativeLine {
-    label?: string;   // 日本語説明（例: "断面係数（強軸・弾性）"）
-    content: string;  // 数式行（例: "Z_x = I_x / (H/2) = 250.0 cm³"）
-}
-
 /** 計算書全体 */
 export interface ReportData {
     meta: {
@@ -26,7 +20,6 @@ export interface ReportCardData {
     error?: string;
 
     inputs: ReportFieldRow[];
-    narrative: ReportNarrativeLine[];
     outputs: ReportFieldRow[];
 
     /** NOTE カードのみ: Markdown 生テキスト */
@@ -43,6 +36,8 @@ export interface ReportFieldRow {
     value: number;
     displayValue: string;
     formula?: string;
+    /** formula に入力値を代入した展開形 (例: "100.0 mm / 500.0 mm") */
+    formulaWithValues?: string;
     symbol?: string;
     refInfo?: string;
 }

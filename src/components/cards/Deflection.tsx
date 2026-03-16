@@ -318,15 +318,15 @@ export const DeflectionCardDef = createCardDefinition({
 
     inputConfig: {
         diagramModel: { label: ja['card.deflection.inputs.diagramModel'], unitType: 'none' },
-        E: { label: ja['card.deflection.inputs.E'], unitType: 'modulus' },
-        I: { label: ja['card.deflection.inputs.I'], unitType: 'inertia' },
-        n_allow: { label: ja['card.deflection.inputs.n_allow'], unitType: 'none' },
+        E:            { label: ja['card.deflection.inputs.E'],            unitType: 'modulus', symbol: 'E' },
+        I:            { label: ja['card.deflection.inputs.I'],            unitType: 'inertia', symbol: 'I' },
+        n_allow:      { label: ja['card.deflection.inputs.n_allow'],      unitType: 'none',    symbol: 'n' },
     },
 
     outputConfig: {
-        delta_max:   { label: ja['card.deflection.outputs.delta_max'],   unitType: 'length' },
-        delta_allow: { label: ja['card.deflection.outputs.delta_allow'],  unitType: 'length' },
-        ratio:       { label: ja['card.deflection.outputs.ratio'],         unitType: 'ratio' },
+        delta_max:   { label: ja['card.deflection.outputs.delta_max'],   unitType: 'length', formula: '数値積分（台形則, N=500）', symbol: 'δ_max' },
+        delta_allow: { label: ja['card.deflection.outputs.delta_allow'],  unitType: 'length', formula: 'L / n_allow', symbol: 'δ_allow', formulaInputKeys: ['n_allow'] },
+        ratio:       { label: ja['card.deflection.outputs.ratio'],         unitType: 'ratio',  symbol: 'δ/δa' },
     },
 
     calculate: (inputs) => {

@@ -275,92 +275,42 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     ],
     strategies: Strategies,
     sidebar: { category: 'beam', order: 1 },
-    reportNarrative: (ins, outs, rawInputs) => {
-        const boundary = String(rawInputs?.['boundary']?.value ?? 'simple');
-        const load     = String(rawInputs?.['load']?.value     ?? 'uniform');
-        const L    = ins.find(r => r.key === 'L')?.displayValue   ?? '–';
-        const w    = ins.find(r => r.key === 'w')?.displayValue   ?? '–';
-        const P    = ins.find(r => r.key === 'P')?.displayValue   ?? '–';
-        const a    = ins.find(r => r.key === 'a')?.displayValue   ?? '–';
-        const M0   = ins.find(r => r.key === 'M0')?.displayValue  ?? '–';
-        const Mmax = outs.find(r => r.key === 'M_max')?.displayValue ?? '–';
-        const Vmax = outs.find(r => r.key === 'V_max')?.displayValue ?? '–';
-
+    outputConfig: {
+        M_max: { label: '最大曲げモーメント', unitType: 'moment', symbol: 'M_max' },
+        V_max: { label: '最大せん断力',       unitType: 'force',  symbol: 'V_max' },
+    },
+    getOutputConfig: (card) => {
+        const boundary = String(card.inputs['boundary']?.value ?? 'simple');
+        const load     = String(card.inputs['load']?.value     ?? 'uniform');
         switch (`${boundary}::${load}`) {
             case 'simple::uniform':
-                return [
-                    `M_max = w × L² / 8 = ${w} × ${L}² / 8 = ${Mmax}`,
-                    `V_max = w × L / 2 = ${w} × ${L} / 2 = ${Vmax}`,
-                ];
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'w × L² / 8',  symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'w × L / 2',   symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
             case 'simple::point':
-                return [
-                    `M_max = P × a × (L−a) / L  (a = ${a}, L = ${L}) = ${Mmax}`,
-                    `V_max = max(P×(L−a)/L, P×a/L) = ${Vmax}`,
-                ];
-            case 'simple::moment':
-                return [
-                    `M0 = ${M0}  (a = ${a}, L = ${L})`,
-                    `M_max = ${Mmax}（数値計算）`,
-                ];
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'P × a × (L−a) / L', symbol: 'M_max', formulaInputKeys: ['P', 'a', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'max(P×(L−a)/L, P×a/L)', symbol: 'V_max', formulaInputKeys: ['P', 'a', 'L'] },
+                };
             case 'cantilever::uniform':
-                return [
-                    `M_max = w × L² / 2 = ${w} × ${L}² / 2 = ${Mmax}`,
-                    `V_max = w × L = ${w} × ${L} = ${Vmax}`,
-                ];
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'w × L² / 2', symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'w × L',      symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
             case 'cantilever::point':
-                return [
-                    `M_max = P × a = ${P} × ${a} = ${Mmax}`,
-                    `V_max = P = ${Vmax}`,
-                ];
-            case 'cantilever::moment':
-                return [
-                    `M0 = ${M0}  (a = ${a})`,
-                    `M_max = ${Mmax}（数値計算）`,
-                ];
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'P × a', symbol: 'M_max', formulaInputKeys: ['P', 'a'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'P',     symbol: 'V_max', formulaInputKeys: ['P'] },
+                };
             case 'fixed_fixed::uniform':
-                return [
-                    `M_端部 = w × L² / 12,  M_中央 = w × L² / 24`,
-                    `M_max = w × L² / 12 = ${w} × ${L}² / 12 = ${Mmax}`,
-                    `V_max = w × L / 2 = ${w} × ${L} / 2 = ${Vmax}`,
-                ];
-            case 'fixed_fixed::point':
-                return [
-                    `P = ${P}  (a = ${a}, L = ${L})`,
-                    `M_max = ${Mmax}（数値計算）`,
-                    `V_max = ${Vmax}（数値計算）`,
-                ];
-            case 'fixed_fixed::moment':
-                return [
-                    `M0 = ${M0}  (a = ${a}, L = ${L})`,
-                    `M_max = ${Mmax}（数値計算）`,
-                ];
-            case 'fixed_pinned::uniform':
-                return [
-                    `M_固定端 = w × L² / 8,  スパン内最大 = 9wL²/128`,
-                    `M_max = ${Mmax}`,
-                    `V_max = ${Vmax}`,
-                ];
-            case 'fixed_pinned::point':
-                return [
-                    `P = ${P}  (a = ${a}, L = ${L})`,
-                    `M_max = ${Mmax}（数値計算）`,
-                    `V_max = ${Vmax}（数値計算）`,
-                ];
-            case 'fixed_pinned::moment':
-                return [
-                    `M0 = ${M0}  (a = ${a}, L = ${L})`,
-                    `M_max = ${Mmax}（数値計算）`,
-                ];
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'w × L² / 12', symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'w × L / 2',   symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
             default:
-                return [
-                    `M_max = ${Mmax}`,
-                    `V_max = ${Vmax}`,
-                ];
+                return {};
         }
-    },
-    outputConfig: {
-        M_max: { label: 'M_max', unitType: 'moment' },
-        V_max: { label: 'V_max', unitType: 'force' },
     },
     visualization: BeamVisualization,
 });

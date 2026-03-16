@@ -154,11 +154,11 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     inputConfig: {
-        M: { label: ja['card.couple.inputs.moment'], unitType: 'moment' },
+        M: { label: ja['card.couple.inputs.moment'], unitType: 'moment', symbol: 'M' },
     },
 
     outputConfig: {
-        k: { label: ja['card.couple.outputs.k'], unitType: 'load' },
+        k: { label: ja['card.couple.outputs.k'], unitType: 'load', formula: 'M / (2 × Σdi²)', symbol: 'k' },
     },
 
     dynamicInputGroups: [{

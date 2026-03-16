@@ -114,53 +114,30 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         sigma_y: { value: 235 },
     },
     inputConfig: {
-        H: { label: '断面高さ H', unitType: 'length' },
-        B: { label: 'フランジ幅 B', unitType: 'length' },
-        tw: { label: 'ウェブ厚 tw', unitType: 'length' },
-        tf: { label: 'フランジ厚 tf', unitType: 'length' },
-        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
+        H:       { label: '断面高さ H',            unitType: 'length', symbol: 'H' },
+        B:       { label: 'フランジ幅 B',          unitType: 'length', symbol: 'B' },
+        tw:      { label: 'ウェブ厚 tw',           unitType: 'length', symbol: 'tw' },
+        tf:      { label: 'フランジ厚 tf',         unitType: 'length', symbol: 'tf' },
+        Fy:      { label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' },
+        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' },
     },
     outputConfig: {
-        A:        { label: '断面積 A',             unitType: 'area',    formula: '2×B×tf + (H−2tf)×tw' },
-        Ix:       { label: 'I_x',                 unitType: 'inertia', formula: 'B×H³/12 − (B−tw)×(H−2tf)³/12' },
-        Iy:       { label: 'I_y',                 unitType: 'inertia' },
-        Zx:       { label: 'Z_x（弾性）',          unitType: 'modulus', formula: 'I_x / (H/2)' },
-        Zpx:      { label: 'Z_px（塑性）',         unitType: 'modulus' },
-        Zy:       { label: 'Z_y（弾性）',          unitType: 'modulus', formula: 'I_y / (B/2)' },
-        Zpy:      { label: 'Z_py（塑性）',         unitType: 'modulus' },
-        lambda_f: { label: 'λ_f フランジ幅厚比',   unitType: 'none',    formula: '(B/2) / tf' },
-        lambda_w: { label: 'λ_w ウェブ幅厚比',     unitType: 'none',    formula: '(H−2tf) / tw' },
-        ix:       { label: 'i_x',                 unitType: 'length',  formula: '√(I_x / A)' },
-        iy:       { label: 'i_y',                 unitType: 'length',  formula: '√(I_y / A)' },
-        Mpx:      { label: 'M_px（全塑性・σy）',   unitType: 'moment',  formula: 'σy × Z_px' },
-        Mx:       { label: 'M_x（弾性・Fy）',      unitType: 'moment',  formula: 'Z_x × Fy' },
-        My:       { label: 'M_y（弾性・Fy）',      unitType: 'moment',  formula: 'Z_y × Fy' },
-        Mpy:      { label: 'M_py（全塑性・σy）',   unitType: 'moment',  formula: 'Z_py × σy' },
-        Qy:       { label: '降伏せん断耐力 Qy（σy）', unitType: 'force', formula: '(σy/√3) × hw × tw' },
-    },
-    reportNarrative: (ins, outs) => {
-        const H_  = ins.find(r => r.key === 'H')?.displayValue   ?? '–';
-        const B_  = ins.find(r => r.key === 'B')?.displayValue   ?? '–';
-        const tw_ = ins.find(r => r.key === 'tw')?.displayValue  ?? '–';
-        const tf_ = ins.find(r => r.key === 'tf')?.displayValue  ?? '–';
-        const sy_ = ins.find(r => r.key === 'sigma_y')?.displayValue ?? '–';
-        const A_  = outs.find(r => r.key === 'A')?.displayValue   ?? '–';
-        const Ix_ = outs.find(r => r.key === 'Ix')?.displayValue  ?? '–';
-        const Zx_  = outs.find(r => r.key === 'Zx')?.displayValue   ?? '–';
-        const Zpx_ = outs.find(r => r.key === 'Zpx')?.displayValue  ?? '–';
-        const lf_  = outs.find(r => r.key === 'lambda_f')?.displayValue ?? '–';
-        const lw_  = outs.find(r => r.key === 'lambda_w')?.displayValue ?? '–';
-        const Mpx_ = outs.find(r => r.key === 'Mpx')?.displayValue  ?? '–';
-        return [
-            `hw = H − 2×tf = ${H_} − 2×${tf_}`,
-            `A = 2×B×tf + hw×tw = ${A_}`,
-            `I_x = B×H³/12 − (B−tw)×hw³/12 = ${Ix_}`,
-            `Z_x = I_x / (H/2) = ${Zx_}`,
-            `λ_f = (B/2) / tf = ${lf_}（フランジ幅厚比）`,
-            `λ_w = hw / tw = ${lw_}（ウェブ幅厚比）`,
-            `M_px = σy × Z_px = ${sy_} × ${Zpx_} = ${Mpx_}`,
-        ];
+        A:        { label: '断面積',               unitType: 'area',    formula: '2×B×tf + (H−2tf)×tw',          symbol: 'A',    formulaInputKeys: ['B', 'tf', 'H', 'tw'] },
+        Ix:       { label: '断面二次モーメント（強軸）', unitType: 'inertia', formula: 'B×H³/12 − (B−tw)×(H−2tf)³/12', symbol: 'I_x', formulaInputKeys: ['B', 'H', 'tw', 'tf'] },
+        Iy:       { label: '断面二次モーメント（弱軸）', unitType: 'inertia',                                          symbol: 'I_y' },
+        Zx:       { label: '断面係数（強軸・弾性）',   unitType: 'modulus', formula: 'I_x / (H/2)',                  symbol: 'Z_x', formulaInputKeys: ['H'] },
+        Zpx:      { label: '塑性断面係数（強軸）',    unitType: 'modulus',                                           symbol: 'Z_px' },
+        Zy:       { label: '断面係数（弱軸・弾性）',   unitType: 'modulus', formula: 'I_y / (B/2)',                  symbol: 'Z_y', formulaInputKeys: ['B'] },
+        Zpy:      { label: '塑性断面係数（弱軸）',    unitType: 'modulus',                                           symbol: 'Z_py' },
+        lambda_f: { label: 'フランジ幅厚比',         unitType: 'none',    formula: '(B/2) / tf',                   symbol: 'λ_f', formulaInputKeys: ['B', 'tf'] },
+        lambda_w: { label: 'ウェブ幅厚比',           unitType: 'none',    formula: '(H−2tf) / tw',                 symbol: 'λ_w', formulaInputKeys: ['H', 'tf', 'tw'] },
+        ix:       { label: '断面二次半径（強軸）',    unitType: 'length',  formula: '√(I_x / A)',                   symbol: 'i_x' },
+        iy:       { label: '断面二次半径（弱軸）',    unitType: 'length',  formula: '√(I_y / A)',                   symbol: 'i_y' },
+        Mpx:      { label: '全塑性モーメント（強軸・σy）', unitType: 'moment', formula: 'σy × Z_px',               symbol: 'M_px', formulaInputKeys: ['sigma_y'] },
+        Mx:       { label: '弾性曲げ耐力（強軸・Fy）',  unitType: 'moment', formula: 'Z_x × Fy',                   symbol: 'M_x',  formulaInputKeys: ['Fy'] },
+        My:       { label: '弾性曲げ耐力（弱軸・Fy）',  unitType: 'moment', formula: 'Z_y × Fy',                   symbol: 'M_y',  formulaInputKeys: ['Fy'] },
+        Mpy:      { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment', formula: 'Z_py × σy',               symbol: 'M_py', formulaInputKeys: ['sigma_y'] },
+        Qy:       { label: '降伏せん断耐力（σy）',    unitType: 'force',   formula: '(σy/√3) × hw × tw',           symbol: 'Q_y',  formulaInputKeys: ['sigma_y', 'tw'] },
     },
 
     calculate: ({ H, B, tw, tf, Fy, sigma_y }) => {
