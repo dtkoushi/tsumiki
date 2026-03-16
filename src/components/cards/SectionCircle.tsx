@@ -99,7 +99,7 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         A:  { label: '断面積',             unitType: 'area',    formula: 'π/4 × D²',  symbol: 'A',   formulaInputKeys: ['D'] },
         I:  { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × D⁴', symbol: 'I',   formulaInputKeys: ['D'] },
         Z:  { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',  symbol: 'Z',   formulaInputKeys: ['D'] },
-        Zp: { label: '塑性断面係数',       unitType: 'modulus',                        symbol: 'Z_p' },
+        Zp: { label: '塑性断面係数',       unitType: 'modulus', formula: 'D³ / 6',    symbol: 'Z_p', formulaInputKeys: ['D'] },
         ix: { label: '断面二次半径',       unitType: 'length',  formula: '√(I / A)',   symbol: 'i' },
         Mx: { label: '弾性曲げ耐力（Fy）', unitType: 'moment',  formula: 'Z × Fy',    symbol: 'M_x', formulaInputKeys: ['Fy'] },
         Mp: { label: '全塑性モーメント（σy）', unitType: 'moment', formula: 'Zp × σy', symbol: 'M_p', formulaInputKeys: ['sigma_y'] },
@@ -109,9 +109,10 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         const tVal = parseFloat(String(card.inputs['t']?.value ?? '0')) || 0;
         if (tVal > 0) {
             return {
-                A: { label: '断面積',             unitType: 'area',    formula: 'π/4 × (D² − (D−2t)²)', symbol: 'A', formulaInputKeys: ['D', 't'] },
-                I: { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × (D⁴ − (D−2t)⁴)', symbol: 'I', formulaInputKeys: ['D', 't'] },
-                Z: { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',              symbol: 'Z', formulaInputKeys: ['D'] },
+                A:  { label: '断面積',             unitType: 'area',    formula: 'π/4 × (D² − (D−2t)²)',  symbol: 'A',   formulaInputKeys: ['D', 't'] },
+                I:  { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × (D⁴ − (D−2t)⁴)', symbol: 'I',   formulaInputKeys: ['D', 't'] },
+                Z:  { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',               symbol: 'Z',   formulaInputKeys: ['D'] },
+                Zp: { label: '塑性断面係数',       unitType: 'modulus', formula: '(D³ − (D−2t)³) / 6',    symbol: 'Z_p', formulaInputKeys: ['D', 't'] },
             };
         }
         return {};

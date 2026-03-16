@@ -85,9 +85,26 @@ export const BoltCardDef = createStrategyDefinition<BoltOutputs>({
     },
 
     outputConfig: {
-        q_1:    { label: '1本あたりの力 q_1', unitType: 'force' },
+        q_1:    { label: '1本あたりの力 q_1', unitType: 'force', formula: '|Q| / n', formulaInputKeys: ['Q', 'n'] },
         Q_allow:{ label: '1本の許容耐力',     unitType: 'force' },
-        ratio:  { label: '検定比 q_1/Q_allow', unitType: 'ratio' },
+        ratio:  { label: '検定比 q_1/Q_allow', unitType: 'ratio', formula: 'q_1 / Q_allow' },
+    },
+
+    getOutputConfig: (card) => {
+        const joinType = card.inputs['joinType']?.value ?? 'friction';
+        if (joinType === 'friction') {
+            return {
+                Q_allow: { label: '1本の許容耐力', unitType: 'force',
+                            formula: 'f_allow × n_face',
+                            formulaInputKeys: ['f_allow', 'n_face'] },
+            };
+        } else {
+            return {
+                Q_allow: { label: '1本の許容耐力', unitType: 'force',
+                            formula: 'F_b_allow × d × t × n_face',
+                            formulaInputKeys: ['F_b_allow', 'd', 't', 'n_face'] },
+            };
+        }
     },
 });
 

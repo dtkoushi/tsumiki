@@ -326,7 +326,7 @@ export const DeflectionCardDef = createCardDefinition({
     outputConfig: {
         delta_max:   { label: ja['card.deflection.outputs.delta_max'],   unitType: 'length', formula: '数値積分（台形則, N=500）', symbol: 'δ_max' },
         delta_allow: { label: ja['card.deflection.outputs.delta_allow'],  unitType: 'length', formula: 'L / n_allow', symbol: 'δ_allow', formulaInputKeys: ['n_allow'] },
-        ratio:       { label: ja['card.deflection.outputs.ratio'],         unitType: 'ratio',  symbol: 'δ/δa' },
+        ratio:       { label: ja['card.deflection.outputs.ratio'],         unitType: 'ratio',  formula: 'δ_max / δ_allow', symbol: 'δ/δa' },
     },
 
     calculate: (inputs) => {
