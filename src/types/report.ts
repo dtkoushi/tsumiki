@@ -1,3 +1,9 @@
+/** 計算セクションの 1 行 */
+export interface ReportNarrativeLine {
+    label?: string;   // 日本語説明（例: "断面係数（強軸・弾性）"）
+    content: string;  // 数式行（例: "Z_x = I_x / (H/2) = 250.0 cm³"）
+}
+
 /** 計算書全体 */
 export interface ReportData {
     meta: {
@@ -20,20 +26,23 @@ export interface ReportCardData {
     error?: string;
 
     inputs: ReportFieldRow[];
-    narrative: string[];
+    narrative: ReportNarrativeLine[];
     outputs: ReportFieldRow[];
 
     /** NOTE カードのみ: Markdown 生テキスト */
     noteContent?: string;
 }
 
+import type { OutputUnitType } from '../lib/utils/unitFormatter';
+
 /** 入力・出力 1行分 */
 export interface ReportFieldRow {
     key: string;
     label: string;
-    unitType: string;
+    unitType: OutputUnitType;
     value: number;
     displayValue: string;
     formula?: string;
+    symbol?: string;
     refInfo?: string;
 }

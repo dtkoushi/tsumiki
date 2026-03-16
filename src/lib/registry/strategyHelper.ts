@@ -67,6 +67,15 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
         }
     }
 
+    // outputConfig: warn if formula is set but symbol is missing
+    if (def.outputConfig) {
+        for (const [key, cfg] of Object.entries(def.outputConfig)) {
+            if (cfg.formula && !cfg.symbol) {
+                warn(`outputConfig["${key}"] has formula but no symbol — report rows will fall back to key`);
+            }
+        }
+    }
+
     // dynamicInputGroups: check outputIndexFn presence
     if (def.dynamicInputGroups) {
         for (const group of def.dynamicInputGroups) {

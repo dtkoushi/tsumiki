@@ -72,7 +72,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             label: cfg.label,
             unitType,
             value,
-            displayValue: formatDisplayValue(value, unitType as OutputUnitType, unitMode),
+            displayValue: formatDisplayValue(value, unitType, unitMode),
             ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
             ...(refInfo ? { refInfo } : {}),
         };
@@ -100,7 +100,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 label: `${inputLabel} (${inputKey})`,
                 unitType: inputUnitType,
                 value: iValue,
-                displayValue: formatDisplayValue(iValue, inputUnitType as OutputUnitType, unitMode),
+                displayValue: formatDisplayValue(iValue, inputUnitType, unitMode),
                 ...(refInfo ? { refInfo } : {}),
             });
 
@@ -111,7 +111,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 label: `${outputLabel} (${outputKey})`,
                 unitType: outputUnitType,
                 value: oValue,
-                displayValue: formatDisplayValue(oValue, outputUnitType as OutputUnitType, unitMode),
+                displayValue: formatDisplayValue(oValue, outputUnitType, unitMode),
             });
         }
     }
@@ -160,7 +160,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                         label: `${resolvedLabel} (行${idx})`,
                         unitType: resolvedUnitType,
                         value: numVal,
-                        displayValue: formatDisplayValue(numVal, resolvedUnitType as OutputUnitType, unitMode),
+                        displayValue: formatDisplayValue(numVal, resolvedUnitType, unitMode),
                         ...(refInfo ? { refInfo } : {}),
                     });
                 }
@@ -179,7 +179,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             label: cfg.label,
             unitType,
             value,
-            displayValue: formatDisplayValue(value, unitType as OutputUnitType, unitMode),
+            displayValue: formatDisplayValue(value, unitType, unitMode),
             ...(cfg.formula ? { formula: cfg.formula } : {}),
             ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
         };
