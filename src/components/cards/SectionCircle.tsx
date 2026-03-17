@@ -102,7 +102,7 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
         Zp: { label: '塑性断面係数',       unitType: 'modulus', formula: 'D³ / 6',    symbol: 'Z_p', formulaInputKeys: ['D'] },
         ix: { label: '断面二次半径',       unitType: 'length',  formula: '√(I / A)',   symbol: 'i' },
         Mx: { label: '弾性曲げ耐力（Fy）', unitType: 'moment',  formula: 'Z × Fy',    symbol: 'M_x', formulaInputKeys: ['Fy'] },
-        Mp: { label: '全塑性モーメント（σy）', unitType: 'moment', formula: 'Zp × σy', symbol: 'M_p', formulaInputKeys: ['sigma_y'] },
+        Mp: { label: '全塑性モーメント（σy）', unitType: 'moment', formula: 'Zp × sigma_y', symbol: 'M_p', formulaInputKeys: ['sigma_y'] },
     },
 
     getOutputConfig: (card) => {

@@ -128,8 +128,8 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         iy:  { label: '断面二次半径（弱軸）',       unitType: 'length',  formula: '√(I_y / A)', symbol: 'i_y' },
         Mx:  { label: '弾性曲げ耐力（強軸・Fy）',   unitType: 'moment',  formula: 'Z_x × Fy',   symbol: 'M_x',  formulaInputKeys: ['Fy'] },
         My:  { label: '弾性曲げ耐力（弱軸・Fy）',   unitType: 'moment',  formula: 'Z_y × Fy',   symbol: 'M_y',  formulaInputKeys: ['Fy'] },
-        Mpx: { label: '全塑性モーメント（強軸・σy）', unitType: 'moment', formula: 'Z_px × σy',  symbol: 'M_px', formulaInputKeys: ['sigma_y'] },
-        Mpy: { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment', formula: 'Z_py × σy',  symbol: 'M_py', formulaInputKeys: ['sigma_y'] },
+        Mpx: { label: '全塑性モーメント（強軸・σy）', unitType: 'moment', formula: 'Z_px × sigma_y',  symbol: 'M_px', formulaInputKeys: ['sigma_y'] },
+        Mpy: { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment', formula: 'Z_py × sigma_y',  symbol: 'M_py', formulaInputKeys: ['sigma_y'] },
     },
 
     getOutputConfig: (card) => {

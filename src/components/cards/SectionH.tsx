@@ -133,11 +133,11 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         lambda_w: { label: 'ウェブ幅厚比',           unitType: 'none',    formula: '(H−2tf) / tw',                 symbol: 'λ_w', formulaInputKeys: ['H', 'tf', 'tw'] },
         ix:       { label: '断面二次半径（強軸）',    unitType: 'length',  formula: '√(I_x / A)',                   symbol: 'i_x' },
         iy:       { label: '断面二次半径（弱軸）',    unitType: 'length',  formula: '√(I_y / A)',                   symbol: 'i_y' },
-        Mpx:      { label: '全塑性モーメント（強軸・σy）', unitType: 'moment', formula: 'σy × Z_px',               symbol: 'M_px', formulaInputKeys: ['sigma_y'] },
+        Mpx:      { label: '全塑性モーメント（強軸・σy）', unitType: 'moment', formula: 'sigma_y × Z_px',               symbol: 'M_px', formulaInputKeys: ['sigma_y'] },
         Mx:       { label: '弾性曲げ耐力（強軸・Fy）',  unitType: 'moment', formula: 'Z_x × Fy',                   symbol: 'M_x',  formulaInputKeys: ['Fy'] },
         My:       { label: '弾性曲げ耐力（弱軸・Fy）',  unitType: 'moment', formula: 'Z_y × Fy',                   symbol: 'M_y',  formulaInputKeys: ['Fy'] },
-        Mpy:      { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment', formula: 'Z_py × σy',               symbol: 'M_py', formulaInputKeys: ['sigma_y'] },
-        Qy:       { label: '降伏せん断耐力（σy）',    unitType: 'force',   formula: '(σy/√3) × hw × tw',           symbol: 'Q_y',  formulaInputKeys: ['sigma_y', 'tw'] },
+        Mpy:      { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment', formula: 'Z_py × sigma_y',               symbol: 'M_py', formulaInputKeys: ['sigma_y'] },
+        Qy:       { label: '降伏せん断耐力（σy）',    unitType: 'force',   formula: '(sigma_y/√3) × hw × tw',           symbol: 'Q_y',  formulaInputKeys: ['sigma_y', 'tw'] },
     },
 
     calculate: ({ H, B, tw, tf, Fy, sigma_y }) => {
