@@ -77,6 +77,10 @@ export interface DynamicInputGroupConfig {
     outputIndexFn?: (outputKey: string) => string | null;
     /** 出力行を表示するか動的に判定。省略時は常に表示。false で y_i 行を非表示にする。 */
     showOutputFn?: (card: import('../../types').Card) => boolean;
+    /** Math symbol for the input field per row index (e.g. (i) => `d_${i}`). Used in UI and report. */
+    inputSymbolFn?:  (idx: string) => string;
+    /** Math symbol for the output field per row index (e.g. (i) => `N_${i}`). Used in UI and report. */
+    outputSymbolFn?: (idx: string) => string;
 }
 
 /**
@@ -105,6 +109,8 @@ export interface DynamicMultiGroupFieldConfig {
     getUnitType?: (rowRaw: Record<string, string>) => SmartInputUnitType;
     /** 動的なラベル（rowRaw から算出）。静的 label より優先 */
     getLabel?: (rowRaw: Record<string, string>) => string;
+    /** Math symbol for the field. Static string or function of row index. Used in UI and report. */
+    symbol?: string | ((idx: string) => string);
 }
 
 /**
@@ -123,6 +129,31 @@ export interface DynamicMultiGroupConfig {
     /** Field definitions rendered in order, side-by-side, within each row */
     fields: DynamicMultiGroupFieldConfig[];
 }
+
+/**
+ * Output field configuration.
+ * Visible outputs (hidden !== true) require a math symbol.
+ * Hidden outputs (hidden: true) carry the symbol as optional metadata.
+ */
+type VisibleOutputField = {
+    label: string;
+    unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
+    hidden?: false;
+    symbol: string;
+    formula?: string;
+    formulaInputKeys?: string[];
+};
+
+type HiddenOutputField = {
+    label: string;
+    unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
+    hidden: true;
+    symbol?: string;
+    formula?: string;
+    formulaInputKeys?: string[];
+};
+
+export type OutputFieldConfig = VisibleOutputField | HiddenOutputField;
 
 export interface CardDefinition<TOutputs extends Record<string, any> = Record<string, number>> {
     type: string;             // Unique ID (e.g., 'SECTION', 'BEAM')
@@ -158,30 +189,16 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
     // Output Config: Enforce keys match TOutputs
     // hidden: true means the output is available for references but not shown in the Results panel
     // formula: symbolic expression string shown in the calculation report (e.g. 'B × H', 'π/4 × D²')
-    // symbol: math symbol for the field (e.g. 'Z_x', 'σ_b'); used in report row headers and output panel
+    // symbol: math symbol for the field (e.g. 'Z_x', 'σ_b'); required for visible outputs, optional for hidden
     // formulaInputKeys: input keys whose display values are substituted into formula for value-substituted form
-    outputConfig: Record<keyof TOutputs, {
-        label: string;
-        unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
-        hidden?: boolean;
-        formula?: string;
-        symbol?: string;
-        formulaInputKeys?: string[];
-    }>;
+    outputConfig: Record<keyof TOutputs, OutputFieldConfig>;
 
     /**
      * Dynamic output config based on card state (e.g. solid vs hollow).
      * When present, overrides outputConfig for report generation.
      * Returns a partial or full override of outputConfig fields.
      */
-    getOutputConfig?: (card: import('../../types').Card) => Record<string, {
-        label: string;
-        unitType: import('../../lib/utils/unitFormatter').OutputUnitType;
-        hidden?: boolean;
-        formula?: string;
-        symbol?: string;
-        formulaInputKeys?: string[];
-    }>;
+    getOutputConfig?: (card: import('../../types').Card) => Record<string, OutputFieldConfig>;
 
     // Optional: Determine if an input should be rendered based on card state
     shouldRenderInput?: (card: import('../../types').Card, key: string) => boolean;

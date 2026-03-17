@@ -19,11 +19,11 @@ export const AggregateCardDef = createCardDefinition<AggregateOutputs>({
     defaultInputs: { val_1: { value: 0 } },
     inputConfig: {},
     outputConfig: {
-        sum:     { label: '合計', unitType: 'none' },
-        average: { label: '平均', unitType: 'none' },
-        min:     { label: '最小', unitType: 'none' },
-        max:     { label: '最大', unitType: 'none' },
-        count:   { label: '個数', unitType: 'none' },
+        sum:     { label: '合計',   unitType: 'none', symbol: 'Σ'   },
+        average: { label: '平均',   unitType: 'none', symbol: 'avg' },
+        min:     { label: '最小値', unitType: 'none', symbol: 'min' },
+        max:     { label: '最大値', unitType: 'none', symbol: 'max' },
+        count:   { label: '件数',   unitType: 'none', symbol: 'n'   },
     },
 
     dynamicInputGroups: [{

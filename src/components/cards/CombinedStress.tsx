@@ -28,17 +28,17 @@ export const CombinedStressCardDef = createCardDefinition<CombinedStressOutputs>
     },
 
     inputConfig: {
-        N: { label: '軸力 N（正=引張・負=圧縮）', unitType: 'force' },
-        M: { label: '曲げモーメント M', unitType: 'moment' },
-        A: { label: '断面積 A', unitType: 'area' },
-        Z: { label: '断面係数 Z', unitType: 'modulus' },
+        N: { label: '軸力（正=引張・負=圧縮）', unitType: 'force',   symbol: 'N' },
+        M: { label: '曲げモーメント',           unitType: 'moment',  symbol: 'M' },
+        A: { label: '断面積',                   unitType: 'area',    symbol: 'A' },
+        Z: { label: '断面係数',                 unitType: 'modulus', symbol: 'Z' },
     },
 
     outputConfig: {
-        sigma_c:   { label: '軸応力 σ_c = N/A（引張正）',      unitType: 'stress' },
-        sigma_b:   { label: '曲げ応力 σ_b = M/Z（引張正）',    unitType: 'stress' },
-        sigma_max: { label: '最大応力 σ_max = σ_c+|σ_b|', unitType: 'stress' },
-        sigma_min: { label: '最小応力 σ_min = σ_c−|σ_b|', unitType: 'stress' },
+        sigma_c:   { label: '軸応力',   unitType: 'stress', symbol: 'σ_c'   },
+        sigma_b:   { label: '曲げ応力', unitType: 'stress', symbol: 'σ_b'   },
+        sigma_max: { label: '最大応力', unitType: 'stress', symbol: 'σ_max' },
+        sigma_min: { label: '最小応力', unitType: 'stress', symbol: 'σ_min' },
     },
 
     calculate: ({ N, M, A, Z }) => {

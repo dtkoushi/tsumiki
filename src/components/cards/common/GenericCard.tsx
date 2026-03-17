@@ -61,6 +61,7 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstre
                 </button>
             </div>
             <span className="text-sm text-slate-600 truncate font-medium min-w-0 flex-1" title={t(config.label)}>
+                {config.symbol && <span className="font-mono text-slate-400 text-xs mr-1">{config.symbol}</span>}
                 {t(config.label)}
                 {unitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{unitLabel}]</span>}
             </span>
@@ -138,10 +139,12 @@ const DynamicGroupSection = ({
 
             {keys.map(key => {
                 const idx = key.split('_')[1];
+                const sym = config.inputSymbolFn?.(idx);
                 const labelText = rowLabel ? `${rowLabel} (${keyPrefix}_${idx})` : `${keyPrefix}_${idx}`;
                 return (
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                         <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
+                            {sym && <span className="font-mono text-slate-400 text-xs mr-1">{sym}</span>}
                             {labelText}
                             {dUnitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>}
                         </span>
@@ -284,9 +287,11 @@ export const DynamicMultiGroupSection = ({
                                 const resolvedUnitType = f.getUnitType?.(rowRaw) ?? f.unitType;
                                 const resolvedLabel = f.getLabel?.(rowRaw) ?? f.label;
                                 const unitLabel = resolvedUnitType ? getUnitLabel(resolvedUnitType, unitMode) : '';
+                                const fieldSym = typeof f.symbol === 'function' ? f.symbol(String(idx)) : f.symbol;
                                 return (
                                     <div key={f.keyPrefix} className="flex flex-col gap-0.5">
                                         <span className="text-[10px] text-slate-400">
+                                            {fieldSym && <span className="font-mono mr-0.5">{fieldSym}</span>}
                                             {resolvedLabel}
                                             {unitLabel && <span className="ml-0.5">[{unitLabel}]</span>}
                                         </span>
@@ -502,7 +507,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                                                 <OutputRow
                                                     key={outputKey}
                                                     name={outputKey}
-                                                    config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType }}
+                                                    config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType, ...(group.outputSymbolFn ? { symbol: group.outputSymbolFn(idx) } : {}) }}
                                                     card={card}
                                                     unitMode={unitMode}
                                                     isPinned={isPinned}

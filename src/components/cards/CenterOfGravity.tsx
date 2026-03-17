@@ -14,9 +14,9 @@ export const CenterOfGravityCardDef = createCardDefinition<CogOutputs>({
     defaultInputs: {},
     inputConfig: {},
     outputConfig: {
-        x_G:     { label: '重心 x 座標', unitType: 'length' },
-        y_G:     { label: '重心 y 座標', unitType: 'length' },
-        W_total: { label: '合計重量 W',  unitType: 'force'  },
+        x_G:     { label: '重心 x 座標', unitType: 'length', symbol: 'x_G' },
+        y_G:     { label: '重心 y 座標', unitType: 'length', symbol: 'y_G' },
+        W_total: { label: '合計重量',  unitType: 'force',  symbol: 'W'   },
     },
 
     dynamicRowGroups: [{
@@ -24,9 +24,9 @@ export const CenterOfGravityCardDef = createCardDefinition<CogOutputs>({
         rowLabel: '部材',
         minCount: 1,
         fields: [
-            { keyPrefix: 'x', label: 'x 座標', unitType: 'length', defaultValue: 0 },
-            { keyPrefix: 'y', label: 'y 座標', unitType: 'length', defaultValue: 0 },
-            { keyPrefix: 'W', label: '重量 W',  unitType: 'force',  defaultValue: 0 },
+            { keyPrefix: 'x', label: 'x 座標', unitType: 'length', symbol: (i) => `x_${i}`, defaultValue: 0 },
+            { keyPrefix: 'y', label: 'y 座標', unitType: 'length', symbol: (i) => `y_${i}`, defaultValue: 0 },
+            { keyPrefix: 'W', label: '重量',    unitType: 'force',  symbol: (i) => `W_${i}`, defaultValue: 0 },
         ],
     }],
 

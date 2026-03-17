@@ -133,11 +133,11 @@ export const SlidingCardDef = createCardDefinition<Record<string, number>>({
     },
 
     inputConfig: {
-        mu: { label: '摩擦係数 μ', unitType: 'none' },
+        mu: { label: '摩擦係数', unitType: 'none', symbol: 'μ' },
     },
 
     outputConfig: {
-        Fr: { label: '摩擦抵抗力合計 Fr', unitType: 'force' },
+        Fr: { label: '摩擦抵抗力合計', unitType: 'force', symbol: 'Fr' },
     },
 
     dynamicInputGroups: [{
@@ -152,6 +152,8 @@ export const SlidingCardDef = createCardDefinition<Record<string, number>>({
         minCount:       1,
         addLabel:       '鉛直荷重を追加',
         outputIndexFn:  (key) => { const m = key.match(/^fr_(\d+)$/); return m ? m[1] : null; },
+        inputSymbolFn:  (i) => `N_${i}`,
+        outputSymbolFn: (i) => `fr_${i}`,
     }],
 
     calculate: (inputs) => {

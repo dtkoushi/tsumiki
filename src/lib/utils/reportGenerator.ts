@@ -113,6 +113,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
             });
 
         for (const inputKey of inputKeys) {
+            const idx = inputKey.split('_').pop()!;
             const iValue = card.resolvedInputs?.[inputKey] ?? parseFloat(String(card.inputs[inputKey]?.value ?? '0')) ?? 0;
             const refInfo = buildRefInfo(card, inputKey, allCards);
             dynamicInputRows.push({
@@ -121,6 +122,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 unitType: inputUnitType,
                 value: iValue,
                 displayValue: formatDisplayValue(iValue, inputUnitType, unitMode),
+                ...(group.inputSymbolFn ? { symbol: group.inputSymbolFn(idx) } : {}),
                 ...(refInfo ? { refInfo } : {}),
             });
 
@@ -132,6 +134,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 unitType: outputUnitType,
                 value: oValue,
                 displayValue: formatDisplayValue(oValue, outputUnitType, unitMode),
+                ...(group.outputSymbolFn ? { symbol: group.outputSymbolFn(idx) } : {}),
             });
         }
     }
@@ -162,6 +165,10 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
 
                 const resolvedUnitType = field.getUnitType?.(rowRaw) ?? field.unitType ?? 'none';
                 const resolvedLabel = field.getLabel?.(rowRaw) ?? field.label;
+                const rawSym = field.symbol;
+                const sym = rawSym
+                    ? (typeof rawSym === 'function' ? rawSym(String(idx)) : rawSym)
+                    : undefined;
 
                 if (field.options) {
                     const optLabel = field.options.find(o => o.value === rawVal)?.label ?? rawVal;
@@ -171,6 +178,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                         unitType: 'none',
                         value: 0,
                         displayValue: optLabel,
+                        ...(sym ? { symbol: sym } : {}),
                         ...(refInfo ? { refInfo } : {}),
                     });
                 } else {
@@ -181,6 +189,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                         unitType: resolvedUnitType,
                         value: numVal,
                         displayValue: formatDisplayValue(numVal, resolvedUnitType, unitMode),
+                        ...(sym ? { symbol: sym } : {}),
                         ...(refInfo ? { refInfo } : {}),
                     });
                 }

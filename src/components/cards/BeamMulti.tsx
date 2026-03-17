@@ -67,6 +67,7 @@ const LOAD_ROW_GROUP: DynamicMultiGroupConfig = {
                 ? ja['card.beamMulti.loadRow.startA']
                 : ja['card.beamMulti.loadRow.posA'],
             unitType: 'length',
+            symbol: (i) => `a_${i}`,
             defaultValue: 0,
             width: 'sm',
         },
@@ -74,6 +75,7 @@ const LOAD_ROW_GROUP: DynamicMultiGroupConfig = {
             keyPrefix: 'b',
             label: ja['card.beamMulti.loadRow.endB'],
             unitType: 'length',
+            symbol: (i) => `b_${i}`,
             defaultValue: 0,
             hidden: (raw) => raw['load_type'] !== 'dist',
             width: 'sm',
@@ -167,8 +169,8 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
     const boundary = ((card.inputs['boundary']?.value) as BoundaryType) || 'simple';
 
     const RESULT_FIELDS: ResultField[] = [
-        { key: 'M_max', label: 'M_max', unitType: 'moment' },
-        { key: 'V_max', label: 'V_max', unitType: 'force' },
+        { key: 'M_max', label: '最大曲げモーメント', unitType: 'moment' },
+        { key: 'V_max', label: '最大せん断力',       unitType: 'force' },
     ];
 
     const StyledSelect = ({ value, onChange, options }: {
@@ -273,13 +275,13 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     },
 
     inputConfig: {
-        boundary: { label: 'Boundary', unitType: 'none', default: 'simple' },
-        L: { label: 'Span', unitType: 'length', default: 4000 },
+        boundary: { label: '境界条件',  unitType: 'none',   default: 'simple' },
+        L:        { label: 'スパン',    unitType: 'length', default: 4000, symbol: 'L' },
     },
 
     outputConfig: {
-        M_max: { label: 'M_max', unitType: 'moment' },
-        V_max: { label: 'V_max', unitType: 'force' },
+        M_max: { label: '最大曲げモーメント', unitType: 'moment', symbol: 'M_max' },
+        V_max: { label: '最大せん断力',       unitType: 'force',  symbol: 'V_max' },
     },
 
     calculate: (inputs, rawInputs) => {

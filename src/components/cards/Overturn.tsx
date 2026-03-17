@@ -190,15 +190,15 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
     },
 
     inputConfig: {
-        B: { label: '底面幅 B', unitType: 'length' },
+        B: { label: '底面幅', unitType: 'length', symbol: 'B' },
     },
 
     outputConfig: {
-        Ms:      { label: '安定モーメント Ms', unitType: 'moment' },
-        Mo:      { label: '転倒モーメント Mo', unitType: 'moment' },
-        Fs:      { label: '転倒安全率 Fs',    unitType: 'none'   },
-        e:       { label: '偏心距離 e',        unitType: 'length' },
-        e_allow: { label: '許容偏心 B/6',     unitType: 'length' },
+        Ms:      { label: '安定モーメント', unitType: 'moment', symbol: 'Ms'  },
+        Mo:      { label: '転倒モーメント', unitType: 'moment', symbol: 'Mo'  },
+        Fs:      { label: '転倒安全率',     unitType: 'none',   symbol: 'Fs'  },
+        e:       { label: '偏心距離',       unitType: 'length', symbol: 'e'   },
+        e_allow: { label: '許容偏心',       unitType: 'length', symbol: 'B/6' },
     },
 
     dynamicRowGroups: [{
@@ -227,16 +227,18 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
             },
             {
                 keyPrefix:    'x',
-                label:        '位置 x (左端)',
+                label:        '位置（左端）',
                 unitType:     'length',
+                symbol:       (i) => `x_${i}`,
                 defaultValue: 1000,
                 hidden:       (raw) => raw['type'] !== 'vertical',
                 width:        'sm',
             },
             {
                 keyPrefix:    'h',
-                label:        '作用高さ h',
+                label:        '作用高さ',
                 unitType:     'length',
+                symbol:       (i) => `h_${i}`,
                 defaultValue: 0,
                 hidden:       (raw) => raw['type'] !== 'horizontal',
                 width:        'sm',

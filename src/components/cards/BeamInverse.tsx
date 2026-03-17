@@ -93,9 +93,9 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'simple::uniform',
         label: '単純梁 / 等分布荷重',
         inputConfig: {
-            L:        { label: 'スパン長', unitType: 'length', default: 6000 },
-            x_target: { label: 'モーメント計測位置 x₀', unitType: 'length', default: 3000 },
-            M_target: { label: '目標モーメント M', unitType: 'moment', default: 10e6 },
+            L:        { label: 'スパン長',           unitType: 'length', default: 6000,  symbol: 'L'   },
+            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 3000,  symbol: 'x_0' },
+            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6,  symbol: 'M_t' },
         },
         calculate: (inputs) => {
             const { L, x_target, M_target } = inputs;
@@ -110,10 +110,10 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'simple::point',
         label: '単純梁 / 集中荷重',
         inputConfig: {
-            L:        { label: 'スパン長', unitType: 'length', default: 6000 },
-            x_target: { label: 'モーメント計測位置 x₀', unitType: 'length', default: 3000 },
-            M_target: { label: '目標モーメント M', unitType: 'moment', default: 10e6 },
-            a:        { label: '荷重作用位置', unitType: 'length', default: 3000 },
+            L:        { label: 'スパン長',           unitType: 'length', default: 6000,  symbol: 'L'   },
+            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 3000,  symbol: 'x_0' },
+            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6,  symbol: 'M_t' },
+            a:        { label: '荷重作用位置',       unitType: 'length', default: 3000,  symbol: 'a'   },
         },
         calculate: (inputs) => {
             const { L, x_target, M_target, a } = inputs;
@@ -128,9 +128,9 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'cantilever::uniform',
         label: '片持ち梁 / 等分布荷重',
         inputConfig: {
-            L:        { label: 'スパン長', unitType: 'length', default: 3000 },
-            x_target: { label: 'モーメント計測位置 x₀', unitType: 'length', default: 0 },
-            M_target: { label: '目標モーメント M', unitType: 'moment', default: 10e6 },
+            L:        { label: 'スパン長',           unitType: 'length', default: 3000, symbol: 'L'   },
+            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 0,    symbol: 'x_0' },
+            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6, symbol: 'M_t' },
         },
         calculate: (inputs) => {
             const { L, x_target, M_target } = inputs;
@@ -145,10 +145,10 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'cantilever::point',
         label: '片持ち梁 / 集中荷重',
         inputConfig: {
-            L:        { label: 'スパン長', unitType: 'length', default: 3000 },
-            x_target: { label: 'モーメント計測位置 x₀', unitType: 'length', default: 0 },
-            M_target: { label: '目標モーメント M', unitType: 'moment', default: 10e6 },
-            a:        { label: '荷重作用位置', unitType: 'length', default: 3000 },
+            L:        { label: 'スパン長',           unitType: 'length', default: 3000, symbol: 'L'   },
+            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 0,    symbol: 'x_0' },
+            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6, symbol: 'M_t' },
+            a:        { label: '荷重作用位置',       unitType: 'length', default: 3000, symbol: 'a'   },
         },
         calculate: (inputs) => {
             const { L, x_target, M_target, a } = inputs;
@@ -191,9 +191,9 @@ export const BeamInverseCardDef = createStrategyDefinition<BeamInverseOutputs>({
     strategies: Strategies,
     sidebar: { category: 'beam', order: 3 },
     outputConfig: {
-        w_solved: { label: '等分布荷重 w', unitType: 'load' },
-        P_solved: { label: '集中荷重 P', unitType: 'force' },
-        diagramModel: { label: 'ビームモデル', unitType: 'none', hidden: true },
+        w_solved:     { label: '等分布荷重（逆算）', unitType: 'load',  symbol: 'w' },
+        P_solved:     { label: '集中荷重（逆算）',   unitType: 'force', symbol: 'P' },
+        diagramModel: { label: 'ビームモデル',       unitType: 'none',  hidden: true },
     },
     shouldRenderInput: (card, key) => {
         if (key !== 'a') return true;

@@ -127,19 +127,19 @@ export const BearingPressureCardDef = createCardDefinition<BearingPressureOutput
     },
 
     inputConfig: {
-        N:  { label: '鉛直力合計 N',     unitType: 'force' },
-        M:  { label: '転倒モーメント M',  unitType: 'moment' },
-        B:  { label: '基礎幅 B',          unitType: 'length' },
-        L:  { label: '基礎奥行き L',      unitType: 'length' },
-        qa: { label: '許容地耐力 qa',     unitType: 'stress' },
+        N:  { label: '鉛直力合計',   unitType: 'force',  symbol: 'N'  },
+        M:  { label: '転倒モーメント', unitType: 'moment', symbol: 'M'  },
+        B:  { label: '基礎幅',       unitType: 'length', symbol: 'B'  },
+        L:  { label: '基礎奥行き',   unitType: 'length', symbol: 'L'  },
+        qa: { label: '許容地耐力',   unitType: 'stress', symbol: 'qa' },
     },
 
     outputConfig: {
-        q_max:   { label: '最大接地圧 q_max',          unitType: 'stress' },
-        q_min:   { label: '最小接地圧 q_min',          unitType: 'stress' },
-        ratio:   { label: '検定比 q_max/qa',           unitType: 'ratio' },
-        e:       { label: '偏心距離 e = M/N',          unitType: 'length' },
-        e_allow: { label: 'kern 限界 e_allow = B/6',   unitType: 'length' },
+        q_max:   { label: '最大接地圧', unitType: 'stress', symbol: 'q_max' },
+        q_min:   { label: '最小接地圧', unitType: 'stress', symbol: 'q_min' },
+        ratio:   { label: '検定比',     unitType: 'ratio',  symbol: 'q/qa'  },
+        e:       { label: '偏心距離',   unitType: 'length', symbol: 'e'     },
+        e_allow: { label: 'kern 限界',  unitType: 'length', symbol: 'B/6'   },
     },
 
     calculate: ({ N, M, B, L, qa }) => {
