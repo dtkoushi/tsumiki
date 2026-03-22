@@ -199,10 +199,12 @@ export const SectionHSelectDef: CardDefinition<SectionHSelectOutputs> = {
             Fy: num({
                 label: '降伏応力度 Fy（F値）',
                 unitType: 'stress',
+                symbol: 'Fy',
             }),
             sigma_y: num({
                 label: '降伏応力度 σy（実勢値）',
                 unitType: 'stress',
+                symbol: 'σy',
             }),
         };
     },

@@ -42,7 +42,7 @@ export const WeldCardDef = createCardDefinition<WeldOutputs>({
         A_w:       { label: 'のど断面積',   unitType: 'area',   symbol: 'A_w',         formula: 'a × l',                         formulaInputKeys: ['a', 'l'] },
         sigma_perp:{ label: '直交応力',     unitType: 'stress', symbol: 'sigma_perp',  formula: 'F / A_w',                       formulaInputKeys: ['F'] },
         tau_par:   { label: '平行せん断',   unitType: 'stress', symbol: 'tau_par',     formula: 'V / A_w',                       formulaInputKeys: ['V'] },
-        f_eq:      { label: '合成応力',     unitType: 'stress', symbol: 'f_eq',        formula: '√(sigma_perp² + tau_par²)',      formulaInputKeys: ['sigma_perp', 'tau_par'] },
+        f_eq:      { label: '合成応力',     unitType: 'stress', symbol: 'f_eq',        formula: '√(sigma_perp² + tau_par²)' },
         ratio:     { label: '検定比',       unitType: 'ratio',  symbol: 'ratio',       formula: 'f_eq / fw',                     formulaInputKeys: ['fw'] },
     },
 

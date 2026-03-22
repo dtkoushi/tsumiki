@@ -212,9 +212,10 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         const { outputKeyFn, outputLabel, outputUnitType } = group;
         const outputKey = outputKeyFn(inputKey);
         const oValue = card.outputs[outputKey] ?? 0;
-        const formulaWithValues = group.outputFormula && group.outputFormulaInputKeysFn
+        const expanded = group.outputFormula && group.outputFormulaInputKeysFn
             ? expandFormulaWithValues(group.outputFormula, group.outputFormulaInputKeysFn(inputKey, idx), allInputRows)
             : undefined;
+        const formulaWithValues = expanded !== group.outputFormula ? expanded : undefined;
         dynamicOutputRows.push({
             key: outputKey,
             label: `${outputLabel} (${outputKey})`,
@@ -238,9 +239,10 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         .map(([key, cfg]) => {
             const unitType = cfg.unitType ?? 'none';
             const value = card.outputs[key] ?? 0;
-            const formulaWithValues = cfg.formula && cfg.formulaInputKeys
+            const expanded = cfg.formula && cfg.formulaInputKeys
                 ? expandFormulaWithValues(cfg.formula, cfg.formulaInputKeys, allInputRows)
                 : undefined;
+            const formulaWithValues = expanded !== cfg.formula ? expanded : undefined;
             return {
                 key,
                 label: cfg.label,
