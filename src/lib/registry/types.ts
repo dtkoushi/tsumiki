@@ -1,11 +1,8 @@
 import React from 'react';
 import type { Card } from '../../types';
+import type { InputFieldConfig } from '../utils/inputField';
 
-/**
- * Unit types that SmartInput can convert between mm-mode and m-mode.
- * All OutputUnitType values are supported except 'ratio' (always dimensionless).
- */
-export type SmartInputUnitType = 'length' | 'area' | 'inertia' | 'force' | 'moment' | 'load' | 'stress' | 'modulus' | 'none';
+export type { SmartInputUnitType } from '../utils/unitFormatter';
 
 // Actions passed to components (Decoupled from Store)
 export interface CardActions {
@@ -32,12 +29,7 @@ export interface CardStrategy<TOutputs extends Record<string, any> = Record<stri
     label: string;
 
     // Inputs specific to this strategy
-    inputConfig: Record<string, {
-        label: string;
-        unitType?: SmartInputUnitType;
-        default?: any;
-        symbol?: string;
-    }>;
+    inputConfig: Record<string, InputFieldConfig>;
 
     // Calculation logic for this strategy
     calculate: (inputs: Record<string, number>) => TOutputs;
@@ -167,24 +159,10 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
     // Configuration for UI generation
 
     // Legacy static input config (will be merged with dynamic if present)
-    inputConfig?: Record<string, {
-        label: string;
-        unitType?: SmartInputUnitType;
-        default?: any;
-        type?: 'number' | 'text' | 'select';
-        options?: { label: string; value: string | number }[];
-        symbol?: string;
-    }>;
+    inputConfig?: Record<string, InputFieldConfig>;
 
     // Dynamic input config based on card state (Strategy Pattern)
-    getInputConfig?: (card: import('../../types').Card) => Record<string, {
-        label: string;
-        unitType?: SmartInputUnitType;
-        default?: any;
-        type?: 'number' | 'text' | 'select';
-        options?: { label: string; value: string | number }[];
-        symbol?: string;
-    }>;
+    getInputConfig?: (card: import('../../types').Card) => Record<string, InputFieldConfig>;
 
     // Output Config: Enforce keys match TOutputs
     // hidden: true means the output is available for references but not shown in the Results panel

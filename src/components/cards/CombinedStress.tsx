@@ -1,6 +1,7 @@
 
 import { Layers } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 
 // --- Types ---
 
@@ -28,10 +29,10 @@ export const CombinedStressCardDef = createCardDefinition<CombinedStressOutputs>
     },
 
     inputConfig: {
-        N: { label: '軸力（正=引張・負=圧縮）', unitType: 'force',   symbol: 'N' },
-        M: { label: '曲げモーメント',           unitType: 'moment',  symbol: 'M' },
-        A: { label: '断面積',                   unitType: 'area',    symbol: 'A' },
-        Z: { label: '断面係数',                 unitType: 'modulus', symbol: 'Z' },
+        N: num({ label: '軸力（正=引張・負=圧縮）', unitType: 'force',   symbol: 'N' }),
+        M: num({ label: '曲げモーメント',           unitType: 'moment',  symbol: 'M' }),
+        A: num({ label: '断面積',                   unitType: 'area',    symbol: 'A' }),
+        Z: num({ label: '断面係数',                 unitType: 'modulus', symbol: 'Z' }),
     },
 
     outputConfig: {

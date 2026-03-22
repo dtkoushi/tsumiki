@@ -2,6 +2,7 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { formatOutput, type UnitMode } from '../../lib/utils/unitFormatter';
 import { drawArrow, drawDashedLine, drawLabel, drawRect } from './common/svgPrimitives';
@@ -154,7 +155,7 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     inputConfig: {
-        M: { label: ja['card.couple.inputs.moment'], unitType: 'moment', symbol: 'M' },
+        M: num({ label: ja['card.couple.inputs.moment'], unitType: 'moment', symbol: 'M' }),
     },
 
     outputConfig: {

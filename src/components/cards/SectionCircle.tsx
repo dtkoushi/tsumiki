@@ -1,6 +1,7 @@
 
 import { Circle } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 
 // --- Types ---
@@ -89,10 +90,10 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     },
 
     inputConfig: {
-        D:       { label: '外径 D',                unitType: 'length', symbol: 'D' },
-        t:       { label: '板厚 t（中実=0）',       unitType: 'length', symbol: 't' },
-        Fy:      { label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' },
+        D:       num({ label: '外径 D',                unitType: 'length', symbol: 'D' }),
+        t:       num({ label: '板厚 t（中実=0）',       unitType: 'length', symbol: 't' }),
+        Fy:      num({ label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' }),
+        sigma_y: num({ label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' }),
     },
 
     outputConfig: {

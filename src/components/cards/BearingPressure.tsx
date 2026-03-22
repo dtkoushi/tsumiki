@@ -2,6 +2,7 @@
 import React from 'react';
 import { Building2 } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/AutoFitSvg';
 import { drawLabel } from './common/svgPrimitives';
@@ -127,11 +128,11 @@ export const BearingPressureCardDef = createCardDefinition<BearingPressureOutput
     },
 
     inputConfig: {
-        N:  { label: '鉛直力合計',   unitType: 'force',  symbol: 'N'  },
-        M:  { label: '転倒モーメント', unitType: 'moment', symbol: 'M'  },
-        B:  { label: '基礎幅',       unitType: 'length', symbol: 'B'  },
-        L:  { label: '基礎奥行き',   unitType: 'length', symbol: 'L'  },
-        qa: { label: '許容地耐力',   unitType: 'stress', symbol: 'qa' },
+        N:  num({ label: '鉛直力合計',   unitType: 'force',  symbol: 'N'  }),
+        M:  num({ label: '転倒モーメント', unitType: 'moment', symbol: 'M'  }),
+        B:  num({ label: '基礎幅',       unitType: 'length', symbol: 'B'  }),
+        L:  num({ label: '基礎奥行き',   unitType: 'length', symbol: 'L'  }),
+        qa: num({ label: '許容地耐力',   unitType: 'stress', symbol: 'qa' }),
     },
 
     outputConfig: {

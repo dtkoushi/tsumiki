@@ -80,19 +80,22 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         };
     }
 
-    const effectiveInputConfig = def.getInputConfig?.(card) ?? def.inputConfig ?? {};
+    const effectiveInputConfig = {
+        ...(def.inputConfig ?? {}),
+        ...(def.getInputConfig?.(card) ?? {}),
+    };
 
     // --- Standard inputs ---
     const inputRows: ReportFieldRow[] = Object.entries(effectiveInputConfig).map(([key, cfg]) => {
-        const unitType = cfg.unitType ?? 'none';
-        const value = card.resolvedInputs?.[key] ?? parseFloat(String(card.inputs[key]?.value ?? '0')) ?? 0;
+        const rawVal = String(card.inputs[key]?.value ?? '');
+        const resolved = card.resolvedInputs?.[key];
         const refInfo = buildRefInfo(card, key, allCards);
         return {
             key,
             label: cfg.label,
-            unitType,
-            value,
-            displayValue: formatDisplayValue(value, unitType, unitMode),
+            unitType: cfg.reportUnitType,
+            value: cfg.reportValue(rawVal, resolved),
+            displayValue: cfg.display(rawVal, resolved, unitMode),
             ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
             ...(refInfo ? { refInfo } : {}),
         };

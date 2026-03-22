@@ -2,6 +2,7 @@
 import React from 'react';
 import { RotateCcw } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/AutoFitSvg';
 import { drawArrow, drawLabel, drawDashedLine } from './common/svgPrimitives';
@@ -190,7 +191,7 @@ export const OverturnCardDef = createCardDefinition<OverturnOutputs>({
     },
 
     inputConfig: {
-        B: { label: '底面幅', unitType: 'length', symbol: 'B' },
+        B: num({ label: '底面幅', unitType: 'length', symbol: 'B' }),
     },
 
     outputConfig: {

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BarChart2, Plus, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
 import { CardProvider } from './common/CardContext';
@@ -338,7 +339,7 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     inputConfig: {
-        diagramModel: { label: ja['card.diagram.inputs.diagramModel'], unitType: 'none' },
+        diagramModel: num({ label: ja['card.diagram.inputs.diagramModel'], unitType: 'none' }),
     },
 
     outputConfig: {},

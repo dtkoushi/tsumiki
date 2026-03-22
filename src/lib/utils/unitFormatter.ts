@@ -5,6 +5,8 @@ export type UnitMode = 'mm' | 'm';
 // Defines the physical quantity type for proper conversion
 export type OutputUnitType = 'length' | 'area' | 'inertia' | 'force' | 'moment' | 'stress' | 'ratio' | 'modulus' | 'load' | 'none';
 
+export type SmartInputUnitType = Exclude<OutputUnitType, 'ratio'>;
+
 // Multiply display value by this factor to get SI value (used in SmartInput)
 export const INPUT_FACTORS: Partial<Record<OutputUnitType, number>> = {
     length: 1000,

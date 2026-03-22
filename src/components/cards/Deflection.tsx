@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowDown } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
 import { CardProvider } from './common/CardContext';
@@ -317,10 +318,10 @@ export const DeflectionCardDef = createCardDefinition({
     },
 
     inputConfig: {
-        diagramModel: { label: ja['card.deflection.inputs.diagramModel'], unitType: 'none' },
-        E:            { label: ja['card.deflection.inputs.E'],            unitType: 'modulus', symbol: 'E' },
-        I:            { label: ja['card.deflection.inputs.I'],            unitType: 'inertia', symbol: 'I' },
-        n_allow:      { label: ja['card.deflection.inputs.n_allow'],      unitType: 'none',    symbol: 'n' },
+        diagramModel: num({ label: ja['card.deflection.inputs.diagramModel'], unitType: 'none' }),
+        E:            num({ label: ja['card.deflection.inputs.E'],            unitType: 'modulus', symbol: 'E' }),
+        I:            num({ label: ja['card.deflection.inputs.I'],            unitType: 'inertia', symbol: 'I' }),
+        n_allow:      num({ label: ja['card.deflection.inputs.n_allow'],      unitType: 'none',    symbol: 'n' }),
     },
 
     outputConfig: {

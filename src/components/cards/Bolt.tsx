@@ -2,6 +2,7 @@
 import { Settings2 } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { num } from '../../lib/utils/inputField';
 
 // --- Types ---
 
@@ -17,7 +18,7 @@ const frictionStrategy: CardStrategy<BoltOutputs> = {
     id: 'friction',
     label: '摩擦接合（高力ボルト）',
     inputConfig: {
-        f_allow: { label: '許容耐力/本', unitType: 'force' as const, default: 30000, symbol: 'f_allow' },
+        f_allow: num({ label: '許容耐力/本', unitType: 'force', default: 30000, symbol: 'f_allow' }),
     },
     calculate: (inputs) => {
         const Q       = inputs['Q']       || 0;
@@ -36,9 +37,9 @@ const bearingStrategy: CardStrategy<BoltOutputs> = {
     id: 'bearing',
     label: '支圧接合（普通ボルト）',
     inputConfig: {
-        t:         { label: '接合板厚',       unitType: 'length' as const, default: 9,   symbol: 't' },
-        d:         { label: 'ボルト径',        unitType: 'length' as const, default: 20,  symbol: 'd' },
-        F_b_allow: { label: '支圧許容応力度',  unitType: 'stress' as const, default: 270, symbol: 'F_b_allow' },
+        t:         num({ label: '接合板厚',       unitType: 'length', default: 9,   symbol: 't' }),
+        d:         num({ label: 'ボルト径',        unitType: 'length', default: 20,  symbol: 'd' }),
+        F_b_allow: num({ label: '支圧許容応力度',  unitType: 'stress', default: 270, symbol: 'F_b_allow' }),
     },
     calculate: (inputs) => {
         const Q        = inputs['Q']        || 0;
@@ -79,9 +80,9 @@ export const BoltCardDef = createStrategyDefinition<BoltOutputs>({
     strategies: [frictionStrategy, bearingStrategy],
 
     commonInputConfig: {
-        n:      { label: 'ボルト本数',   unitType: 'none'  as const, default: 4, symbol: 'n' },
-        Q:      { label: 'せん断力合計', unitType: 'force' as const,             symbol: 'Q' },
-        n_face: { label: 'せん断面数',   unitType: 'none'  as const, default: 1, symbol: 'n_face' },
+        n:      num({ label: 'ボルト本数',   unitType: 'none',  default: 4, symbol: 'n' }),
+        Q:      num({ label: 'せん断力合計', unitType: 'force',             symbol: 'Q' }),
+        n_face: num({ label: 'せん断面数',   unitType: 'none',  default: 1, symbol: 'n_face' }),
     },
 
     outputConfig: {

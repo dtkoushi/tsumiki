@@ -1,6 +1,7 @@
 
 import { RectangleHorizontal } from 'lucide-react';
 import type { CardDefinition } from '../../lib/registry/types';
+import { num, sel } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { H_SECTIONS, byCategory, findHSection, CATEGORY_DEFAULTS } from '../../lib/data/hSections';
 import type { HFlangeCategory } from '../../lib/data/hSections';
@@ -178,12 +179,11 @@ export const SectionHSelectDef: CardDefinition<SectionHSelectOutputs> = {
 
     // Static: flangeType axis selector
     inputConfig: {
-        flangeType: {
+        flangeType: sel({
             label: 'フランジ幅',
-            type: 'select',
             options: FLANGE_OPTIONS,
             default: 'narrow',
-        },
+        }),
     },
 
     // Dynamic: section options change based on flangeType
@@ -191,20 +191,19 @@ export const SectionHSelectDef: CardDefinition<SectionHSelectOutputs> = {
         const flangeType = (card.inputs['flangeType']?.value ?? 'narrow') as HFlangeCategory;
         const options = byCategory(flangeType).map(s => ({ value: s.name, label: s.name }));
         return {
-            section: {
+            section: sel({
                 label: '断面形状',
-                type: 'select' as const,
                 options,
                 default: CATEGORY_DEFAULTS[flangeType],
-            },
-            Fy: {
+            }),
+            Fy: num({
                 label: '降伏応力度 Fy（F値）',
-                unitType: 'stress' as const,
-            },
-            sigma_y: {
+                unitType: 'stress',
+            }),
+            sigma_y: num({
                 label: '降伏応力度 σy（実勢値）',
-                unitType: 'stress' as const,
-            },
+                unitType: 'stress',
+            }),
         };
     },
 

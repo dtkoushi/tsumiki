@@ -1,6 +1,7 @@
 
 import { Zap } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 
 // --- Types ---
 
@@ -30,11 +31,11 @@ export const WeldCardDef = createCardDefinition<WeldOutputs>({
     },
 
     inputConfig: {
-        F:  { label: '直交力（引張・圧縮）', unitType: 'force',  symbol: 'F' },
-        V:  { label: '平行力（せん断）',     unitType: 'force',  symbol: 'V' },
-        a:  { label: 'のど厚（≒0.7×サイズ）', unitType: 'length', symbol: 'a' },
-        l:  { label: '溶接長さ',             unitType: 'length', symbol: 'l' },
-        fw: { label: '許容応力度',           unitType: 'stress', symbol: 'fw' },
+        F:  num({ label: '直交力（引張・圧縮）', unitType: 'force',  symbol: 'F' }),
+        V:  num({ label: '平行力（せん断）',     unitType: 'force',  symbol: 'V' }),
+        a:  num({ label: 'のど厚（≒0.7×サイズ）', unitType: 'length', symbol: 'a' }),
+        l:  num({ label: '溶接長さ',             unitType: 'length', symbol: 'l' }),
+        fw: num({ label: '許容応力度',           unitType: 'stress', symbol: 'fw' }),
     },
 
     outputConfig: {

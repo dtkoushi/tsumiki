@@ -2,6 +2,7 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/visualizationHelper';
 
@@ -108,11 +109,11 @@ export const SectionRCDef = createCardDefinition<SectionRCOutputs>({
         Fc: { value: 24 },
     },
     inputConfig: {
-        b:  { label: '幅',           unitType: 'length', symbol: 'b'  },
-        H:  { label: '全高さ',       unitType: 'length', symbol: 'H'  },
-        d:  { label: '有効せい',     unitType: 'length', symbol: 'd'  },
-        at: { label: '鉄筋断面積',   unitType: 'area',   symbol: 'at' },
-        Fc: { label: '設計基準強度', unitType: 'stress', symbol: 'Fc' },
+        b:  num({ label: '幅',           unitType: 'length', symbol: 'b'  }),
+        H:  num({ label: '全高さ',       unitType: 'length', symbol: 'H'  }),
+        d:  num({ label: '有効せい',     unitType: 'length', symbol: 'd'  }),
+        at: num({ label: '鉄筋断面積',   unitType: 'area',   symbol: 'at' }),
+        Fc: num({ label: '設計基準強度', unitType: 'stress', symbol: 'Fc' }),
     },
     outputConfig: {
         A:   { label: '総断面積',          unitType: 'area',    symbol: 'A',   formula: 'b × H',           formulaInputKeys: ['b', 'H'] },

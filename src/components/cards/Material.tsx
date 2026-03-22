@@ -2,6 +2,7 @@
 import { Hexagon } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { num } from '../../lib/utils/inputField';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Local Types ---
@@ -47,7 +48,7 @@ const ConcreteStrategy: CardStrategy<MaterialOutputs> = {
     id: 'concrete',
     label: 'コンクリート',
     inputConfig: {
-        Fc: { label: '設計基準強度 Fc', unitType: 'stress', default: 24 },
+        Fc: num({ label: '設計基準強度 Fc', unitType: 'stress', default: 24 }),
     },
     calculate: (inputs) => {
         const Fc = inputs['Fc'] ?? 24;

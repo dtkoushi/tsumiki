@@ -1,6 +1,7 @@
 
 import { Square } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 
 // --- Types ---
@@ -110,11 +111,11 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         sigma_y: { value: 235 },
     },
     inputConfig: {
-        B:       { label: '幅 B',                    unitType: 'length', symbol: 'B' },
-        H:       { label: '高さ H',                  unitType: 'length', symbol: 'H' },
-        t:       { label: '板厚 t（中実=0）',         unitType: 'length', symbol: 't' },
-        Fy:      { label: '降伏応力度 Fy（F値）',      unitType: 'stress', symbol: 'Fy' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）',   unitType: 'stress', symbol: 'σy' },
+        B:       num({ label: '幅 B',                    unitType: 'length', symbol: 'B' }),
+        H:       num({ label: '高さ H',                  unitType: 'length', symbol: 'H' }),
+        t:       num({ label: '板厚 t（中実=0）',         unitType: 'length', symbol: 't' }),
+        Fy:      num({ label: '降伏応力度 Fy（F値）',      unitType: 'stress', symbol: 'Fy' }),
+        sigma_y: num({ label: '降伏応力度 σy（実勢値）',   unitType: 'stress', symbol: 'σy' }),
     },
     outputConfig: {
         A:   { label: '断面積',           unitType: 'area',    formula: 'B × H',        symbol: 'A',    formulaInputKeys: ['B', 'H'] },

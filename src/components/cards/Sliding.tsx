@@ -2,6 +2,7 @@
 import React from 'react';
 import { MoveHorizontal } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/AutoFitSvg';
 import { drawArrow, drawLabel } from './common/svgPrimitives';
@@ -133,7 +134,7 @@ export const SlidingCardDef = createCardDefinition<Record<string, number>>({
     },
 
     inputConfig: {
-        mu: { label: '摩擦係数', unitType: 'none', symbol: 'μ' },
+        mu: num({ label: '摩擦係数', unitType: 'none', symbol: 'μ' }),
     },
 
     outputConfig: {

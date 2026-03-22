@@ -2,6 +2,7 @@
 import { ArrowLeftRight } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { calculateBeamAt, type BeamModel } from '../../lib/mechanics/beam';
 import {
@@ -93,9 +94,9 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'simple::uniform',
         label: '単純梁 / 等分布荷重',
         inputConfig: {
-            L:        { label: 'スパン長',           unitType: 'length', default: 6000,  symbol: 'L'   },
-            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 3000,  symbol: 'x_0' },
-            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6,  symbol: 'M_t' },
+            L:        num({ label: 'スパン長',           unitType: 'length', default: 6000,  symbol: 'L'   }),
+            x_target: num({ label: 'モーメント計測位置', unitType: 'length', default: 3000,  symbol: 'x_0' }),
+            M_target: num({ label: '目標モーメント',     unitType: 'moment', default: 10e6,  symbol: 'M_t' }),
         },
         calculate: (inputs) => {
             const { L, x_target, M_target } = inputs;
@@ -110,10 +111,10 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'simple::point',
         label: '単純梁 / 集中荷重',
         inputConfig: {
-            L:        { label: 'スパン長',           unitType: 'length', default: 6000,  symbol: 'L'   },
-            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 3000,  symbol: 'x_0' },
-            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6,  symbol: 'M_t' },
-            a:        { label: '荷重作用位置',       unitType: 'length', default: 3000,  symbol: 'a'   },
+            L:        num({ label: 'スパン長',           unitType: 'length', default: 6000,  symbol: 'L'   }),
+            x_target: num({ label: 'モーメント計測位置', unitType: 'length', default: 3000,  symbol: 'x_0' }),
+            M_target: num({ label: '目標モーメント',     unitType: 'moment', default: 10e6,  symbol: 'M_t' }),
+            a:        num({ label: '荷重作用位置',       unitType: 'length', default: 3000,  symbol: 'a'   }),
         },
         calculate: (inputs) => {
             const { L, x_target, M_target, a } = inputs;
@@ -128,9 +129,9 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'cantilever::uniform',
         label: '片持ち梁 / 等分布荷重',
         inputConfig: {
-            L:        { label: 'スパン長',           unitType: 'length', default: 3000, symbol: 'L'   },
-            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 0,    symbol: 'x_0' },
-            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6, symbol: 'M_t' },
+            L:        num({ label: 'スパン長',           unitType: 'length', default: 3000, symbol: 'L'   }),
+            x_target: num({ label: 'モーメント計測位置', unitType: 'length', default: 0,    symbol: 'x_0' }),
+            M_target: num({ label: '目標モーメント',     unitType: 'moment', default: 10e6, symbol: 'M_t' }),
         },
         calculate: (inputs) => {
             const { L, x_target, M_target } = inputs;
@@ -145,10 +146,10 @@ const Strategies: CardStrategy<BeamInverseOutputs>[] = [
         id: 'cantilever::point',
         label: '片持ち梁 / 集中荷重',
         inputConfig: {
-            L:        { label: 'スパン長',           unitType: 'length', default: 3000, symbol: 'L'   },
-            x_target: { label: 'モーメント計測位置', unitType: 'length', default: 0,    symbol: 'x_0' },
-            M_target: { label: '目標モーメント',     unitType: 'moment', default: 10e6, symbol: 'M_t' },
-            a:        { label: '荷重作用位置',       unitType: 'length', default: 3000, symbol: 'a'   },
+            L:        num({ label: 'スパン長',           unitType: 'length', default: 3000, symbol: 'L'   }),
+            x_target: num({ label: 'モーメント計測位置', unitType: 'length', default: 0,    symbol: 'x_0' }),
+            M_target: num({ label: '目標モーメント',     unitType: 'moment', default: 10e6, symbol: 'M_t' }),
+            a:        num({ label: '荷重作用位置',       unitType: 'length', default: 3000, symbol: 'a'   }),
         },
         calculate: (inputs) => {
             const { L, x_target, M_target, a } = inputs;

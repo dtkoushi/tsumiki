@@ -1,5 +1,6 @@
 import { Activity } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
@@ -26,10 +27,10 @@ export const StressCardDef = createCardDefinition<StressOutputs>({
     },
 
     inputConfig: {
-        M: { label: ja['card.stress.inputs.M'], unitType: 'moment',  symbol: 'M' },
-        V: { label: ja['card.stress.inputs.V'], unitType: 'force',   symbol: 'V' },
-        Z: { label: ja['card.stress.inputs.Z'], unitType: 'modulus', symbol: 'Z' },
-        A: { label: ja['card.stress.inputs.A'], unitType: 'area',    symbol: 'A' },
+        M: num({ label: ja['card.stress.inputs.M'], unitType: 'moment',  symbol: 'M' }),
+        V: num({ label: ja['card.stress.inputs.V'], unitType: 'force',   symbol: 'V' }),
+        Z: num({ label: ja['card.stress.inputs.Z'], unitType: 'modulus', symbol: 'Z' }),
+        A: num({ label: ja['card.stress.inputs.A'], unitType: 'area',    symbol: 'A' }),
     },
 
     outputConfig: {

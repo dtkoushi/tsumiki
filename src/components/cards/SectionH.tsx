@@ -1,6 +1,7 @@
 
 import { RectangleHorizontal } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 
 // --- Types ---
@@ -114,12 +115,12 @@ export const SectionHDef = createCardDefinition<SectionHOutputs>({
         sigma_y: { value: 235 },
     },
     inputConfig: {
-        H:       { label: '断面高さ H',            unitType: 'length', symbol: 'H' },
-        B:       { label: 'フランジ幅 B',          unitType: 'length', symbol: 'B' },
-        tw:      { label: 'ウェブ厚 tw',           unitType: 'length', symbol: 'tw' },
-        tf:      { label: 'フランジ厚 tf',         unitType: 'length', symbol: 'tf' },
-        Fy:      { label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' },
+        H:       num({ label: '断面高さ H',            unitType: 'length', symbol: 'H' }),
+        B:       num({ label: 'フランジ幅 B',          unitType: 'length', symbol: 'B' }),
+        tw:      num({ label: 'ウェブ厚 tw',           unitType: 'length', symbol: 'tw' }),
+        tf:      num({ label: 'フランジ厚 tf',         unitType: 'length', symbol: 'tf' }),
+        Fy:      num({ label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' }),
+        sigma_y: num({ label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' }),
     },
     outputConfig: {
         A:        { label: '断面積',               unitType: 'area',    formula: '2×B×tf + (H−2tf)×tw',          symbol: 'A',    formulaInputKeys: ['B', 'tf', 'H', 'tw'] },

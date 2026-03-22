@@ -1,4 +1,5 @@
 import type { CardDefinition, CardStrategy } from './types';
+import { sel, type InputFieldConfig } from '../utils/inputField';
 
 
 // ─── DEV-mode validation ─────────────────────────────────────────────────────
@@ -19,7 +20,7 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
         for (const key of Object.keys(def.defaultInputs)) {
             // Skip dynamic group keys (e.g. d_1, d_2) and strategy axis keys
             if (/^.+_\d+$/.test(key)) continue;
-            if (def.inputConfig[key]?.type === 'select') continue;
+            if (def.inputConfig[key]?.kind === 'select') continue;
             if (!configKeys.has(key) && !def.getInputConfig) {
                 warn(`defaultInputs key "${key}" not found in inputConfig — possible typo`);
             }
@@ -30,7 +31,7 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
     if (def.inputConfig && def.defaultInputs) {
         const defaultKeys = new Set(Object.keys(def.defaultInputs));
         for (const [key, config] of Object.entries(def.inputConfig)) {
-            if (config.type === 'select') continue;
+            if (config.kind === 'select') continue;
             if (!defaultKeys.has(key)) {
                 warn(`inputConfig key "${key}" has no defaultInputs entry — new cards will have no initial value`);
             }
@@ -103,6 +104,7 @@ interface StrategyAxis {
     label: string;
     options: { label: string; value: string }[];
     default: string;
+    symbol?: string;
 }
 
 interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Record<string, number>> {
@@ -209,14 +211,14 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
 
         // Static Input Config: Generate selectors for all axes
         inputConfig: axes.reduce((acc, axis) => {
-            acc[axis.key] = {
+            acc[axis.key] = sel({
                 label: axis.label,
-                type: 'select',
                 options: axis.options,
-                default: axis.default
-            };
+                default: axis.default,
+                ...(axis.symbol ? { symbol: axis.symbol } : {}),
+            });
             return acc;
-        }, {} as Record<string, any>),
+        }, {} as Record<string, InputFieldConfig>),
 
         // Dynamic Input Config: Merge commonInputConfig with strategy-specific config
         // Strategy-specific fields take precedence over commonInputConfig fields
