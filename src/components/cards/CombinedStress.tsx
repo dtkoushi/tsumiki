@@ -36,10 +36,10 @@ export const CombinedStressCardDef = createCardDefinition<CombinedStressOutputs>
     },
 
     outputConfig: {
-        sigma_c:   { label: '軸応力',   unitType: 'stress', symbol: 'σ_c'   },
-        sigma_b:   { label: '曲げ応力', unitType: 'stress', symbol: 'σ_b'   },
-        sigma_max: { label: '最大応力', unitType: 'stress', symbol: 'σ_max' },
-        sigma_min: { label: '最小応力', unitType: 'stress', symbol: 'σ_min' },
+        sigma_c:   { label: '軸応力',   unitType: 'stress', symbol: 'σ_c',   formula: 'N / A',         formulaInputKeys: ['N', 'A'] },
+        sigma_b:   { label: '曲げ応力', unitType: 'stress', symbol: 'σ_b',   formula: 'M / Z',         formulaInputKeys: ['M', 'Z'] },
+        sigma_max: { label: '最大応力', unitType: 'stress', symbol: 'σ_max', formula: 'σ_c + |σ_b|' },
+        sigma_min: { label: '最小応力', unitType: 'stress', symbol: 'σ_min', formula: 'σ_c − |σ_b|' },
     },
 
     calculate: ({ N, M, A, Z }) => {

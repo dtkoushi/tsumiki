@@ -41,8 +41,9 @@ function expandFormulaWithValues(
     for (const key of formulaInputKeys) {
         const displayVal = allInputRows.find(r => r.key === key)?.displayValue ?? key;
         // Replace whole-word occurrences of `key` only (not substrings of other identifiers)
+        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         result = result.replace(
-            new RegExp(`(?<![A-Za-z_])${key}(?![A-Za-z_0-9])`, 'g'),
+            new RegExp(`(?<![A-Za-z_])${escapedKey}(?![A-Za-z_0-9])`, 'g'),
             displayVal,
         );
     }

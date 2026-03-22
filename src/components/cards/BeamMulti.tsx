@@ -2,7 +2,7 @@
 import React from 'react';
 import { GitBranch } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
-import { num } from '../../lib/utils/inputField';
+import { num, sel } from '../../lib/utils/inputField';
 import type { CardComponentProps, DynamicMultiGroupConfig } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
 import { CardProvider } from './common/CardContext';
@@ -276,7 +276,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     },
 
     inputConfig: {
-        boundary: num({ label: '境界条件',  unitType: 'none',   default: 0 }),
+        boundary: sel({ label: '境界条件', options: BOUNDARY_OPTIONS, default: 'simple' }),
         L:        num({ label: 'スパン',    unitType: 'length', default: 4000, symbol: 'L' }),
     },
 
