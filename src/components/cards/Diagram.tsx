@@ -369,6 +369,19 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
 
     outputConfig: {},
 
+    getOutputConfig: (card) => {
+        const result: Record<string, import('../../lib/registry/types').OutputFieldConfig> = {};
+        Object.keys(card.inputs)
+            .filter(k => /^x_\d+$/.test(k))
+            .map(k => parseInt(k.split('_')[1]))
+            .sort((a, b) => a - b)
+            .forEach(n => {
+                result[`Mx_${n}`] = { label: `M (x_${n})`, unitType: 'moment', symbol: `M(x_${n})` };
+                result[`Qx_${n}`] = { label: `Q (x_${n})`, unitType: 'force',  symbol: `Q(x_${n})` };
+            });
+        return result;
+    },
+
     calculate: (inputs, rawInputs) => {
         const model = inputs['diagramModel'] as unknown as DiagramModel;
         if (!model || typeof model !== 'object') return {};
