@@ -29,13 +29,16 @@ interface DeflectionSvgProps {
     delta_max: number;
     delta_allow: number;
     unitMode: UnitMode;
+    /** Unique suffix for clipPath ID — required when multiple SVGs coexist in the same document (e.g. HTML report). */
+    svgId?: string;
 }
 
-const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, delta_allow, unitMode }) => {
+const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, delta_allow, unitMode, svgId }) => {
     const W = 380, H = 200;
     // Layout constants (all in viewBox units)
     const pad = 16;          // right padding — pin/roller baseline extends 12px past beam end
     const beamX0 = 44, beamX1 = W - pad;
+    const clipId = `defl-clip-${svgId ?? beamX0}`;
     const beamY = 100;       // beam at vertical center so deflection fits in both directions
     const maxDeflPx = 72;    // ±72px from beamY → curve stays within [28, 172] inside H=200
 
@@ -95,12 +98,12 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
             style={{ display: 'block' }}>
             <defs>
                 {/* Hard clip: nothing can ever render outside the viewBox */}
-                <clipPath id={`defl-clip-${beamX0}`}>
+                <clipPath id={clipId}>
                     <rect x={0} y={0} width={W} height={H} />
                 </clipPath>
             </defs>
 
-            <g clipPath={`url(#defl-clip-${beamX0})`}>
+            <g clipPath={`url(#${clipId})`}>
                 {/* Filled deflection area */}
                 {polyPoints && (
                     <polygon
@@ -210,6 +213,7 @@ const DeflectionReportVis: React.FC<CardComponentProps> = ({ card, upstreamCards
             delta_max={delta_max}
             delta_allow={delta_allow}
             unitMode={(card.unitMode ?? 'mm') as UnitMode}
+            svgId={card.id}
         />
     );
 };
@@ -302,6 +306,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             delta_max={delta_max}
                             delta_allow={delta_allow}
                             unitMode={unitMode}
+                            svgId={card.id}
                         />
                     </div>
                 ) : (

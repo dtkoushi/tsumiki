@@ -48,7 +48,8 @@ function renderVisualizationSvg(
         return svg.includes('viewBox')
             ? svg
             : svg.replace(/(<svg\b)/, `$1 viewBox="0 0 ${REPORT_VIS_WIDTH} ${REPORT_VIS_HEIGHT}"`);
-    } catch {
+    } catch (e) {
+        if (import.meta.env.DEV) console.error('[reportGenerator] renderVisualizationSvg error:', e);
         return undefined;
     }
 }

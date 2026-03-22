@@ -131,6 +131,7 @@ interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Recor
     outputConfig: CardDefinition<TOutputs>['outputConfig'];
     getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
     visualization?: React.FC<any>;
+    reportVisualization?: React.FC<any>;
     sidebar?: CardDefinition<TOutputs>['sidebar'];
     shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
@@ -146,7 +147,8 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         commonInputs = {},
         commonInputConfig,
         outputConfig,
-        visualization
+        visualization,
+        reportVisualization,
     } = options;
 
     const axes: StrategyAxis[] = strategyAxes;
@@ -244,6 +246,7 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         outputConfig,
         getOutputConfig: options.getOutputConfig,
         visualization,
+        reportVisualization,
         sidebar: options.sidebar,
         shouldRenderInput: options.shouldRenderInput,
     };
@@ -274,6 +277,7 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     dynamicRowGroups?: CardDefinition<TOutputs>['dynamicRowGroups'];
     sidebar?: CardDefinition<TOutputs>['sidebar'];
     getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
+    shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
 
 export function createCardDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: SimpleCardDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
@@ -293,6 +297,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         dynamicRowGroups,
         sidebar,
         getOutputConfig,
+        shouldRenderInput,
     } = options;
 
     const def: CardDefinition<TOutputs> = {
@@ -311,6 +316,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         dynamicInputGroups,
         dynamicRowGroups,
         sidebar,
+        shouldRenderInput,
     };
 
     validateCardDefinition(def, 'createCardDefinition');
