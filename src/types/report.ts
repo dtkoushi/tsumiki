@@ -24,6 +24,9 @@ export interface ReportCardData {
 
     /** NOTE カードのみ: Markdown 生テキスト */
     noteContent?: string;
+
+    /** SVG visualization string (present for cards with def.visualization) */
+    svg?: string;
 }
 
 import type { OutputUnitType } from '../lib/utils/unitFormatter';

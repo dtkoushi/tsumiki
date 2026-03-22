@@ -1,8 +1,56 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import type { Card } from '../../types';
 import type { ReportData, ReportCardData, ReportFieldRow } from '../../types/report';
-import type { DynamicInputGroupConfig } from '../registry/types';
+import type { CardActions, DynamicInputGroupConfig } from '../registry/types';
+import { ReportRenderContext } from '../../components/cards/common/ReportRenderContext';
 import { registry } from '../registry';
 import { formatField, type OutputUnitType } from './unitFormatter';
+
+// ─── Static SVG rendering ─────────────────────────────────────────────────────
+
+const REPORT_VIS_WIDTH  = 400;
+const REPORT_VIS_HEIGHT = 240;
+
+const noopActions: CardActions = {
+    updateInput:        () => {},
+    setReference:       () => {},
+    setInputReference:  () => {},
+    setRefExpression:   () => {},
+    removeReference:    () => {},
+    removeInput:        () => {},
+    updateCardUnit:     () => {},
+};
+
+function renderVisualizationSvg(
+    def: import('../registry/types').CardDefinition,
+    card: Card,
+    upstreamCards: Card[],
+): string | undefined {
+    if (!def.visualization) return undefined;
+    try {
+        const html = renderToStaticMarkup(
+            React.createElement(
+                ReportRenderContext.Provider,
+                { value: { width: REPORT_VIS_WIDTH, height: REPORT_VIS_HEIGHT } },
+                React.createElement(def.visualization, {
+                    card,
+                    actions: noopActions,
+                    upstreamCards,
+                }),
+            ),
+        );
+        const match = html.match(/<svg[\s\S]*<\/svg>/);
+        if (!match) return undefined;
+        // Add viewBox so CSS width:100%/height:auto produces correct scaling
+        return match[0].replace(
+            /(<svg\b)/,
+            `$1 viewBox="0 0 ${REPORT_VIS_WIDTH} ${REPORT_VIS_HEIGHT}"`,
+        );
+    } catch {
+        return undefined;
+    }
+}
 
 interface ProjectMeta {
     title: string;
@@ -256,6 +304,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         });
 
     const allOutputRows = [...outputRows, ...dynamicOutputRows];
+    const svg = renderVisualizationSvg(def, card, allCards);
 
     return {
         id: card.id,
@@ -266,6 +315,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         error: card.error,
         inputs: allInputRows,
         outputs: allOutputRows,
+        ...(svg ? { svg } : {}),
     };
 }
 
@@ -306,6 +356,8 @@ export function renderReportHtml(data: ReportData): string {
   .var-block.ratio-ok p { color: #059669; }
   .var-block.ratio-ng p { color: #dc2626; font-weight: 700; }
   .note-content { padding: 10px 0; font-size: 12px; white-space: pre-wrap; color: #334155; line-height: 1.6; }
+  .card-visualization { margin: 8px 0 12px; }
+  .card-visualization svg { width: 100%; height: auto; display: block; background: #f8fafc; border-radius: 6px; color: #334155; }
   .report-footer { margin-top: 32px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: right; font-size: 10px; color: #94a3b8; }
   @media print {
     body { background: #fff; padding: 10mm 12mm; font-size: 11px; }
@@ -389,8 +441,12 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
     }).join('')}
   </div>` : '';
 
+    const svgHtml = card.svg
+        ? `<div class="card-visualization">${card.svg}</div>`
+        : '';
+
     return `<div class="card-section">
-  ${header}${memoHtml}${errorHtml}${inputsHtml}${outputsHtml}
+  ${header}${memoHtml}${errorHtml}${svgHtml}${inputsHtml}${outputsHtml}
 </div>`;
 }
 
