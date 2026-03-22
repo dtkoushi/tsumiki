@@ -176,6 +176,8 @@ export const CoupleCardDef = createCardDefinition({
         outputIndexFn:  (key) => { const m = key.match(/^n_(\d+)$/); return m ? m[1] : null; },
         inputSymbolFn:  (i) => `d_${i}`,
         outputSymbolFn: (i) => `N_${i}`,
+        outputFormula:  'k × d_i',
+        outputFormulaInputKeysFn: (inputKey) => ['k', inputKey],
     }],
 
     // 偶力の式: M = Σ(Ni × 2 × di), Ni = k × di → k = M / (2 × Σdi²)

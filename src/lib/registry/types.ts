@@ -73,6 +73,17 @@ export interface DynamicInputGroupConfig {
     inputSymbolFn?:  (idx: string) => string;
     /** Math symbol for the output field per row index (e.g. (i) => `N_${i}`). Used in UI and report. */
     outputSymbolFn?: (idx: string) => string;
+    /**
+     * Symbolic formula for each output row (e.g. 'k × d_i').
+     * Shown in the report as: symbol = formula = formulaWithValues = value
+     */
+    outputFormula?: string;
+    /**
+     * Returns the allInputRows keys to substitute into outputFormula for a given row.
+     * Receives the row's input key and index string.
+     * Example: (inputKey, idx) => ['k', inputKey]
+     */
+    outputFormulaInputKeysFn?: (inputKey: string, idx: string) => string[];
 }
 
 /**

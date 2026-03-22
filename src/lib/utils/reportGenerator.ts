@@ -1,5 +1,6 @@
 import type { Card } from '../../types';
 import type { ReportData, ReportCardData, ReportFieldRow } from '../../types/report';
+import type { DynamicInputGroupConfig } from '../registry/types';
 import { registry } from '../registry';
 import { formatField, type OutputUnitType } from './unitFormatter';
 
@@ -46,6 +47,21 @@ function expandFormulaWithValues(
         );
     }
     return result;
+}
+
+/** Resolves a field's numeric value: prefers card.resolvedInputs, falls back to parsed raw input. */
+function resolveFieldValue(key: string, card: Card): number {
+    const resolved = card.resolvedInputs?.[key];
+    if (resolved !== undefined) return resolved;
+    const raw = String(card.inputs[key]?.value ?? '');
+    const parsed = parseFloat(raw);
+    return isNaN(parsed) ? 0 : parsed;
+}
+
+/** Resolves a symbol that may be a static string or a function of row index. */
+function resolveSymbol(rawSym: string | ((idx: string) => string) | undefined, idx: string): string | undefined {
+    if (!rawSym) return undefined;
+    return typeof rawSym === 'function' ? rawSym(idx) : rawSym;
 }
 
 function buildCardData(card: Card, allCards: Card[]): ReportCardData {
@@ -101,12 +117,12 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         };
     });
 
-    // --- dynamicInputGroups ---
+    // --- dynamicInputGroups (Phase 1: build input rows + collect pending output rows) ---
     const dynamicInputRows: ReportFieldRow[] = [];
-    const dynamicOutputRows: ReportFieldRow[] = [];
+    const pendingDynamicOutputs: Array<{ group: DynamicInputGroupConfig; inputKey: string; idx: string }> = [];
 
     for (const group of def.dynamicInputGroups ?? []) {
-        const { keyPrefix, inputLabel, inputUnitType, outputKeyFn, outputLabel, outputUnitType } = group;
+        const { keyPrefix, inputLabel, inputUnitType } = group;
         const inputKeys = Object.keys(card.inputs)
             .filter(k => new RegExp(`^${keyPrefix}_\\d+$`).test(k))
             .sort((a, b) => {
@@ -117,7 +133,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
 
         for (const inputKey of inputKeys) {
             const idx = inputKey.split('_').pop()!;
-            const iValue = card.resolvedInputs?.[inputKey] ?? parseFloat(String(card.inputs[inputKey]?.value ?? '0')) ?? 0;
+            const iValue = resolveFieldValue(inputKey, card);
             const refInfo = buildRefInfo(card, inputKey, allCards);
             dynamicInputRows.push({
                 key: inputKey,
@@ -128,17 +144,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 ...(group.inputSymbolFn ? { symbol: group.inputSymbolFn(idx) } : {}),
                 ...(refInfo ? { refInfo } : {}),
             });
-
-            const outputKey = outputKeyFn(inputKey);
-            const oValue = card.outputs[outputKey] ?? 0;
-            dynamicOutputRows.push({
-                key: outputKey,
-                label: `${outputLabel} (${outputKey})`,
-                unitType: outputUnitType,
-                value: oValue,
-                displayValue: formatField(oValue, outputUnitType, unitMode),
-                ...(group.outputSymbolFn ? { symbol: group.outputSymbolFn(idx) } : {}),
-            });
+            pendingDynamicOutputs.push({ group, inputKey, idx });
         }
     }
 
@@ -168,10 +174,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
 
                 const resolvedUnitType = field.getUnitType?.(rowRaw) ?? field.unitType ?? 'none';
                 const resolvedLabel = field.getLabel?.(rowRaw) ?? field.label;
-                const rawSym = field.symbol;
-                const sym = rawSym
-                    ? (typeof rawSym === 'function' ? rawSym(String(idx)) : rawSym)
-                    : undefined;
+                const sym = resolveSymbol(field.symbol, String(idx));
 
                 if (field.options) {
                     const optLabel = field.options.find(o => o.value === rawVal)?.label ?? rawVal;
@@ -185,7 +188,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                         ...(refInfo ? { refInfo } : {}),
                     });
                 } else {
-                    const numVal = card.resolvedInputs?.[key] ?? parseFloat(rawVal) ?? 0;
+                    const numVal = resolveFieldValue(key, card);
                     dynamicInputRows.push({
                         key,
                         label: `${resolvedLabel} (行${idx})`,
@@ -201,6 +204,27 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
     }
 
     const allInputRows = [...inputRows, ...dynamicInputRows];
+
+    // --- dynamicInputGroups (Phase 2: build output rows — allInputRows now available for formula expansion) ---
+    const dynamicOutputRows: ReportFieldRow[] = [];
+    for (const { group, inputKey, idx } of pendingDynamicOutputs) {
+        const { outputKeyFn, outputLabel, outputUnitType } = group;
+        const outputKey = outputKeyFn(inputKey);
+        const oValue = card.outputs[outputKey] ?? 0;
+        const formulaWithValues = group.outputFormula && group.outputFormulaInputKeysFn
+            ? expandFormulaWithValues(group.outputFormula, group.outputFormulaInputKeysFn(inputKey, idx), allInputRows)
+            : undefined;
+        dynamicOutputRows.push({
+            key: outputKey,
+            label: `${outputLabel} (${outputKey})`,
+            unitType: outputUnitType,
+            value: oValue,
+            displayValue: formatField(oValue, outputUnitType, unitMode),
+            ...(group.outputSymbolFn ? { symbol: group.outputSymbolFn(idx) } : {}),
+            ...(group.outputFormula ? { formula: group.outputFormula } : {}),
+            ...(formulaWithValues ? { formulaWithValues } : {}),
+        });
+    }
 
     // --- Standard outputs (exclude hidden fields — they are object-valued or redundant) ---
     // Use getOutputConfig if available, merged over outputConfig

@@ -155,6 +155,8 @@ export const SlidingCardDef = createCardDefinition<Record<string, number>>({
         outputIndexFn:  (key) => { const m = key.match(/^fr_(\d+)$/); return m ? m[1] : null; },
         inputSymbolFn:  (i) => `N_${i}`,
         outputSymbolFn: (i) => `fr_${i}`,
+        outputFormula:  'μ × N_i',
+        outputFormulaInputKeysFn: (inputKey) => ['mu', inputKey],
     }],
 
     calculate: (inputs) => {

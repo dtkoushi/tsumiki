@@ -77,11 +77,17 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
         }
     }
 
-    // dynamicInputGroups: check outputIndexFn presence
+    // dynamicInputGroups: check outputIndexFn, inputSymbolFn, outputSymbolFn presence
     if (def.dynamicInputGroups) {
         for (const group of def.dynamicInputGroups) {
             if (!group.outputIndexFn) {
                 warn(`dynamicInputGroups["${group.keyPrefix}"] has no outputIndexFn — pin-to-panel will be silently disabled`);
+            }
+            if (!group.inputSymbolFn) {
+                warn(`dynamicInputGroups["${group.keyPrefix}"] has no inputSymbolFn — report rows will show key instead of symbol`);
+            }
+            if (!group.outputSymbolFn) {
+                warn(`dynamicInputGroups["${group.keyPrefix}"] has no outputSymbolFn — report rows will show key instead of symbol`);
             }
         }
     }

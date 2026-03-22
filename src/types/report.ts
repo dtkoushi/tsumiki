@@ -33,6 +33,11 @@ export interface ReportFieldRow {
     key: string;
     label: string;
     unitType: OutputUnitType;
+    /**
+     * Numeric SI value of this field.
+     * - Numeric fields: the resolved or parsed number (in SI base units)
+     * - Select fields: always 0 (use displayValue for the human-readable string)
+     */
     value: number;
     displayValue: string;
     formula?: string;
