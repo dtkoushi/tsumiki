@@ -93,6 +93,16 @@ export const formatOutput = (value: number | undefined | null, type: OutputUnitT
 };
 
 /**
+ * Formats a value with its unit label.
+ * Single source of truth for field display — used by InputFieldConfig.display() and dynamic group report rendering.
+ */
+export function formatField(value: number, unitType: OutputUnitType, unitMode: UnitMode): string {
+    const s = formatOutput(value, unitType, unitMode);
+    const u = getUnitLabel(unitType, unitMode);
+    return u ? `${s} ${u}` : s;
+}
+
+/**
  * Returns the unit suffix string based on type and mode.
  */
 export const getUnitLabel = (type: OutputUnitType, mode: UnitMode): string => {

@@ -1,4 +1,4 @@
-import { formatOutput, getUnitLabel, type OutputUnitType, type SmartInputUnitType } from './unitFormatter';
+import { formatField, type OutputUnitType, type SmartInputUnitType } from './unitFormatter';
 
 export type { SmartInputUnitType };
 export type UnitMode = 'mm' | 'm';
@@ -49,12 +49,7 @@ export function num(cfg: {
         type: cfg.type,
         unitType: cfg.unitType,
         reportUnitType: ut,
-        display: (_rawVal, resolved, unitMode) => {
-            const v = resolved ?? 0;
-            const s = formatOutput(v, ut, unitMode);
-            const u = getUnitLabel(ut, unitMode);
-            return u ? `${s} ${u}` : s;
-        },
+        display: (_rawVal, resolved, unitMode) => formatField(resolved ?? 0, ut, unitMode),
         reportValue: (rawVal, resolved) => resolved ?? (isNaN(parseFloat(rawVal)) ? 0 : parseFloat(rawVal)),
     };
 }

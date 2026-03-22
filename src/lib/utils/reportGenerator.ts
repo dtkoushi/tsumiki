@@ -1,7 +1,7 @@
 import type { Card } from '../../types';
 import type { ReportData, ReportCardData, ReportFieldRow } from '../../types/report';
 import { registry } from '../registry';
-import { formatOutput, getUnitLabel, type OutputUnitType } from './unitFormatter';
+import { formatField, type OutputUnitType } from './unitFormatter';
 
 interface ProjectMeta {
     title: string;
@@ -124,7 +124,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 label: `${inputLabel} (${inputKey})`,
                 unitType: inputUnitType,
                 value: iValue,
-                displayValue: formatDisplayValue(iValue, inputUnitType, unitMode),
+                displayValue: formatField(iValue, inputUnitType, unitMode),
                 ...(group.inputSymbolFn ? { symbol: group.inputSymbolFn(idx) } : {}),
                 ...(refInfo ? { refInfo } : {}),
             });
@@ -136,7 +136,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 label: `${outputLabel} (${outputKey})`,
                 unitType: outputUnitType,
                 value: oValue,
-                displayValue: formatDisplayValue(oValue, outputUnitType, unitMode),
+                displayValue: formatField(oValue, outputUnitType, unitMode),
                 ...(group.outputSymbolFn ? { symbol: group.outputSymbolFn(idx) } : {}),
             });
         }
@@ -191,7 +191,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                         label: `${resolvedLabel} (行${idx})`,
                         unitType: resolvedUnitType,
                         value: numVal,
-                        displayValue: formatDisplayValue(numVal, resolvedUnitType, unitMode),
+                        displayValue: formatField(numVal, resolvedUnitType, unitMode),
                         ...(sym ? { symbol: sym } : {}),
                         ...(refInfo ? { refInfo } : {}),
                     });
@@ -221,7 +221,7 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
                 label: cfg.label,
                 unitType,
                 value,
-                displayValue: formatDisplayValue(value, unitType, unitMode),
+                displayValue: formatField(value, unitType, unitMode),
                 ...(cfg.formula ? { formula: cfg.formula } : {}),
                 ...(formulaWithValues ? { formulaWithValues } : {}),
                 ...(cfg.symbol ? { symbol: cfg.symbol } : {}),
@@ -240,12 +240,6 @@ function buildCardData(card: Card, allCards: Card[]): ReportCardData {
         inputs: allInputRows,
         outputs: allOutputRows,
     };
-}
-
-function formatDisplayValue(value: number, unitType: OutputUnitType, unitMode: 'mm' | 'm'): string {
-    const num = formatOutput(value, unitType, unitMode);
-    const unit = getUnitLabel(unitType, unitMode);
-    return unit ? `${num} ${unit}` : num;
 }
 
 // ─────────────────────────────────────────────────────────────
