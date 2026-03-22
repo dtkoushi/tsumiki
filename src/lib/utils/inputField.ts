@@ -55,7 +55,7 @@ export function num(cfg: {
             const u = getUnitLabel(ut, unitMode);
             return u ? `${s} ${u}` : s;
         },
-        reportValue: (rawVal, resolved) => (resolved ?? parseFloat(rawVal)) || 0,
+        reportValue: (rawVal, resolved) => resolved ?? (isNaN(parseFloat(rawVal)) ? 0 : parseFloat(rawVal)),
     };
 }
 

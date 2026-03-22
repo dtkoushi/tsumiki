@@ -60,9 +60,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const handleReport = () => {
         const data = buildReportData(cards, meta);
         const html = renderReportHtml(data);
-        const tab = window.open('', '_blank');
-        tab?.document.write(html);
-        tab?.document.close();
+        const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const tab = window.open(url, '_blank');
+        if (!tab) {
+            toast('ポップアップがブロックされました。ブラウザの設定を確認してください。', 'error');
+            URL.revokeObjectURL(url);
+        }
     };
 
     const handleExport = () => {
