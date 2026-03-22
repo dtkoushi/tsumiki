@@ -215,6 +215,13 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
     visualization?: React.FC<CardComponentProps>;
 
     /**
+     * Visualization component used exclusively for report generation.
+     * Used by custom-component cards (component: ...) that have no visualization prop.
+     * Receives the same CardComponentProps; should render only the SVG portion.
+     */
+    reportVisualization?: React.FC<CardComponentProps>;
+
+    /**
      * Sidebar registration. When present, this card appears in the sidebar under
      * the specified category. Cards without this field are hidden from the sidebar.
      */

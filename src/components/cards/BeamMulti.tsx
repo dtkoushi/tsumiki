@@ -310,6 +310,7 @@ export const BeamMultiCardDef = createCardDefinition<BeamMultiOutputs>({
     },
 
     component: BeamMultiComponentInner,
+    reportVisualization: BeamMultiSvg,
     sidebar: { category: 'beam', order: 2 },
 });
 

@@ -27,13 +27,14 @@ function renderVisualizationSvg(
     card: Card,
     upstreamCards: Card[],
 ): string | undefined {
-    if (!def.visualization) return undefined;
+    const VisComp = def.reportVisualization ?? def.visualization;
+    if (!VisComp) return undefined;
     try {
         const html = renderToStaticMarkup(
             React.createElement(
                 ReportRenderContext.Provider,
                 { value: { width: REPORT_VIS_WIDTH, height: REPORT_VIS_HEIGHT } },
-                React.createElement(def.visualization, {
+                React.createElement(VisComp, {
                     card,
                     actions: noopActions,
                     upstreamCards,
@@ -42,11 +43,11 @@ function renderVisualizationSvg(
         );
         const match = html.match(/<svg[\s\S]*<\/svg>/);
         if (!match) return undefined;
-        // Add viewBox so CSS width:100%/height:auto produces correct scaling
-        return match[0].replace(
-            /(<svg\b)/,
-            `$1 viewBox="0 0 ${REPORT_VIS_WIDTH} ${REPORT_VIS_HEIGHT}"`,
-        );
+        const svg = match[0];
+        // Only inject viewBox if not already present (Diagram/Deflection have fixed viewBox)
+        return svg.includes('viewBox')
+            ? svg
+            : svg.replace(/(<svg\b)/, `$1 viewBox="0 0 ${REPORT_VIS_WIDTH} ${REPORT_VIS_HEIGHT}"`);
     } catch {
         return undefined;
     }

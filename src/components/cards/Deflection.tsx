@@ -189,6 +189,31 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
     );
 };
 
+// --- Report Visualization Wrapper ---
+
+const DeflectionReportVis: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
+    const diagramRef = card.inputs['diagramModel']?.ref;
+    const model = (diagramRef?.outputKey != null)
+        ? (upstreamCards.find(c => c.id === diagramRef!.cardId)?.outputs[diagramRef!.outputKey!] as unknown as DiagramModel)
+        : null;
+    if (!model) return null;
+    const ri = card.resolvedInputs ?? {};
+    const E = ri['E'] ?? 205000;
+    const I = ri['I'] ?? 1e7;
+    const delta_max   = card.outputs['delta_max']   ?? 0;
+    const delta_allow = card.outputs['delta_allow']  ?? 0;
+    return (
+        <DeflectionSvg
+            model={model}
+            E={E}
+            I={I}
+            delta_max={delta_max}
+            delta_allow={delta_allow}
+            unitMode={(card.unitMode ?? 'mm') as UnitMode}
+        />
+    );
+};
+
 // --- Custom Card Component ---
 
 const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
@@ -350,6 +375,7 @@ export const DeflectionCardDef = createCardDefinition({
     },
 
     component: DeflectionComponent,
+    reportVisualization: DeflectionReportVis,
     sidebar: { category: 'beam', order: 6 },
 });
 

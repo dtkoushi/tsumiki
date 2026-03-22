@@ -264,6 +264,8 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     calculate: CardDefinition<TOutputs>['calculate'];
     /** Render inside GenericCard's visualization area (SVG box). */
     visualization?: React.FC<any>;
+    /** Visualization component used exclusively for report generation (custom-component cards). */
+    reportVisualization?: React.FC<any>;
     /** Replace GenericCard entirely. Use when inputs/outputs are dynamic or layout needs full control. */
     component?: CardDefinition<TOutputs>['component'];
     /** Variable-length paired (input → output) row groups rendered by GenericCard. */
@@ -285,6 +287,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         outputConfig,
         calculate,
         visualization,
+        reportVisualization,
         component,
         dynamicInputGroups,
         dynamicRowGroups,
@@ -303,6 +306,7 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         getOutputConfig,
         calculate,
         visualization,
+        reportVisualization,
         component,
         dynamicInputGroups,
         dynamicRowGroups,

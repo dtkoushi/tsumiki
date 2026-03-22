@@ -172,6 +172,31 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
     );
 };
 
+// --- Report Visualization Wrapper ---
+
+const DiagramReportVis: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
+    const diagramRef = card.inputs['diagramModel']?.ref;
+    const model = (diagramRef?.outputKey != null)
+        ? (upstreamCards.find(c => c.id === diagramRef!.cardId)?.outputs[diagramRef!.outputKey!] as unknown as DiagramModel)
+        : null;
+    if (!model) return null;
+    const ri = card.resolvedInputs ?? {};
+    const xPositions = Object.keys(card.inputs)
+        .filter(k => /^x_\d+$/.test(k))
+        .map(k => parseInt(k.split('_')[1]))
+        .sort((a, b) => a - b)
+        .map(n => ({ n, x: ri[`x_${n}`] ?? Number(card.inputs[`x_${n}`]?.value ?? 0) }));
+    return (
+        <DiagramSvg
+            model={model}
+            tab="M"
+            xPositions={xPositions}
+            unitMode={(card.unitMode ?? 'mm') as UnitMode}
+            cardId={card.id}
+        />
+    );
+};
+
 // --- Custom Card Component ---
 
 const DiagramComponent: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
@@ -364,6 +389,7 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     component: DiagramComponent,
+    reportVisualization: DiagramReportVis,
     sidebar: { category: 'beam', order: 5 },
 });
 
