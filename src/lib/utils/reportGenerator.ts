@@ -358,13 +358,16 @@ export function renderReportHtml(data: ReportData): string {
   .var-block.ratio-ok p { color: #059669; }
   .var-block.ratio-ng p { color: #dc2626; font-weight: 700; }
   .note-content { padding: 10px 0; font-size: 12px; white-space: pre-wrap; color: #334155; line-height: 1.6; }
-  .card-visualization { margin: 8px 0 12px; }
+  .card-body { display: flex; gap: 20px; align-items: flex-start; }
+  .card-body-text { flex: 1 1 auto; min-width: 0; }
+  .card-visualization { flex: 0 0 260px; width: 260px; }
   .card-visualization svg { width: 100%; height: auto; display: block; background: #f8fafc; border-radius: 6px; color: #334155; }
   .report-footer { margin-top: 32px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: right; font-size: 10px; color: #94a3b8; }
   @media print {
     body { background: #fff; padding: 10mm 12mm; font-size: 11px; }
     .card-section { break-inside: avoid; }
     .report-header { break-after: avoid; }
+    .card-visualization { flex: 0 0 200px; width: 200px; }
   }
 </style>
 </head>
@@ -447,8 +450,12 @@ function renderCardSection(card: import('../../types/report').ReportCardData): s
         ? `<div class="card-visualization">${card.svg}</div>`
         : '';
 
+    const bodyHtml = svgHtml
+        ? `<div class="card-body"><div class="card-body-text">${inputsHtml}${outputsHtml}</div>${svgHtml}</div>`
+        : `${inputsHtml}${outputsHtml}`;
+
     return `<div class="card-section">
-  ${header}${memoHtml}${errorHtml}${svgHtml}${inputsHtml}${outputsHtml}
+  ${header}${memoHtml}${errorHtml}${bodyHtml}
 </div>`;
 }
 
