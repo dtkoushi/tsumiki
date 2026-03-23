@@ -13,6 +13,14 @@ npm run preview   # Preview production build
 
 No test framework is configured.
 
+## Development Workflow
+
+### PR の作成ルール
+
+- **PR は関心ごとに分ける**: リファクタリング・バグ修正・機能追加は別々の PR にする。同一ブランチに複数の関心事が混在する場合はコミットを分けるか、PR を分割する。
+- **PR description に全変更を記述する**: PR タイトルに直接書いていない変更（ついでに直した箇所、bonus 追加など）も description の箇条書きに必ず含める。レビュアーが diff を読む前に変更意図を把握できるようにする。
+- **コミット前に lint・型チェックを通す**: `npx tsc --noEmit && npm run lint` を確認してからコミットする。
+
 ## Architecture
 
 **Tsumiki** (積み木 = Building Blocks) is a stack-based structural engineering calculator. Users stack modular "cards" that reference each other's outputs, forming a DAG of calculations.
