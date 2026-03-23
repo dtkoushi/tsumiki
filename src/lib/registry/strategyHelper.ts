@@ -1,5 +1,5 @@
 import type { CardDefinition, CardStrategy } from './types';
-import { sel, type InputFieldConfig } from '../utils/inputField';
+import { type InputFieldConfig, type SelectInputField } from '../utils/inputField';
 
 
 // ─── DEV-mode validation ─────────────────────────────────────────────────────
@@ -105,21 +105,13 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
 }
 
 
-interface StrategyAxis {
-    key: string;
-    label: string;
-    options: { label: string; value: string }[];
-    default: string;
-    symbol?: string;
-}
-
 interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Record<string, number>> {
     type: string;
     title: string;
     icon: React.FC<any>;
     description?: string;
 
-    strategyAxes: StrategyAxis[];
+    strategyAxes: Record<string, SelectInputField>;
 
     strategies: CardStrategy<TOutputs>[];
     commonInputs?: Record<string, any>;
@@ -151,9 +143,9 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         reportVisualization,
     } = options;
 
-    const axes: StrategyAxis[] = strategyAxes;
+    const axisEntries = Object.entries(strategyAxes);
 
-    if (axes.length === 0) {
+    if (axisEntries.length === 0) {
         throw new Error(`Card ${type} must provide at least one strategyAxis.`);
     }
 
@@ -165,8 +157,8 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
 
     // Construct default inputs for all axes
     const axisDefaults: Record<string, any> = {};
-    axes.forEach(axis => {
-        axisDefaults[axis.key] = { value: axis.default };
+    axisEntries.forEach(([key, field]) => {
+        axisDefaults[key] = { value: field.default ?? '' };
     });
 
     const defaultInputs: Record<string, any> = {
@@ -179,13 +171,14 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         if (!inputs) return defaultStrategy.id;
 
         // Single axis: ID is the axis value directly
-        if (axes.length === 1) {
-            const val = inputs[axes[0].key]?.value;
-            return String(val || axes[0].default);
+        if (axisEntries.length === 1) {
+            const [key, field] = axisEntries[0];
+            const val = inputs[key]?.value;
+            return String(val || field.default ?? '');
         }
 
         // Multi-axis: compose by joining axis values with '::'
-        const parts = axes.map(axis => String(inputs[axis.key]?.value || axis.default));
+        const parts = axisEntries.map(([key, field]) => String(inputs[key]?.value || field.default ?? ''));
         return parts.join('::');
     };
 
@@ -193,11 +186,11 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
     if (import.meta.env.DEV) {
         const reachableIds = new Set<string>();
         const generateIds = (axisIdx: number, prefix: string) => {
-            if (axisIdx >= axes.length) {
+            if (axisIdx >= axisEntries.length) {
                 reachableIds.add(prefix);
                 return;
             }
-            for (const opt of axes[axisIdx].options) {
+            for (const opt of axisEntries[axisIdx][1].options) {
                 const next = prefix ? `${prefix}::${opt.value}` : opt.value;
                 generateIds(axisIdx + 1, next);
             }
@@ -217,16 +210,8 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         description,
         defaultInputs,
 
-        // Static Input Config: Generate selectors for all axes
-        inputConfig: axes.reduce((acc, axis) => {
-            acc[axis.key] = sel({
-                label: axis.label,
-                options: axis.options,
-                default: axis.default,
-                ...(axis.symbol ? { symbol: axis.symbol } : {}),
-            });
-            return acc;
-        }, {} as Record<string, InputFieldConfig>),
+        // Static Input Config: axis selectors passed through directly
+        inputConfig: { ...strategyAxes } as Record<string, InputFieldConfig>,
 
         // Dynamic Input Config: Merge commonInputConfig with strategy-specific config
         // Strategy-specific fields take precedence over commonInputConfig fields
