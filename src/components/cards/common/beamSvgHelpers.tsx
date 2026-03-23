@@ -1,4 +1,4 @@
-
+/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 import { SVG_COLOR, SVG_FONT_FAMILY, SVG_FONT_SIZE, SVG_FONT_WEIGHT } from './svgTheme';
 

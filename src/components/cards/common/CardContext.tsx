@@ -1,4 +1,4 @@
-
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext } from 'react';
 import type { Card } from '../../../types';
 import type { CardActions } from '../../../lib/registry/types';

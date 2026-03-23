@@ -40,7 +40,7 @@ function useContainerSize() {
         if (!ref.current) return;
 
         const observer = new ResizeObserver((entries) => {
-            for (let entry of entries) {
+            for (const entry of entries) {
                 // Use contentRect for precise content box size
                 setSize({
                     width: entry.contentRect.width,
