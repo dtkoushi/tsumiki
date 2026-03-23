@@ -2,7 +2,7 @@
 import { Hexagon } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
-import { num } from '../../lib/utils/inputField';
+import { num, sel } from '../../lib/utils/inputField';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Local Types ---
@@ -72,18 +72,19 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
     title: ja['card.material.title'],
     icon: Hexagon,
     description: ja['card.material.description'],
-    strategyAxes: [{
-        key: 'grade',
-        label: ja['card.material.axis.grade'],
-        options: [
-            { label: 'SS400', value: 'ss400' },
-            { label: 'SN400B', value: 'sn400b' },
-            { label: 'SN490B', value: 'sn490b' },
-            { label: 'SM490', value: 'sm490' },
-            { label: 'コンクリート', value: 'concrete' },
-        ],
-        default: 'ss400',
-    }],
+    strategyAxes: {
+        grade: sel({
+            label: ja['card.material.axis.grade'],
+            options: [
+                { label: 'SS400',         value: 'ss400'    },
+                { label: 'SN400B',        value: 'sn400b'   },
+                { label: 'SN490B',        value: 'sn490b'   },
+                { label: 'SM490',         value: 'sm490'    },
+                { label: 'コンクリート', value: 'concrete' },
+            ],
+            default: 'ss400',
+        }),
+    },
     strategies: MaterialStrategies,
     sidebar: { category: 'material', order: 1 },
     outputConfig: {
