@@ -1,4 +1,4 @@
-
+/* eslint-disable react-refresh/only-export-components */
 import React from 'react';
 import type { CardComponentProps } from '../../../lib/registry/types';
 import { AutoFitSvg } from './AutoFitSvg';
