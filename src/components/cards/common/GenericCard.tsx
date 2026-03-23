@@ -16,7 +16,10 @@ const t = (key: string): string => isJaKey(key) ? ja[key] : key;
 
 const SelectInput = ({ name, config, card, actions }: { name: string, config: any, card: any, actions: any }) => (
     <div className="flex flex-col gap-1 w-full">
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{config.label}</label>
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            {config.symbol && <span className="font-mono text-slate-400 text-xs mr-1">{config.symbol}</span>}
+            {config.label}
+        </label>
         <div className="relative">
             <select
                 className="w-full appearance-none bg-slate-50 border border-slate-200 rounded px-3 py-2 pr-8 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer hover:bg-slate-100"
@@ -61,6 +64,7 @@ const InputRow = ({ name, config, card, actions, upstreamCards, unitMode, upstre
                 </button>
             </div>
             <span className="text-sm text-slate-600 truncate font-medium min-w-0 flex-1" title={t(config.label)}>
+                {config.symbol && <span className="font-mono text-slate-400 text-xs mr-1">{config.symbol}</span>}
                 {t(config.label)}
                 {unitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{unitLabel}]</span>}
             </span>
@@ -138,10 +142,12 @@ const DynamicGroupSection = ({
 
             {keys.map(key => {
                 const idx = key.split('_')[1];
+                const sym = config.inputSymbolFn?.(idx);
                 const labelText = rowLabel ? `${rowLabel} (${keyPrefix}_${idx})` : `${keyPrefix}_${idx}`;
                 return (
                     <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100/50">
                         <span className="text-sm text-slate-600 font-medium shrink-0 mr-2">
+                            {sym && <span className="font-mono text-slate-400 text-xs mr-1">{sym}</span>}
                             {labelText}
                             {dUnitLabel && <span className="text-xs text-slate-400 font-normal ml-1">[{dUnitLabel}]</span>}
                         </span>
@@ -284,9 +290,11 @@ export const DynamicMultiGroupSection = ({
                                 const resolvedUnitType = f.getUnitType?.(rowRaw) ?? f.unitType;
                                 const resolvedLabel = f.getLabel?.(rowRaw) ?? f.label;
                                 const unitLabel = resolvedUnitType ? getUnitLabel(resolvedUnitType, unitMode) : '';
+                                const fieldSym = typeof f.symbol === 'function' ? f.symbol(String(idx)) : f.symbol;
                                 return (
                                     <div key={f.keyPrefix} className="flex flex-col gap-0.5">
                                         <span className="text-[10px] text-slate-400">
+                                            {fieldSym && <span className="font-mono mr-0.5">{fieldSym}</span>}
                                             {resolvedLabel}
                                             {unitLabel && <span className="ml-0.5">[{unitLabel}]</span>}
                                         </span>
@@ -344,7 +352,7 @@ const OutputRow = ({
     name, config, card, unitMode, isPinned, onPinToggle
 }: {
     name: string;
-    config: { label: string; unitType: OutputUnitType };
+    config: { label: string; unitType: OutputUnitType; symbol?: string };
     card: any;
     unitMode: UnitMode;
     isPinned: boolean;
@@ -362,7 +370,10 @@ const OutputRow = ({
             >
                 <Pin size={10} />
             </button>
-            <span className="text-slate-400 text-xs">{t(config.label)}:</span>
+            {config.symbol
+                ? <><span className="font-mono text-slate-300 text-xs mr-1">{config.symbol}</span><span className="text-slate-400 text-xs">{t(config.label)}:</span></>
+                : <span className="text-slate-400 text-xs">{t(config.label)}:</span>
+            }
         </div>
         <span className="truncate text-right w-full font-mono text-emerald-400" title={card.outputs[name]?.toString()}>
             {formatOutput(card.outputs[name], config.unitType, unitMode)}
@@ -391,8 +402,8 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
     const resolvedInputConfig = { ...(def.inputConfig || {}), ...dynamicConfig };
 
     // Split inputs into Selectors and Standard Inputs
-    const selectors = Object.entries(resolvedInputConfig).filter(([, config]) => config.type === 'select');
-    const standardInputs = Object.entries(resolvedInputConfig).filter(([, config]) => config.type !== 'select');
+    const selectors = Object.entries(resolvedInputConfig).filter(([, config]) => config.kind === 'select');
+    const standardInputs = Object.entries(resolvedInputConfig).filter(([, config]) => config.kind !== 'select');
 
     return (
         <BaseCard card={card} icon={<def.icon size={18} />} color="border-slate-400">
@@ -499,7 +510,7 @@ const GenericCardInner: React.FC<CardComponentProps> = ({ card, actions, upstrea
                                                 <OutputRow
                                                     key={outputKey}
                                                     name={outputKey}
-                                                    config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType }}
+                                                    config={{ label: `${outputLabel} ${idx}`, unitType: outputUnitType, ...(group.outputSymbolFn ? { symbol: group.outputSymbolFn(idx) } : {}) }}
                                                     card={card}
                                                     unitMode={unitMode}
                                                     isPinned={isPinned}

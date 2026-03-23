@@ -2,6 +2,7 @@
 import React from 'react';
 import { MoveHorizontal } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/AutoFitSvg';
 import { drawArrow, drawLabel } from './common/svgPrimitives';
@@ -133,11 +134,11 @@ export const SlidingCardDef = createCardDefinition<Record<string, number>>({
     },
 
     inputConfig: {
-        mu: { label: '摩擦係数 μ', unitType: 'none' },
+        mu: num({ label: '摩擦係数', unitType: 'none', symbol: 'μ' }),
     },
 
     outputConfig: {
-        Fr: { label: '摩擦抵抗力合計 Fr', unitType: 'force' },
+        Fr: { label: '摩擦抵抗力合計', unitType: 'force', symbol: 'Fr' },
     },
 
     dynamicInputGroups: [{
@@ -152,6 +153,10 @@ export const SlidingCardDef = createCardDefinition<Record<string, number>>({
         minCount:       1,
         addLabel:       '鉛直荷重を追加',
         outputIndexFn:  (key) => { const m = key.match(/^fr_(\d+)$/); return m ? m[1] : null; },
+        inputSymbolFn:  (i) => `N_${i}`,
+        outputSymbolFn: (i) => `fr_${i}`,
+        outputFormula:  'μ × N_i',
+        outputFormulaInputKeysFn: (inputKey) => ['mu', inputKey],
     }],
 
     calculate: (inputs) => {

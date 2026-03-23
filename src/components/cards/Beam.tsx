@@ -2,6 +2,7 @@
 import { Columns } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { calculateBeamMax, calculateBeamMultiMax, type BeamModel, type BeamMultiModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
 import {
@@ -92,8 +93,8 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'simple::uniform',
         label: ja['card.beam.strategies.simpleUniform'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
+            L: num({ label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000, symbol: 'L' }),
+            w: num({ label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10, symbol: 'w' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'simple::uniform');
@@ -105,9 +106,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'simple::point',
         label: ja['card.beam.strategies.simplePoint'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L: num({ label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000, symbol: 'L' }),
+            P: num({ label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000, symbol: 'P' }),
+            a: num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000, symbol: 'a' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'simple::point');
@@ -120,9 +121,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'simple::moment',
         label: ja['card.beam.strategies.simpleMoment'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L:  num({ label: ja['card.beam.inputs.span'],   unitType: 'length', default: 4000,    symbol: 'L' }),
+            M0: num({ label: ja['card.beam.inputs.loadM'],  unitType: 'moment', default: 1000000, symbol: 'M₀' }),
+            a:  num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000,   symbol: 'a' }),
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'simple'),
     },
@@ -130,8 +131,8 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'cantilever::uniform',
         label: ja['card.beam.strategies.cantileverUniform'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
-            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
+            L: num({ label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000, symbol: 'L' }),
+            w: num({ label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10, symbol: 'w' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'cantilever::uniform');
@@ -143,9 +144,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'cantilever::point',
         label: ja['card.beam.strategies.cantileverPoint'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
-            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L: num({ label: ja['card.beam.inputs.span'],    unitType: 'length', default: 2000, symbol: 'L' }),
+            P: num({ label: ja['card.beam.inputs.loadP'],   unitType: 'force',  default: 1000, symbol: 'P' }),
+            a: num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000, symbol: 'a' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'cantilever::point');
@@ -158,9 +159,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'cantilever::moment',
         label: ja['card.beam.strategies.cantileverMoment'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 2000 },
-            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L:  num({ label: ja['card.beam.inputs.span'],    unitType: 'length', default: 2000,    symbol: 'L' }),
+            M0: num({ label: ja['card.beam.inputs.loadM'],   unitType: 'moment', default: 1000000, symbol: 'M₀' }),
+            a:  num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000,    symbol: 'a' }),
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'cantilever'),
     },
@@ -168,8 +169,8 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'fixed_fixed::uniform',
         label: ja['card.beam.strategies.fixedFixedUniform'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
+            L: num({ label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000, symbol: 'L' }),
+            w: num({ label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10, symbol: 'w' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_fixed::uniform');
@@ -181,9 +182,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'fixed_fixed::point',
         label: ja['card.beam.strategies.fixedFixedPoint'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L: num({ label: ja['card.beam.inputs.span'],    unitType: 'length', default: 4000, symbol: 'L' }),
+            P: num({ label: ja['card.beam.inputs.loadP'],   unitType: 'force',  default: 1000, symbol: 'P' }),
+            a: num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000, symbol: 'a' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_fixed::point');
@@ -196,9 +197,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'fixed_fixed::moment',
         label: ja['card.beam.strategies.fixedFixedMoment'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L:  num({ label: ja['card.beam.inputs.span'],    unitType: 'length', default: 4000,    symbol: 'L' }),
+            M0: num({ label: ja['card.beam.inputs.loadM'],   unitType: 'moment', default: 1000000, symbol: 'M₀' }),
+            a:  num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000,    symbol: 'a' }),
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_fixed'),
     },
@@ -206,8 +207,8 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'fixed_pinned::uniform',
         label: ja['card.beam.strategies.fixedPinnedUniform'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            w: { label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10 },
+            L: num({ label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000, symbol: 'L' }),
+            w: num({ label: ja['card.beam.inputs.loadW'], unitType: 'load', default: 10, symbol: 'w' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_pinned::uniform');
@@ -219,9 +220,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'fixed_pinned::point',
         label: ja['card.beam.strategies.fixedPinnedPoint'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            P: { label: ja['card.beam.inputs.loadP'], unitType: 'force', default: 1000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L: num({ label: ja['card.beam.inputs.span'],    unitType: 'length', default: 4000, symbol: 'L' }),
+            P: num({ label: ja['card.beam.inputs.loadP'],   unitType: 'force',  default: 1000, symbol: 'P' }),
+            a: num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000, symbol: 'a' }),
         },
         calculate: (inputs) => {
             const model = createModel(inputs, 'fixed_pinned::point');
@@ -234,9 +235,9 @@ const Strategies: CardStrategy<BeamOutputs>[] = [
         id: 'fixed_pinned::moment',
         label: ja['card.beam.strategies.fixedPinnedMoment'],
         inputConfig: {
-            L: { label: ja['card.beam.inputs.span'], unitType: 'length', default: 4000 },
-            M0: { label: ja['card.beam.inputs.loadM'], unitType: 'moment', default: 1000000 },
-            a: { label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000 },
+            L:  num({ label: ja['card.beam.inputs.span'],    unitType: 'length', default: 4000,    symbol: 'L' }),
+            M0: num({ label: ja['card.beam.inputs.loadM'],   unitType: 'moment', default: 1000000, symbol: 'M₀' }),
+            a:  num({ label: ja['card.beam.inputs.loadPos'], unitType: 'length', default: 2000,    symbol: 'a' }),
         },
         calculate: (inputs) => calcMomentStrategy(inputs, 'fixed_pinned'),
     },
@@ -276,8 +277,61 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     strategies: Strategies,
     sidebar: { category: 'beam', order: 1 },
     outputConfig: {
-        M_max: { label: 'M_max', unitType: 'moment' },
-        V_max: { label: 'V_max', unitType: 'force' },
+        M_max: { label: '最大曲げモーメント', unitType: 'moment', symbol: 'M_max' },
+        V_max: { label: '最大せん断力',       unitType: 'force',  symbol: 'V_max' },
+    },
+    getOutputConfig: (card) => {
+        const boundary = String(card.inputs['boundary']?.value ?? 'simple');
+        const load     = String(card.inputs['load']?.value     ?? 'uniform');
+        switch (`${boundary}::${load}`) {
+            case 'simple::uniform':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'w × L² / 8',  symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'w × L / 2',   symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
+            case 'simple::point':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'P × a × (L−a) / L', symbol: 'M_max', formulaInputKeys: ['P', 'a', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'max(P×(L−a)/L, P×a/L)', symbol: 'V_max', formulaInputKeys: ['P', 'a', 'L'] },
+                };
+            case 'cantilever::uniform':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'w × L² / 2', symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'w × L',      symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
+            case 'cantilever::point':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'P × a', symbol: 'M_max', formulaInputKeys: ['P', 'a'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'P',     symbol: 'V_max', formulaInputKeys: ['P'] },
+                };
+            case 'fixed_fixed::uniform':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'w × L² / 12', symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'w × L / 2',   symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
+            case 'fixed_fixed::point':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'max(P×a×b²/L², P×a²×b/L²)', symbol: 'M_max', formulaInputKeys: ['P', 'a', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: 'max(P×b²(L+2a)/L³, P×a²(L+2b)/L³)', symbol: 'V_max', formulaInputKeys: ['P', 'a', 'L'] },
+                };
+            case 'simple::moment':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'M₀ × max(a, L−a) / L', symbol: 'M_max' },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: '|M₀| / L',             symbol: 'V_max', formulaInputKeys: ['M0', 'L'] },
+                };
+            case 'cantilever::moment':
+                return {
+                    M_max: { label: '最大曲げモーメント（固定端）', unitType: 'moment', formula: 'M₀', symbol: 'M_max', formulaInputKeys: ['M0'] },
+                    V_max: { label: '最大せん断力',                 unitType: 'force',  formula: '0',  symbol: 'V_max' },
+                };
+            case 'fixed_pinned::uniform':
+                return {
+                    M_max: { label: '最大曲げモーメント（固定端）', unitType: 'moment', formula: 'w × L² / 8',  symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
+                    V_max: { label: '最大せん断力（固定端）',       unitType: 'force',  formula: '5 × w × L / 8', symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
+                };
+            default:
+                return {};
+        }
     },
     visualization: BeamVisualization,
 });

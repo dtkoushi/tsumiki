@@ -2,6 +2,7 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { formatOutput, type UnitMode } from '../../lib/utils/unitFormatter';
 import { drawArrow, drawDashedLine, drawLabel, drawRect } from './common/svgPrimitives';
@@ -154,11 +155,11 @@ export const CoupleCardDef = createCardDefinition({
     },
 
     inputConfig: {
-        M: { label: ja['card.couple.inputs.moment'], unitType: 'moment' },
+        M: num({ label: ja['card.couple.inputs.moment'], unitType: 'moment', symbol: 'M' }),
     },
 
     outputConfig: {
-        k: { label: ja['card.couple.outputs.k'], unitType: 'load' },
+        k: { label: ja['card.couple.outputs.k'], unitType: 'load', formula: 'M / (2 × Σdi²)', symbol: 'k' },
     },
 
     dynamicInputGroups: [{
@@ -173,6 +174,10 @@ export const CoupleCardDef = createCardDefinition({
         minCount:       1,
         addLabel:       ja['card.couple.addLabel'],
         outputIndexFn:  (key) => { const m = key.match(/^n_(\d+)$/); return m ? m[1] : null; },
+        inputSymbolFn:  (i) => `d_${i}`,
+        outputSymbolFn: (i) => `N_${i}`,
+        outputFormula:  'k × d_i',
+        outputFormulaInputKeysFn: (inputKey) => ['k', inputKey],
     }],
 
     // 偶力の式: M = Σ(Ni × 2 × di), Ni = k × di → k = M / (2 × Σdi²)

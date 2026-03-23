@@ -1,6 +1,7 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useContext, useRef, useState, useEffect } from 'react';
 import { SVG_FONT_FAMILY, SVG_FONT_SIZE } from './svgTheme';
+import { ReportRenderContext } from './ReportRenderContext';
 
 export interface Point { x: number; y: number }
 
@@ -66,7 +67,9 @@ export const AutoFitSvg: React.FC<AutoFitSvgProps> = ({
     children
 }) => {
     const { ref, size } = useContainerSize();
-    const { width: W, height: H } = size;
+    const reportCtx = useContext(ReportRenderContext);
+    const W = reportCtx?.width  ?? size.width;
+    const H = reportCtx?.height ?? size.height;
 
     // 1. Calculate Transform
     // Bounds size

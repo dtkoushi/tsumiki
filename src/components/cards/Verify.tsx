@@ -2,6 +2,7 @@
 import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { ja } from '../../lib/i18n/ja';
 
@@ -70,13 +71,13 @@ export const VerifyCardDef = createCardDefinition<VerifyOutputs>({
     },
 
     inputConfig: {
-        value: { label: ja['card.verify.inputs.value'], unitType: 'none' },
-        allowable: { label: ja['card.verify.inputs.allowable'], unitType: 'none' },
+        value:     num({ label: ja['card.verify.inputs.value'],     unitType: 'none', symbol: 'f' }),
+        allowable: num({ label: ja['card.verify.inputs.allowable'], unitType: 'none', symbol: 'fa' }),
     },
     outputConfig: {
-        ratio: { label: ja['card.verify.outputs.ratio'], unitType: 'ratio' },
-        margin: { label: ja['card.verify.outputs.margin'], unitType: 'ratio' },
-        isOk: { label: ja['card.verify.outputs.status'], unitType: 'none' },
+        ratio:  { label: ja['card.verify.outputs.ratio'],  unitType: 'ratio', formula: '|value| / allowable', symbol: 'f/fa', formulaInputKeys: ['value', 'allowable'] },
+        margin: { label: ja['card.verify.outputs.margin'], unitType: 'ratio', formula: '1 − ratio',           symbol: '1−f/fa' },
+        isOk:   { label: ja['card.verify.outputs.status'], unitType: 'none', symbol: 'OK' },
     },
     visualization: VerifyUI,
     sidebar: { category: 'verify', order: 1 },

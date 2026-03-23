@@ -1,6 +1,7 @@
 
 import { Zap } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 
 // --- Types ---
 
@@ -30,19 +31,19 @@ export const WeldCardDef = createCardDefinition<WeldOutputs>({
     },
 
     inputConfig: {
-        F:  { label: '直交力 F（引張・圧縮）', unitType: 'force' },
-        V:  { label: '平行力 V（せん断）',     unitType: 'force' },
-        a:  { label: 'のど厚 a（≒0.7×サイズ）', unitType: 'length' },
-        l:  { label: '溶接長さ l',             unitType: 'length' },
-        fw: { label: '許容応力度 fw',           unitType: 'stress' },
+        F:  num({ label: '直交力（引張・圧縮）', unitType: 'force',  symbol: 'F' }),
+        V:  num({ label: '平行力（せん断）',     unitType: 'force',  symbol: 'V' }),
+        a:  num({ label: 'のど厚（≒0.7×サイズ）', unitType: 'length', symbol: 'a' }),
+        l:  num({ label: '溶接長さ',             unitType: 'length', symbol: 'l' }),
+        fw: num({ label: '許容応力度',           unitType: 'stress', symbol: 'fw' }),
     },
 
     outputConfig: {
-        A_w:       { label: 'のど断面積 A_w = a×l',    unitType: 'area' },
-        sigma_perp:{ label: '直交応力 σ⊥ = F/A_w',     unitType: 'stress' },
-        tau_par:   { label: '平行せん断 τ∥ = V/A_w',   unitType: 'stress' },
-        f_eq:      { label: '合成応力 f_eq = √(σ²+τ²)', unitType: 'stress' },
-        ratio:     { label: '検定比 f_eq/fw',           unitType: 'ratio' },
+        A_w:       { label: 'のど断面積',   unitType: 'area',   symbol: 'A_w',         formula: 'a × l',                         formulaInputKeys: ['a', 'l'] },
+        sigma_perp:{ label: '直交応力',     unitType: 'stress', symbol: 'sigma_perp',  formula: 'F / A_w',                       formulaInputKeys: ['F'] },
+        tau_par:   { label: '平行せん断',   unitType: 'stress', symbol: 'tau_par',     formula: 'V / A_w',                       formulaInputKeys: ['V'] },
+        f_eq:      { label: '合成応力',     unitType: 'stress', symbol: 'f_eq',        formula: '√(sigma_perp² + tau_par²)' },
+        ratio:     { label: '検定比',       unitType: 'ratio',  symbol: 'ratio',       formula: 'f_eq / fw',                     formulaInputKeys: ['fw'] },
     },
 
     calculate: ({ F, V, a, l, fw }) => {

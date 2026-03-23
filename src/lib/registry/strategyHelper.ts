@@ -1,4 +1,5 @@
 import type { CardDefinition, CardStrategy } from './types';
+import { sel, type InputFieldConfig } from '../utils/inputField';
 
 
 // ─── DEV-mode validation ─────────────────────────────────────────────────────
@@ -19,7 +20,7 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
         for (const key of Object.keys(def.defaultInputs)) {
             // Skip dynamic group keys (e.g. d_1, d_2) and strategy axis keys
             if (/^.+_\d+$/.test(key)) continue;
-            if (def.inputConfig[key]?.type === 'select') continue;
+            if (def.inputConfig[key]?.kind === 'select') continue;
             if (!configKeys.has(key) && !def.getInputConfig) {
                 warn(`defaultInputs key "${key}" not found in inputConfig — possible typo`);
             }
@@ -30,7 +31,7 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
     if (def.inputConfig && def.defaultInputs) {
         const defaultKeys = new Set(Object.keys(def.defaultInputs));
         for (const [key, config] of Object.entries(def.inputConfig)) {
-            if (config.type === 'select') continue;
+            if (config.kind === 'select') continue;
             if (!defaultKeys.has(key)) {
                 warn(`inputConfig key "${key}" has no defaultInputs entry — new cards will have no initial value`);
             }
@@ -67,11 +68,26 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
         }
     }
 
-    // dynamicInputGroups: check outputIndexFn presence
+    // outputConfig: warn if formula is set but symbol is missing
+    if (def.outputConfig) {
+        for (const [key, cfg] of Object.entries(def.outputConfig)) {
+            if (cfg.formula && !cfg.symbol) {
+                warn(`outputConfig["${key}"] has formula but no symbol — report rows will fall back to key`);
+            }
+        }
+    }
+
+    // dynamicInputGroups: check outputIndexFn, inputSymbolFn, outputSymbolFn presence
     if (def.dynamicInputGroups) {
         for (const group of def.dynamicInputGroups) {
             if (!group.outputIndexFn) {
                 warn(`dynamicInputGroups["${group.keyPrefix}"] has no outputIndexFn — pin-to-panel will be silently disabled`);
+            }
+            if (!group.inputSymbolFn) {
+                warn(`dynamicInputGroups["${group.keyPrefix}"] has no inputSymbolFn — report rows will show key instead of symbol`);
+            }
+            if (!group.outputSymbolFn) {
+                warn(`dynamicInputGroups["${group.keyPrefix}"] has no outputSymbolFn — report rows will show key instead of symbol`);
             }
         }
     }
@@ -94,6 +110,7 @@ interface StrategyAxis {
     label: string;
     options: { label: string; value: string }[];
     default: string;
+    symbol?: string;
 }
 
 interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Record<string, number>> {
@@ -112,7 +129,9 @@ interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Recor
      */
     commonInputConfig?: CardDefinition<TOutputs>['inputConfig'];
     outputConfig: CardDefinition<TOutputs>['outputConfig'];
+    getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
     visualization?: React.FC<any>;
+    reportVisualization?: React.FC<any>;
     sidebar?: CardDefinition<TOutputs>['sidebar'];
     shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
@@ -128,7 +147,8 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         commonInputs = {},
         commonInputConfig,
         outputConfig,
-        visualization
+        visualization,
+        reportVisualization,
     } = options;
 
     const axes: StrategyAxis[] = strategyAxes;
@@ -199,14 +219,14 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
 
         // Static Input Config: Generate selectors for all axes
         inputConfig: axes.reduce((acc, axis) => {
-            acc[axis.key] = {
+            acc[axis.key] = sel({
                 label: axis.label,
-                type: 'select',
                 options: axis.options,
-                default: axis.default
-            };
+                default: axis.default,
+                ...(axis.symbol ? { symbol: axis.symbol } : {}),
+            });
             return acc;
-        }, {} as Record<string, any>),
+        }, {} as Record<string, InputFieldConfig>),
 
         // Dynamic Input Config: Merge commonInputConfig with strategy-specific config
         // Strategy-specific fields take precedence over commonInputConfig fields
@@ -224,7 +244,9 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         },
 
         outputConfig,
+        getOutputConfig: options.getOutputConfig,
         visualization,
+        reportVisualization,
         sidebar: options.sidebar,
         shouldRenderInput: options.shouldRenderInput,
     };
@@ -245,6 +267,8 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     calculate: CardDefinition<TOutputs>['calculate'];
     /** Render inside GenericCard's visualization area (SVG box). */
     visualization?: React.FC<any>;
+    /** Visualization component used exclusively for report generation (custom-component cards). */
+    reportVisualization?: React.FC<any>;
     /** Replace GenericCard entirely. Use when inputs/outputs are dynamic or layout needs full control. */
     component?: CardDefinition<TOutputs>['component'];
     /** Variable-length paired (input → output) row groups rendered by GenericCard. */
@@ -252,6 +276,8 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     /** Variable-length multi-field row groups (select + SmartInput mix) rendered by GenericCard. */
     dynamicRowGroups?: CardDefinition<TOutputs>['dynamicRowGroups'];
     sidebar?: CardDefinition<TOutputs>['sidebar'];
+    getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
+    shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
 
 export function createCardDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: SimpleCardDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
@@ -265,10 +291,13 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         outputConfig,
         calculate,
         visualization,
+        reportVisualization,
         component,
         dynamicInputGroups,
         dynamicRowGroups,
-        sidebar
+        sidebar,
+        getOutputConfig,
+        shouldRenderInput,
     } = options;
 
     const def: CardDefinition<TOutputs> = {
@@ -279,12 +308,15 @@ export function createCardDefinition<TOutputs extends Record<string, any> = Reco
         defaultInputs,
         inputConfig,
         outputConfig,
+        getOutputConfig,
         calculate,
         visualization,
+        reportVisualization,
         component,
         dynamicInputGroups,
         dynamicRowGroups,
-        sidebar
+        sidebar,
+        shouldRenderInput,
     };
 
     validateCardDefinition(def, 'createCardDefinition');

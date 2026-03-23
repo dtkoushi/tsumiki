@@ -1,6 +1,7 @@
 
 import { Square } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 
 // --- Types ---
@@ -110,27 +111,44 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
         sigma_y: { value: 235 },
     },
     inputConfig: {
-        B: { label: '幅 B', unitType: 'length' },
-        H: { label: '高さ H', unitType: 'length' },
-        t: { label: '板厚 t（中実=0）', unitType: 'length' },
-        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
+        B:       num({ label: '幅 B',                    unitType: 'length', symbol: 'B' }),
+        H:       num({ label: '高さ H',                  unitType: 'length', symbol: 'H' }),
+        t:       num({ label: '板厚 t（中実=0）',         unitType: 'length', symbol: 't' }),
+        Fy:      num({ label: '降伏応力度 Fy（F値）',      unitType: 'stress', symbol: 'Fy' }),
+        sigma_y: num({ label: '降伏応力度 σy（実勢値）',   unitType: 'stress', symbol: 'σy' }),
     },
     outputConfig: {
-        A: { label: '断面積 A', unitType: 'area' },
-        Ix: { label: 'I_x', unitType: 'inertia' },
-        Iy: { label: 'I_y', unitType: 'inertia' },
-        Zx: { label: 'Z_x（弾性）', unitType: 'modulus' },
-        Zy: { label: 'Z_y（弾性）', unitType: 'modulus' },
-        Zpx: { label: 'Z_px（塑性）', unitType: 'modulus' },
-        Zpy: { label: 'Z_py（塑性）', unitType: 'modulus' },
-        ix: { label: 'i_x', unitType: 'length' },
-        iy: { label: 'i_y', unitType: 'length' },
-        Mx: { label: 'M_x（弾性・Fy）', unitType: 'moment' },
-        My: { label: 'M_y（弾性・Fy）', unitType: 'moment' },
-        Mpx: { label: 'M_px（全塑性・σy）', unitType: 'moment' },
-        Mpy: { label: 'M_py（全塑性・σy）', unitType: 'moment' },
+        A:   { label: '断面積',           unitType: 'area',    formula: 'B × H',        symbol: 'A',    formulaInputKeys: ['B', 'H'] },
+        Ix:  { label: '断面二次モーメント（強軸）', unitType: 'inertia', formula: 'B × H³ / 12', symbol: 'I_x', formulaInputKeys: ['B', 'H'] },
+        Iy:  { label: '断面二次モーメント（弱軸）', unitType: 'inertia', formula: 'H × B³ / 12', symbol: 'I_y', formulaInputKeys: ['H', 'B'] },
+        Zx:  { label: '断面係数（強軸・弾性）',     unitType: 'modulus', formula: 'I_x / (H/2)', symbol: 'Z_x', formulaInputKeys: ['H'] },
+        Zy:  { label: '断面係数（弱軸・弾性）',     unitType: 'modulus', formula: 'I_y / (B/2)', symbol: 'Z_y', formulaInputKeys: ['B'] },
+        Zpx: { label: '塑性断面係数（強軸）',       unitType: 'modulus', formula: 'B × H² / 4',  symbol: 'Z_px', formulaInputKeys: ['B', 'H'] },
+        Zpy: { label: '塑性断面係数（弱軸）',       unitType: 'modulus', formula: 'H × B² / 4',  symbol: 'Z_py', formulaInputKeys: ['H', 'B'] },
+        ix:  { label: '断面二次半径（強軸）',       unitType: 'length',  formula: '√(I_x / A)', symbol: 'i_x' },
+        iy:  { label: '断面二次半径（弱軸）',       unitType: 'length',  formula: '√(I_y / A)', symbol: 'i_y' },
+        Mx:  { label: '弾性曲げ耐力（強軸・Fy）',   unitType: 'moment',  formula: 'Z_x × Fy',   symbol: 'M_x',  formulaInputKeys: ['Fy'] },
+        My:  { label: '弾性曲げ耐力（弱軸・Fy）',   unitType: 'moment',  formula: 'Z_y × Fy',   symbol: 'M_y',  formulaInputKeys: ['Fy'] },
+        Mpx: { label: '全塑性モーメント（強軸・σy）', unitType: 'moment', formula: 'Z_px × sigma_y',  symbol: 'M_px', formulaInputKeys: ['sigma_y'] },
+        Mpy: { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment', formula: 'Z_py × sigma_y',  symbol: 'M_py', formulaInputKeys: ['sigma_y'] },
     },
+
+    getOutputConfig: (card) => {
+        const tVal = parseFloat(String(card.inputs['t']?.value ?? '0')) || 0;
+        if (tVal > 0) {
+            return {
+                A:  { label: '断面積',                   unitType: 'area',    formula: 'B × H − (B−2t) × (H−2t)', symbol: 'A',    formulaInputKeys: ['B', 'H', 't'] },
+                Ix: { label: '断面二次モーメント（強軸）', unitType: 'inertia', formula: '(B×H³ − (B−2t)×(H−2t)³) / 12', symbol: 'I_x', formulaInputKeys: ['B', 'H', 't'] },
+                Iy: { label: '断面二次モーメント（弱軸）', unitType: 'inertia', formula: '(H×B³ − (H−2t)×(B−2t)³) / 12', symbol: 'I_y', formulaInputKeys: ['H', 'B', 't'] },
+                Zx:  { label: '断面係数（強軸・弾性）', unitType: 'modulus', formula: 'I_x / (H/2)',                            symbol: 'Z_x',  formulaInputKeys: ['H'] },
+                Zy:  { label: '断面係数（弱軸・弾性）', unitType: 'modulus', formula: 'I_y / (B/2)',                            symbol: 'Z_y',  formulaInputKeys: ['B'] },
+                Zpx: { label: '塑性断面係数（強軸）',   unitType: 'modulus', formula: '(B×H² − (B−2t)×(H−2t)²) / 4',           symbol: 'Z_px', formulaInputKeys: ['B', 'H', 't'] },
+                Zpy: { label: '塑性断面係数（弱軸）',   unitType: 'modulus', formula: '(H×B² − (H−2t)×(B−2t)²) / 4',           symbol: 'Z_py', formulaInputKeys: ['H', 'B', 't'] },
+            };
+        }
+        return {};
+    },
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     calculate: ({ B, H, t, Fy, fy, sigma_y } : any) => {
         const b  = B || 0;

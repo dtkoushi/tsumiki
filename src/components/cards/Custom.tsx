@@ -103,7 +103,7 @@ export const CustomCombineDef = createCardDefinition({
     inputConfig: {},
 
     outputConfig: {
-        result: { label: ja['card.custom.outputs.result'], unitType: 'none' },
+        result: { label: ja['card.custom.outputs.result'], unitType: 'none', symbol: 'y' },
     },
 
     dynamicInputGroups: [{

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { BarChart2, Plus, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
 import { CardProvider } from './common/CardContext';
@@ -168,6 +169,31 @@ const DiagramSvg: React.FC<DiagramSvgProps> = ({ model, tab, xPositions, unitMod
                 );
             })}
         </svg>
+    );
+};
+
+// --- Report Visualization Wrapper ---
+
+const DiagramReportVis: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
+    const diagramRef = card.inputs['diagramModel']?.ref;
+    const model = (diagramRef?.outputKey != null)
+        ? (upstreamCards.find(c => c.id === diagramRef!.cardId)?.outputs[diagramRef!.outputKey!] as unknown as DiagramModel)
+        : null;
+    if (!model) return null;
+    const ri = card.resolvedInputs ?? {};
+    const xPositions = Object.keys(card.inputs)
+        .filter(k => /^x_\d+$/.test(k))
+        .map(k => parseInt(k.split('_')[1]))
+        .sort((a, b) => a - b)
+        .map(n => ({ n, x: ri[`x_${n}`] ?? Number(card.inputs[`x_${n}`]?.value ?? 0) }));
+    return (
+        <DiagramSvg
+            model={model}
+            tab="M"
+            xPositions={xPositions}
+            unitMode={(card.unitMode ?? 'mm') as UnitMode}
+            cardId={card.id}
+        />
     );
 };
 
@@ -338,10 +364,23 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     inputConfig: {
-        diagramModel: { label: ja['card.diagram.inputs.diagramModel'], unitType: 'none' },
+        diagramModel: num({ label: ja['card.diagram.inputs.diagramModel'], unitType: 'none' }),
     },
 
     outputConfig: {},
+
+    getOutputConfig: (card) => {
+        const result: Record<string, import('../../lib/registry/types').OutputFieldConfig> = {};
+        Object.keys(card.inputs)
+            .filter(k => /^x_\d+$/.test(k))
+            .map(k => parseInt(k.split('_')[1]))
+            .sort((a, b) => a - b)
+            .forEach(n => {
+                result[`Mx_${n}`] = { label: `M (x_${n})`, unitType: 'moment', symbol: `M(x_${n})` };
+                result[`Qx_${n}`] = { label: `Q (x_${n})`, unitType: 'force',  symbol: `Q(x_${n})` };
+            });
+        return result;
+    },
 
     calculate: (inputs, rawInputs) => {
         const model = inputs['diagramModel'] as unknown as DiagramModel;
@@ -363,6 +402,7 @@ export const DiagramCardDef = createCardDefinition<DiagramOutputs>({
     },
 
     component: DiagramComponent,
+    reportVisualization: DiagramReportVis,
     sidebar: { category: 'beam', order: 5 },
 });
 

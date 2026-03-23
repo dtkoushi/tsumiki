@@ -13,12 +13,14 @@ import {
     Check,
     X,
     Menu,
-    Pencil
+    Pencil,
+    FileText
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useTsumikiStore } from '../../store/useTsumikiStore';
 import type { CardType } from '../../types';
 import { serializeProject, deserializeProject, compressToUrl } from '../../lib/utils/serialization';
+import { buildReportData, renderReportHtml } from '../../lib/utils/reportGenerator';
 import { toast } from '../common/toast';
 import { Button } from '../common/Button';
 import { CardNavigator } from '../stack/CardNavigator';
@@ -53,6 +55,18 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             next.has(id) ? next.delete(id) : next.add(id);
             return next;
         });
+    };
+
+    const handleReport = () => {
+        const data = buildReportData(cards, meta);
+        const html = renderReportHtml(data);
+        const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const tab = window.open(url, '_blank');
+        if (!tab) {
+            toast('ポップアップがブロックされました。ブラウザの設定を確認してください。', 'error');
+            URL.revokeObjectURL(url);
+        }
     };
 
     const handleExport = () => {
@@ -378,6 +392,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             accept=".json"
                             className="hidden"
                         />
+                        <Button onClick={handleReport} leftIcon={<FileText size={14} />} title="計算書出力">
+                            <span className="hidden sm:inline">計算書</span>
+                        </Button>
                         <Button onClick={handleImportClick} leftIcon={<Upload size={14} />}>
                             <span className="hidden sm:inline">{ja['ui.import']}</span>
                         </Button>

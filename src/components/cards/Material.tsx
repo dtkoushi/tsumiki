@@ -2,6 +2,7 @@
 import { Hexagon } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { num } from '../../lib/utils/inputField';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Local Types ---
@@ -47,7 +48,7 @@ const ConcreteStrategy: CardStrategy<MaterialOutputs> = {
     id: 'concrete',
     label: 'コンクリート',
     inputConfig: {
-        Fc: { label: '設計基準強度 Fc', unitType: 'stress', default: 24 },
+        Fc: num({ label: '設計基準強度 Fc', unitType: 'stress', default: 24 }),
     },
     calculate: (inputs) => {
         const Fc = inputs['Fc'] ?? 24;
@@ -86,10 +87,10 @@ export const MaterialCardDef = createStrategyDefinition<MaterialOutputs>({
     strategies: MaterialStrategies,
     sidebar: { category: 'material', order: 1 },
     outputConfig: {
-        F: { label: ja['card.material.outputs.designStrength'], unitType: 'stress' },
-        E: { label: ja['card.material.outputs.youngsModulus'], unitType: 'stress' },
-        gamma: { label: '単位体積重量 γ [kN/m³]', unitType: 'none' },
-        sigma_y: { label: '実勢降伏応力度 σy (SS/SM: Fy×1.2, SN: Fy×1.1)', unitType: 'stress' },
+        F:       { label: ja['card.material.outputs.designStrength'], unitType: 'stress', symbol: 'F' },
+        E:       { label: ja['card.material.outputs.youngsModulus'],  unitType: 'stress', symbol: 'E' },
+        gamma:   { label: '単位体積重量',                              unitType: 'none',   symbol: 'γ' },
+        sigma_y: { label: '実勢降伏応力度',                            unitType: 'stress', symbol: 'σy' },
     },
 });
 

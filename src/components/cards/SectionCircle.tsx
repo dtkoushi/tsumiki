@@ -1,6 +1,7 @@
 
 import { Circle } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 
 // --- Types ---
@@ -89,20 +90,33 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
     },
 
     inputConfig: {
-        D: { label: '外径 D', unitType: 'length' },
-        t: { label: '板厚 t（中実=0）', unitType: 'length' },
-        Fy: { label: '降伏応力度 Fy（F値）', unitType: 'stress' },
-        sigma_y: { label: '降伏応力度 σy（実勢値）', unitType: 'stress' },
+        D:       num({ label: '外径 D',                unitType: 'length', symbol: 'D' }),
+        t:       num({ label: '板厚 t（中実=0）',       unitType: 'length', symbol: 't' }),
+        Fy:      num({ label: '降伏応力度 Fy（F値）',   unitType: 'stress', symbol: 'Fy' }),
+        sigma_y: num({ label: '降伏応力度 σy（実勢値）', unitType: 'stress', symbol: 'σy' }),
     },
 
     outputConfig: {
-        A:  { label: '断面積 A',       unitType: 'area' },
-        I:  { label: '断面二次モーメント I', unitType: 'inertia' },
-        Z:  { label: '断面係数 Z（弾性）', unitType: 'modulus' },
-        Zp: { label: '塑性断面係数 Zp', unitType: 'modulus' },
-        ix: { label: 'i', unitType: 'length' },
-        Mx: { label: 'M（弾性・Fy）', unitType: 'moment' },
-        Mp: { label: 'M_p（全塑性・σy）', unitType: 'moment' },
+        A:  { label: '断面積',             unitType: 'area',    formula: 'π/4 × D²',  symbol: 'A',   formulaInputKeys: ['D'] },
+        I:  { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × D⁴', symbol: 'I',   formulaInputKeys: ['D'] },
+        Z:  { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',  symbol: 'Z',   formulaInputKeys: ['D'] },
+        Zp: { label: '塑性断面係数',       unitType: 'modulus', formula: 'D³ / 6',    symbol: 'Z_p', formulaInputKeys: ['D'] },
+        ix: { label: '断面二次半径',       unitType: 'length',  formula: '√(I / A)',   symbol: 'i' },
+        Mx: { label: '弾性曲げ耐力（Fy）', unitType: 'moment',  formula: 'Z × Fy',    symbol: 'M_x', formulaInputKeys: ['Fy'] },
+        Mp: { label: '全塑性モーメント（σy）', unitType: 'moment', formula: 'Zp × sigma_y', symbol: 'M_p', formulaInputKeys: ['sigma_y'] },
+    },
+
+    getOutputConfig: (card) => {
+        const tVal = parseFloat(String(card.inputs['t']?.value ?? '0')) || 0;
+        if (tVal > 0) {
+            return {
+                A:  { label: '断面積',             unitType: 'area',    formula: 'π/4 × (D² − (D−2t)²)',  symbol: 'A',   formulaInputKeys: ['D', 't'] },
+                I:  { label: '断面二次モーメント', unitType: 'inertia', formula: 'π/64 × (D⁴ − (D−2t)⁴)', symbol: 'I',   formulaInputKeys: ['D', 't'] },
+                Z:  { label: '断面係数（弾性）',   unitType: 'modulus', formula: 'I / (D/2)',               symbol: 'Z',   formulaInputKeys: ['D'] },
+                Zp: { label: '塑性断面係数',       unitType: 'modulus', formula: '(D³ − (D−2t)³) / 6',    symbol: 'Z_p', formulaInputKeys: ['D', 't'] },
+            };
+        }
+        return {};
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

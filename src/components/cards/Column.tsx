@@ -2,6 +2,7 @@
 import { Landmark } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
+import { num } from '../../lib/utils/inputField';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
@@ -73,18 +74,18 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     sidebar: { category: 'beam', order: 4 },
 
     commonInputConfig: {
-        L: { label: ja['card.column.inputs.L'],  unitType: 'length'  as const, default: 3000 },
-        E: { label: ja['card.column.inputs.E'],  unitType: 'modulus' as const, default: 205000 },
-        A: { label: ja['card.column.inputs.A'],  unitType: 'area'    as const, default: 5000 },
-        I: { label: ja['card.column.inputs.I'],  unitType: 'inertia' as const, default: 1e7 },
+        L: num({ label: ja['card.column.inputs.L'],  unitType: 'length',  default: 3000,   symbol: 'L' }),
+        E: num({ label: ja['card.column.inputs.E'],  unitType: 'modulus', default: 205000, symbol: 'E' }),
+        A: num({ label: ja['card.column.inputs.A'],  unitType: 'area',    default: 5000,   symbol: 'A' }),
+        I: num({ label: ja['card.column.inputs.I'],  unitType: 'inertia', default: 1e7,    symbol: 'I' }),
     },
 
     outputConfig: {
-        Le:         { label: ja['card.column.outputs.Le'],          unitType: 'length' },
-        i_gyration: { label: ja['card.column.outputs.i_gyration'],  unitType: 'length' },
-        lambda:     { label: ja['card.column.outputs.lambda'],      unitType: 'none' },
-        N_cr:       { label: ja['card.column.outputs.N_cr'],        unitType: 'force' },
-        sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],    unitType: 'stress' },
+        Le:         { label: ja['card.column.outputs.Le'],         unitType: 'length', formula: 'k × L',      symbol: 'L_e',   formulaInputKeys: ['L'] },
+        i_gyration: { label: ja['card.column.outputs.i_gyration'], unitType: 'length', formula: '√(I / A)',   symbol: 'i',     formulaInputKeys: ['I', 'A'] },
+        lambda:     { label: ja['card.column.outputs.lambda'],     unitType: 'none',   formula: 'Le / i',     symbol: 'λ' },
+        N_cr:       { label: ja['card.column.outputs.N_cr'],       unitType: 'force',  formula: 'π²EI / Le²', symbol: 'N_cr' },
+        sigma_cr:   { label: ja['card.column.outputs.sigma_cr'],   unitType: 'stress', formula: 'N_cr / A',   symbol: 'σ_cr' },
     },
 });
 

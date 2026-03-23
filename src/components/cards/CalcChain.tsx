@@ -1,5 +1,6 @@
 import { Calculator } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 
 interface CalcChainOutputs { result: number }
 
@@ -12,10 +13,10 @@ export const CalcChainCardDef = createCardDefinition<CalcChainOutputs>({
 
     defaultInputs: { init: { value: 0 } },
     inputConfig: {
-        init: { label: '初期値', unitType: 'none' },
+        init: num({ label: '初期値', unitType: 'none' }),
     },
     outputConfig: {
-        result: { label: '結果', unitType: 'none' },
+        result: { label: '結果', unitType: 'none', symbol: 'y' },
     },
 
     dynamicRowGroups: [{
@@ -39,6 +40,7 @@ export const CalcChainCardDef = createCardDefinition<CalcChainOutputs>({
                 keyPrefix:    'val',
                 label:        '値',
                 unitType:     'none',
+                symbol:       (i) => `v_${i}`,
                 defaultValue: 0,
             },
         ],

@@ -1,6 +1,7 @@
 
 import { RectangleHorizontal } from 'lucide-react';
 import type { CardDefinition } from '../../lib/registry/types';
+import { num, sel } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { H_SECTIONS, byCategory, findHSection, CATEGORY_DEFAULTS } from '../../lib/data/hSections';
 import type { HFlangeCategory } from '../../lib/data/hSections';
@@ -178,12 +179,11 @@ export const SectionHSelectDef: CardDefinition<SectionHSelectOutputs> = {
 
     // Static: flangeType axis selector
     inputConfig: {
-        flangeType: {
+        flangeType: sel({
             label: 'フランジ幅',
-            type: 'select',
             options: FLANGE_OPTIONS,
             default: 'narrow',
-        },
+        }),
     },
 
     // Dynamic: section options change based on flangeType
@@ -191,46 +191,47 @@ export const SectionHSelectDef: CardDefinition<SectionHSelectOutputs> = {
         const flangeType = (card.inputs['flangeType']?.value ?? 'narrow') as HFlangeCategory;
         const options = byCategory(flangeType).map(s => ({ value: s.name, label: s.name }));
         return {
-            section: {
+            section: sel({
                 label: '断面形状',
-                type: 'select' as const,
                 options,
                 default: CATEGORY_DEFAULTS[flangeType],
-            },
-            Fy: {
+            }),
+            Fy: num({
                 label: '降伏応力度 Fy（F値）',
-                unitType: 'stress' as const,
-            },
-            sigma_y: {
+                unitType: 'stress',
+                symbol: 'Fy',
+            }),
+            sigma_y: num({
                 label: '降伏応力度 σy（実勢値）',
-                unitType: 'stress' as const,
-            },
+                unitType: 'stress',
+                symbol: 'σy',
+            }),
         };
     },
 
     calculate: calcHSection,
 
     outputConfig: {
-        A:        { label: '断面積 A',             unitType: 'area' },
-        Ix:       { label: 'I_x',                  unitType: 'inertia' },
-        Iy:       { label: 'I_y',                  unitType: 'inertia' },
-        Zx:       { label: 'Z_x（弾性）',           unitType: 'modulus' },
-        Zpx:      { label: 'Z_px（塑性）',          unitType: 'modulus' },
-        Zy:       { label: 'Z_y（弾性）',           unitType: 'modulus' },
-        Zpy:      { label: 'Z_py（塑性）',          unitType: 'modulus' },
-        lambda_f: { label: 'λ_f フランジ幅厚比',    unitType: 'none' },
-        lambda_w: { label: 'λ_w ウェブ幅厚比',      unitType: 'none' },
-        ix:       { label: 'i_x',                  unitType: 'length' },
-        iy:       { label: 'i_y',                  unitType: 'length' },
-        Mpx:      { label: 'M_px（全塑性・σy）',    unitType: 'moment' },
-        Mx:       { label: 'M_x（弾性・Fy）',       unitType: 'moment' },
-        My:       { label: 'M_y（弾性・Fy）',       unitType: 'moment' },
-        Mpy:      { label: 'M_py（全塑性・σy）',    unitType: 'moment' },
-        Qy:       { label: '降伏せん断耐力 Qy（σy）', unitType: 'force' },
-        H:        { label: '断面高さ H',              unitType: 'length', hidden: true },
-        B:        { label: 'フランジ幅 B',            unitType: 'length', hidden: true },
-        tw:       { label: 'ウェブ厚 tw',             unitType: 'length', hidden: true },
-        tf:       { label: 'フランジ厚 tf',           unitType: 'length', hidden: true },
+        A:        { label: '断面積',           unitType: 'area',    symbol: 'A'       },
+        Ix:       { label: '断面二次モーメント（強軸）', unitType: 'inertia', symbol: 'Ix'      },
+        Iy:       { label: '断面二次モーメント（弱軸）', unitType: 'inertia', symbol: 'Iy'      },
+        Zx:       { label: '断面係数（強軸・弾性）',    unitType: 'modulus', symbol: 'Zx'      },
+        Zpx:      { label: '塑性断面係数（強軸）',      unitType: 'modulus', symbol: 'Zpx'     },
+        Zy:       { label: '断面係数（弱軸・弾性）',    unitType: 'modulus', symbol: 'Zy'      },
+        Zpy:      { label: '塑性断面係数（弱軸）',      unitType: 'modulus', symbol: 'Zpy'     },
+        lambda_f: { label: 'フランジ幅厚比',            unitType: 'none',    symbol: 'λ_f'     },
+        lambda_w: { label: 'ウェブ幅厚比',              unitType: 'none',    symbol: 'λ_w'     },
+        ix:       { label: '断面二次半径（強軸）',       unitType: 'length',  symbol: 'ix'      },
+        iy:       { label: '断面二次半径（弱軸）',       unitType: 'length',  symbol: 'iy'      },
+        Mpx:      { label: '全塑性モーメント（強軸・σy）', unitType: 'moment',  symbol: 'Mpx'     },
+        Mx:       { label: '弾性曲げ耐力（強軸・Fy）',   unitType: 'moment',  symbol: 'Mx'      },
+        My:       { label: '弾性曲げ耐力（弱軸・Fy）',   unitType: 'moment',  symbol: 'My'      },
+        Mpy:      { label: '全塑性モーメント（弱軸・σy）', unitType: 'moment',  symbol: 'Mpy'     },
+        Qy:       { label: '降伏せん断耐力',             unitType: 'force',   symbol: 'Qy'      },
+        H:        { label: '断面高さ',                   unitType: 'length',  hidden: true },
+        B:        { label: 'フランジ幅',                 unitType: 'length',  hidden: true },
+        tw:       { label: 'ウェブ厚',                   unitType: 'length',  hidden: true },
+        tf:       { label: 'フランジ厚',                 unitType: 'length',  hidden: true },
     },
 
     visualization: SectionHSelectVisualization,

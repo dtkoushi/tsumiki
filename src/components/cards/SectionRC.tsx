@@ -2,6 +2,7 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { AutoFitSvg } from './common/visualizationHelper';
 
@@ -108,19 +109,19 @@ export const SectionRCDef = createCardDefinition<SectionRCOutputs>({
         Fc: { value: 24 },
     },
     inputConfig: {
-        b: { label: '幅 b', unitType: 'length' },
-        H: { label: '全高さ H', unitType: 'length' },
-        d: { label: '有効せい d', unitType: 'length' },
-        at: { label: '鉄筋断面積 at', unitType: 'area' },
-        Fc: { label: '設計基準強度 Fc', unitType: 'stress' },
+        b:  num({ label: '幅',           unitType: 'length', symbol: 'b'  }),
+        H:  num({ label: '全高さ',       unitType: 'length', symbol: 'H'  }),
+        d:  num({ label: '有効せい',     unitType: 'length', symbol: 'd'  }),
+        at: num({ label: '鉄筋断面積',   unitType: 'area',   symbol: 'at' }),
+        Fc: num({ label: '設計基準強度', unitType: 'stress', symbol: 'Fc' }),
     },
     outputConfig: {
-        A: { label: '総断面積 A', unitType: 'area' },
-        Ig: { label: '全断面 I_g', unitType: 'inertia' },
-        Zg: { label: '全断面 Z_g', unitType: 'modulus' },
-        pt: { label: '鉄筋比 pt', unitType: 'none' },
-        ft: { label: 'コンクリート引張強度 ft', unitType: 'stress' },
-        Mcr: { label: 'ひび割れモーメント Mcr', unitType: 'moment' },
+        A:   { label: '総断面積',          unitType: 'area',    symbol: 'A',   formula: 'b × H',           formulaInputKeys: ['b', 'H'] },
+        Ig:  { label: '全断面 I_g',        unitType: 'inertia', symbol: 'Ig',  formula: 'b × H³ / 12',     formulaInputKeys: ['b', 'H'] },
+        Zg:  { label: '全断面 Z_g',        unitType: 'modulus', symbol: 'Zg',  formula: 'Ig / (H/2)',       formulaInputKeys: ['Ig', 'H'] },
+        pt:  { label: '鉄筋比',            unitType: 'none',    symbol: 'pt',  formula: 'at / (b × d)',     formulaInputKeys: ['at', 'b', 'd'] },
+        ft:  { label: 'コンクリート引張強度', unitType: 'stress',  symbol: 'ft',  formula: '0.56 × √Fc',      formulaInputKeys: ['Fc'] },
+        Mcr: { label: 'ひび割れモーメント',  unitType: 'moment',  symbol: 'Mcr', formula: 'ft × Ig / (H/2)', formulaInputKeys: ['ft', 'Ig', 'H'] },
     },
     calculate: ({ b, H, d, at, Fc }) => {
         const bv = b || 0;

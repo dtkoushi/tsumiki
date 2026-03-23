@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowDown } from 'lucide-react';
 import { createCardDefinition } from '../../lib/registry/strategyHelper';
+import { num } from '../../lib/utils/inputField';
 import type { CardComponentProps } from '../../lib/registry/types';
 import { BaseCard } from './common/BaseCard';
 import { CardProvider } from './common/CardContext';
@@ -28,13 +29,16 @@ interface DeflectionSvgProps {
     delta_max: number;
     delta_allow: number;
     unitMode: UnitMode;
+    /** Unique suffix for clipPath ID — required when multiple SVGs coexist in the same document (e.g. HTML report). */
+    svgId?: string;
 }
 
-const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, delta_allow, unitMode }) => {
+const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, delta_allow, unitMode, svgId }) => {
     const W = 380, H = 200;
     // Layout constants (all in viewBox units)
     const pad = 16;          // right padding — pin/roller baseline extends 12px past beam end
     const beamX0 = 44, beamX1 = W - pad;
+    const clipId = `defl-clip-${svgId ?? beamX0}`;
     const beamY = 100;       // beam at vertical center so deflection fits in both directions
     const maxDeflPx = 72;    // ±72px from beamY → curve stays within [28, 172] inside H=200
 
@@ -94,12 +98,12 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
             style={{ display: 'block' }}>
             <defs>
                 {/* Hard clip: nothing can ever render outside the viewBox */}
-                <clipPath id={`defl-clip-${beamX0}`}>
+                <clipPath id={clipId}>
                     <rect x={0} y={0} width={W} height={H} />
                 </clipPath>
             </defs>
 
-            <g clipPath={`url(#defl-clip-${beamX0})`}>
+            <g clipPath={`url(#${clipId})`}>
                 {/* Filled deflection area */}
                 {polyPoints && (
                     <polygon
@@ -185,6 +189,32 @@ const DeflectionSvg: React.FC<DeflectionSvgProps> = ({ model, E, I, delta_max, d
                 )}
             </g>
         </svg>
+    );
+};
+
+// --- Report Visualization Wrapper ---
+
+const DeflectionReportVis: React.FC<CardComponentProps> = ({ card, upstreamCards }) => {
+    const diagramRef = card.inputs['diagramModel']?.ref;
+    const model = (diagramRef?.outputKey != null)
+        ? (upstreamCards.find(c => c.id === diagramRef!.cardId)?.outputs[diagramRef!.outputKey!] as unknown as DiagramModel)
+        : null;
+    if (!model) return null;
+    const ri = card.resolvedInputs ?? {};
+    const E = ri['E'] ?? 205000;
+    const I = ri['I'] ?? 1e7;
+    const delta_max   = card.outputs['delta_max']   ?? 0;
+    const delta_allow = card.outputs['delta_allow']  ?? 0;
+    return (
+        <DeflectionSvg
+            model={model}
+            E={E}
+            I={I}
+            delta_max={delta_max}
+            delta_allow={delta_allow}
+            unitMode={(card.unitMode ?? 'mm') as UnitMode}
+            svgId={card.id}
+        />
     );
 };
 
@@ -276,6 +306,7 @@ const DeflectionComponent: React.FC<CardComponentProps> = ({ card, actions, upst
                             delta_max={delta_max}
                             delta_allow={delta_allow}
                             unitMode={unitMode}
+                            svgId={card.id}
                         />
                     </div>
                 ) : (
@@ -317,16 +348,16 @@ export const DeflectionCardDef = createCardDefinition({
     },
 
     inputConfig: {
-        diagramModel: { label: ja['card.deflection.inputs.diagramModel'], unitType: 'none' },
-        E: { label: ja['card.deflection.inputs.E'], unitType: 'modulus' },
-        I: { label: ja['card.deflection.inputs.I'], unitType: 'inertia' },
-        n_allow: { label: ja['card.deflection.inputs.n_allow'], unitType: 'none' },
+        diagramModel: num({ label: ja['card.deflection.inputs.diagramModel'], unitType: 'none' }),
+        E:            num({ label: ja['card.deflection.inputs.E'],            unitType: 'modulus', symbol: 'E' }),
+        I:            num({ label: ja['card.deflection.inputs.I'],            unitType: 'inertia', symbol: 'I' }),
+        n_allow:      num({ label: ja['card.deflection.inputs.n_allow'],      unitType: 'none',    symbol: 'n' }),
     },
 
     outputConfig: {
-        delta_max:   { label: ja['card.deflection.outputs.delta_max'],   unitType: 'length' },
-        delta_allow: { label: ja['card.deflection.outputs.delta_allow'],  unitType: 'length' },
-        ratio:       { label: ja['card.deflection.outputs.ratio'],         unitType: 'ratio' },
+        delta_max:   { label: ja['card.deflection.outputs.delta_max'],   unitType: 'length', formula: '数値積分（台形則, N=500）', symbol: 'δ_max' },
+        delta_allow: { label: ja['card.deflection.outputs.delta_allow'],  unitType: 'length', formula: 'L / n_allow', symbol: 'δ_allow', formulaInputKeys: ['n_allow'] },
+        ratio:       { label: ja['card.deflection.outputs.ratio'],         unitType: 'ratio',  formula: 'δ_max / δ_allow', symbol: 'δ/δa' },
     },
 
     calculate: (inputs) => {
@@ -349,6 +380,7 @@ export const DeflectionCardDef = createCardDefinition({
     },
 
     component: DeflectionComponent,
+    reportVisualization: DeflectionReportVis,
     sidebar: { category: 'beam', order: 6 },
 });
 
