@@ -174,11 +174,11 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         if (axisEntries.length === 1) {
             const [key, field] = axisEntries[0];
             const val = inputs[key]?.value;
-            return String(val || field.default ?? '');
+            return String((val || field.default) ?? '');
         }
 
         // Multi-axis: compose by joining axis values with '::'
-        const parts = axisEntries.map(([key, field]) => String(inputs[key]?.value || field.default ?? ''));
+        const parts = axisEntries.map(([key, field]) => String((inputs[key]?.value || field.default) ?? ''));
         return parts.join('::');
     };
 

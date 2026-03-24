@@ -55,7 +55,7 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
                     if (!inputConf) return null;
 
                     const unitMode = (card.unitMode || 'mm') as 'mm' | 'm';
-                    const unitLabel = inputConf.unitType ? getUnitLabel(inputConf.unitType, unitMode) : '';
+                    const unitLabel = inputConf.kind === 'numeric' && inputConf.unitType ? getUnitLabel(inputConf.unitType, unitMode) : '';
                     const upstreamCards = cards.slice(0, cardIndex);
 
                     return (
@@ -76,7 +76,7 @@ export const PinnedInputsPanel: React.FC<{ onClose: () => void }> = ({ onClose }
                                     upstreamCards={upstreamCards}
                                     placeholder={unitLabel ? '0' : ''}
                                     unitMode={unitMode}
-                                    inputType={inputConf.unitType}
+                                    inputType={inputConf.kind === 'numeric' ? inputConf.unitType : undefined}
                                 />
                             </div>
                             <button

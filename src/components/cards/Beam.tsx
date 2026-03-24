@@ -328,7 +328,7 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
                     V_max: { label: '最大せん断力（固定端）',       unitType: 'force',  formula: '5 × w × L / 8', symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
                 };
             default:
-                return {};
+                return {} as Record<string, never>;
         }
     },
     visualization: BeamVisualization,

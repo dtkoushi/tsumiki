@@ -116,7 +116,7 @@ export const SectionCircleDef = createCardDefinition<SectionCircleOutputs>({
                 Zp: { label: '塑性断面係数',       unitType: 'modulus', formula: '(D³ − (D−2t)³) / 6',    symbol: 'Z_p', formulaInputKeys: ['D', 't'] },
             };
         }
-        return {};
+        return {} as Record<string, never>;
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

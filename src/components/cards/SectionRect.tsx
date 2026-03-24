@@ -146,7 +146,7 @@ export const SectionRectDef = createCardDefinition<SectionRectOutputs>({
                 Zpy: { label: '塑性断面係数（弱軸）',   unitType: 'modulus', formula: '(H×B² − (H−2t)×(B−2t)²) / 4',           symbol: 'Z_py', formulaInputKeys: ['H', 'B', 't'] },
             };
         }
-        return {};
+        return {} as Record<string, never>;
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
