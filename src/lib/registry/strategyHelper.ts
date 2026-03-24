@@ -178,9 +178,21 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
         }
 
         // Multi-axis: compose by joining axis values with '::'
+        // NOTE: axis order in strategyAxes determines the strategy ID composition.
+        // e.g. { boundary, load } → "simple::uniform" (ES2015+ preserves string key insertion order).
+        // Reordering keys in strategyAxes would break serialization compatibility with saved projects.
         const parts = axisEntries.map(([key, field]) => String((inputs[key]?.value || field.default) ?? ''));
         return parts.join('::');
     };
+
+    // DEV: warn if any axis has no default value (silent fallback to '' causes strategy ID mismatch)
+    if (import.meta.env.DEV) {
+        for (const [key, field] of axisEntries) {
+            if (field.default === undefined) {
+                console.warn(`[CardDef:${type}] strategyAxes["${key}"] has no default value — falling back to ''`);
+            }
+        }
+    }
 
     // DEV: validate strategy IDs are reachable
     if (import.meta.env.DEV) {

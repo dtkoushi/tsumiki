@@ -327,6 +327,22 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
                     M_max: { label: '最大曲げモーメント（固定端）', unitType: 'moment', formula: 'w × L² / 8',  symbol: 'M_max', formulaInputKeys: ['w', 'L'] },
                     V_max: { label: '最大せん断力（固定端）',       unitType: 'force',  formula: '5 × w × L / 8', symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
                 };
+            case 'fixed_fixed::moment':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'M₀ × max(a, L−a) / L', symbol: 'M_max', formulaInputKeys: ['M0', 'a', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: '|M₀| / L',             symbol: 'V_max', formulaInputKeys: ['M0', 'L'] },
+                };
+            case 'fixed_pinned::point':
+                return {
+                    // MA = P×a×b×(2L−a)/(2L²), RA = P×b×(3L²−b²)/(2L³), b=L−a
+                    M_max: { label: '最大曲げモーメント（固定端）', unitType: 'moment', formula: 'P × a × b × (2L−a) / (2L²)', symbol: 'M_max', formulaInputKeys: ['P', 'a', 'L'] },
+                    V_max: { label: '最大せん断力（固定端）',       unitType: 'force',  formula: 'P × b × (3L²−b²) / (2L³)', symbol: 'V_max', formulaInputKeys: ['P', 'a', 'L'] },
+                };
+            case 'fixed_pinned::moment':
+                return {
+                    M_max: { label: '最大曲げモーメント', unitType: 'moment', formula: 'M₀ × max(a, L−a) / L', symbol: 'M_max', formulaInputKeys: ['M0', 'a', 'L'] },
+                    V_max: { label: '最大せん断力',       unitType: 'force',  formula: '|M₀| / L',             symbol: 'V_max', formulaInputKeys: ['M0', 'L'] },
+                };
             default:
                 return {} as Record<string, never>;
         }
