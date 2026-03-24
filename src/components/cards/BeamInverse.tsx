@@ -2,7 +2,7 @@
 import { ArrowLeftRight } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
-import { num } from '../../lib/utils/inputField';
+import { num, sel } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { calculateBeamAt, type BeamModel } from '../../lib/mechanics/beam';
 import {
@@ -169,26 +169,24 @@ export const BeamInverseCardDef = createStrategyDefinition<BeamInverseOutputs>({
     title: 'ビーム逆算',
     icon: ArrowLeftRight,
     description: '目標モーメントから外力を逆算',
-    strategyAxes: [
-        {
-            key: 'boundary',
+    strategyAxes: {
+        boundary: sel({
             label: '境界条件',
             options: [
-                { label: '単純梁', value: 'simple' },
+                { label: '単純梁',   value: 'simple'     },
                 { label: '片持ち梁', value: 'cantilever' },
             ],
             default: 'simple',
-        },
-        {
-            key: 'load',
+        }),
+        load: sel({
             label: '荷重種別',
             options: [
                 { label: '等分布荷重', value: 'uniform' },
-                { label: '集中荷重', value: 'point' },
+                { label: '集中荷重',   value: 'point'   },
             ],
             default: 'uniform',
-        },
-    ],
+        }),
+    },
     strategies: Strategies,
     sidebar: { category: 'beam', order: 3 },
     outputConfig: {

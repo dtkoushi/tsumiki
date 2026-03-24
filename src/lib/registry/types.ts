@@ -1,8 +1,9 @@
 import React from 'react';
 import type { Card } from '../../types';
 import type { InputFieldConfig } from '../utils/inputField';
+import type { SmartInputUnitType } from '../utils/unitFormatter';
 
-export type { SmartInputUnitType } from '../utils/unitFormatter';
+export type { SmartInputUnitType };
 
 // Actions passed to components (Decoupled from Store)
 export interface CardActions {

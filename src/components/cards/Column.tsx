@@ -2,7 +2,7 @@
 import { Landmark } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
-import { num } from '../../lib/utils/inputField';
+import { num, sel } from '../../lib/utils/inputField';
 import { ja } from '../../lib/i18n/ja';
 
 // --- Types ---
@@ -55,19 +55,18 @@ export const ColumnCardDef = createStrategyDefinition<ColumnOutputs>({
     icon: Landmark,
     description: ja['card.column.description'],
 
-    strategyAxes: [
-        {
-            key: 'endCondition',
+    strategyAxes: {
+        endCondition: sel({
             label: ja['card.column.axis.endCondition'],
             options: [
                 { label: ja['card.column.endCondition.pinned_pinned'], value: 'pinned_pinned' },
-                { label: ja['card.column.endCondition.fixed_free'],    value: 'fixed_free' },
-                { label: ja['card.column.endCondition.fixed_pinned'],  value: 'fixed_pinned' },
-                { label: ja['card.column.endCondition.fixed_fixed'],   value: 'fixed_fixed' },
+                { label: ja['card.column.endCondition.fixed_free'],    value: 'fixed_free'    },
+                { label: ja['card.column.endCondition.fixed_pinned'],  value: 'fixed_pinned'  },
+                { label: ja['card.column.endCondition.fixed_fixed'],   value: 'fixed_fixed'   },
             ],
             default: 'pinned_pinned',
-        },
-    ],
+        }),
+    },
 
     strategies: Strategies,
 

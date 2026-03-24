@@ -2,7 +2,7 @@
 import { Settings2 } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
-import { num } from '../../lib/utils/inputField';
+import { num, sel } from '../../lib/utils/inputField';
 
 // --- Types ---
 
@@ -65,17 +65,16 @@ export const BoltCardDef = createStrategyDefinition<BoltOutputs>({
     icon: Settings2,
     sidebar: { category: 'verify', order: 3 },
 
-    strategyAxes: [
-        {
-            key: 'joinType',
+    strategyAxes: {
+        joinType: sel({
             label: '接合方式',
             options: [
                 { label: '摩擦接合（高力ボルト）', value: 'friction' },
-                { label: '支圧接合（普通ボルト）', value: 'bearing' },
+                { label: '支圧接合（普通ボルト）', value: 'bearing'  },
             ],
             default: 'friction',
-        },
-    ],
+        }),
+    },
 
     strategies: [frictionStrategy, bearingStrategy],
 

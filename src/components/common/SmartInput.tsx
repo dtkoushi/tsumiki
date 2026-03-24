@@ -154,6 +154,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
     // 参照モードに切替わったときに isInvalidInput をリセット
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (isReferencing) setIsInvalidInput(false);
     }, [isReferencing]);
 

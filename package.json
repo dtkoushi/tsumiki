@@ -1,7 +1,7 @@
 {
   "name": "tsumiki",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "カードを積み上げる構造計算ツール",
   "license": "MIT",
   "homepage": "https://dtkoushi.github.io/tsumiki/",

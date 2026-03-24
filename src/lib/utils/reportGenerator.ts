@@ -5,7 +5,7 @@ import type { ReportData, ReportCardData, ReportFieldRow } from '../../types/rep
 import type { CardActions, DynamicInputGroupConfig } from '../registry/types';
 import { ReportRenderContext } from '../../components/cards/common/ReportRenderContext';
 import { registry } from '../registry';
-import { formatField, type OutputUnitType } from './unitFormatter';
+import { formatField } from './unitFormatter';
 
 // ─── Static SVG rendering ─────────────────────────────────────────────────────
 

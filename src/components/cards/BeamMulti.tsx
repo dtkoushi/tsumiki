@@ -162,6 +162,31 @@ const BeamMultiSvg: React.FC<CardComponentProps> = ({ card }) => {
     );
 };
 
+// ─── Shared sub-components ─────────────────────────────────────────────────────
+
+const StyledSelect = ({ value, onChange, options }: {
+    value: string;
+    onChange: (v: string) => void;
+    options: { value: string; label: string }[];
+}) => (
+    <div className="relative">
+        <select
+            className="w-full appearance-none bg-white border border-slate-200 rounded px-2 py-1.5 pr-6 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer hover:bg-slate-50"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+        >
+            {options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-500">
+            <svg className="fill-current h-3 w-3" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+        </div>
+    </div>
+);
+
 // ─── Custom Card Component ─────────────────────────────────────────────────────
 
 const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, upstreamCards, upstreamInputConfigs }) => {
@@ -173,29 +198,6 @@ const BeamMultiComponentInner: React.FC<CardComponentProps> = ({ card, actions, 
         { key: 'M_max', label: '最大曲げモーメント', unitType: 'moment' },
         { key: 'V_max', label: '最大せん断力',       unitType: 'force' },
     ];
-
-    const StyledSelect = ({ value, onChange, options }: {
-        value: string;
-        onChange: (v: string) => void;
-        options: { value: string; label: string }[];
-    }) => (
-        <div className="relative">
-            <select
-                className="w-full appearance-none bg-white border border-slate-200 rounded px-2 py-1.5 pr-6 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer hover:bg-slate-50"
-                value={value}
-                onChange={e => onChange(e.target.value)}
-            >
-                {options.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-slate-500">
-                <svg className="fill-current h-3 w-3" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                </svg>
-            </div>
-        </div>
-    );
 
     const ctxValue = { cardId: card.id, card, actions, upstreamCards, upstreamInputConfigs, unitMode };
 

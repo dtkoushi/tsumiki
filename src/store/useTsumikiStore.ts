@@ -66,7 +66,7 @@ const recalculateAll = (cards: Card[]): Card[] => {
         const def = registry.get(card.type);
         let outputs: Record<string, number> = {};
         let error: string | undefined;
-        let resolvedInputs: Record<string, number> = {};
+        const resolvedInputs: Record<string, number> = {};
 
         if (def && def.calculate) {
             // Resolve inputs using config to support defaults

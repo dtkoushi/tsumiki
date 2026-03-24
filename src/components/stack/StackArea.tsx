@@ -101,7 +101,7 @@ export const StackArea: React.FC = () => {
                         }
                         return true;
                     })
-                    .map(([key, cfg]) => [key, { label: cfg.label, unitType: cfg.unitType }])
+                    .map(([key, cfg]) => [key, { label: cfg.label, unitType: cfg.kind === 'numeric' ? cfg.unitType : undefined }])
             );
             upstreamInputConfigs.set(c.id, filtered);
         });

@@ -2,7 +2,7 @@
 import { Columns } from 'lucide-react';
 import { createStrategyDefinition } from '../../lib/registry/strategyHelper';
 import type { CardStrategy } from '../../lib/registry/types';
-import { num } from '../../lib/utils/inputField';
+import { num, sel } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
 import { calculateBeamMax, calculateBeamMultiMax, type BeamModel, type BeamMultiModel, type BoundaryType, type BeamMultiLoad } from '../../lib/mechanics/beam';
 import {
@@ -251,29 +251,27 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
     title: ja['card.beam.title'],
     icon: Columns,
     description: ja['card.beam.description'],
-    strategyAxes: [
-        {
-            key: 'boundary',
+    strategyAxes: {
+        boundary: sel({
             label: ja['card.beam.axis.boundary'],
             options: [
-                { label: ja['card.beam.boundary.simple'], value: 'simple' },
-                { label: ja['card.beam.boundary.cantilever'], value: 'cantilever' },
-                { label: ja['card.beam.boundary.fixedFixed'], value: 'fixed_fixed' },
+                { label: ja['card.beam.boundary.simple'],      value: 'simple'       },
+                { label: ja['card.beam.boundary.cantilever'],  value: 'cantilever'   },
+                { label: ja['card.beam.boundary.fixedFixed'],  value: 'fixed_fixed'  },
                 { label: ja['card.beam.boundary.fixedPinned'], value: 'fixed_pinned' },
             ],
-            default: 'simple'
-        },
-        {
-            key: 'load',
+            default: 'simple',
+        }),
+        load: sel({
             label: ja['card.beam.axis.loadCondition'],
             options: [
                 { label: ja['card.beam.load.uniform'], value: 'uniform' },
-                { label: ja['card.beam.load.point'], value: 'point' },
-                { label: ja['card.beam.load.moment'], value: 'moment' },
+                { label: ja['card.beam.load.point'],   value: 'point'   },
+                { label: ja['card.beam.load.moment'],  value: 'moment'  },
             ],
-            default: 'uniform'
-        }
-    ],
+            default: 'uniform',
+        }),
+    },
     strategies: Strategies,
     sidebar: { category: 'beam', order: 1 },
     outputConfig: {
@@ -330,7 +328,7 @@ export const BeamCardDef = createStrategyDefinition<BeamOutputs>({
                     V_max: { label: '最大せん断力（固定端）',       unitType: 'force',  formula: '5 × w × L / 8', symbol: 'V_max', formulaInputKeys: ['w', 'L'] },
                 };
             default:
-                return {};
+                return {} as Record<string, never>;
         }
     },
     visualization: BeamVisualization,
