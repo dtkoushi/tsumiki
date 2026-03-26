@@ -23,7 +23,7 @@ const noopActions: CardActions = {
 };
 
 function renderVisualizationSvg(
-    def: import('../registry/types').CardDefinition,
+    def: import('../registry/types').CardDefinition<import('../registry/types').CardOutputRecord>,
     card: Card,
     upstreamCards: Card[],
 ): string | undefined {

@@ -1,5 +1,6 @@
 
 import { RectangleHorizontal } from 'lucide-react';
+import type { CardInput } from '../../types';
 import type { CardDefinition } from '../../lib/registry/types';
 import { num, sel } from '../../lib/utils/inputField';
 import { createVisualizationComponent, type VisualizationStrategy } from './common/visualizationHelper';
@@ -102,7 +103,7 @@ const SectionHSelectVisualization = createVisualizationComponent({
     height: 240,
     padding: 40,
     transformInputs: (rawInputs) => {
-        const sectionName = rawInputs['section']?.value ?? '';
+        const sectionName = String(rawInputs['section']?.value ?? '');
         const sec = findHSection(sectionName) ?? H_SECTIONS[0];
         return { H: sec.H, B: sec.B, tw: sec.tw, tf: sec.tf };
     },
@@ -110,8 +111,8 @@ const SectionHSelectVisualization = createVisualizationComponent({
 
 // --- Calculation ---
 
-function calcHSection(inputs: Record<string, number>, rawInputs?: Record<string, any>): SectionHSelectOutputs {
-    const sectionName = rawInputs?.['section']?.value ?? '';
+function calcHSection(inputs: Record<string, number>, rawInputs?: Record<string, CardInput>): SectionHSelectOutputs {
+    const sectionName = String(rawInputs?.['section']?.value ?? '');
     const sec = findHSection(sectionName);
     if (!sec) {
         throw new Error(`断面 "${sectionName}" が見つかりません。フランジ幅カテゴリを変更した場合は断面形状を再選択してください。`);

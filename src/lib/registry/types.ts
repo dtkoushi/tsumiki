@@ -1,13 +1,23 @@
 import React from 'react';
-import type { Card } from '../../types';
+import type { LucideIcon } from 'lucide-react';
+import type { Card, CardInput } from '../../types';
 import type { InputFieldConfig } from '../utils/inputField';
 import type { SmartInputUnitType } from '../utils/unitFormatter';
+
+/**
+ * Upper bound for card output type parameters.
+ * Using `any` as the value type is intentional: card output interfaces don't
+ * carry an explicit index signature, so `Record<string, unknown>` would
+ * reject them at the constraint check site.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CardOutputRecord = Record<string, any>;
 
 export type { SmartInputUnitType };
 
 // Actions passed to components (Decoupled from Store)
 export interface CardActions {
-    updateInput: (cardId: string, key: string, value: any) => void;
+    updateInput: (cardId: string, key: string, value: string | number) => void;
     setReference: (cardId: string, inputKey: string, sourceCardId: string, outputKey: string) => void;
     setInputReference: (cardId: string, inputKey: string, sourceCardId: string, sourceInputKey: string) => void;
     setRefExpression: (cardId: string, inputKey: string, expression: string) => void;
@@ -25,7 +35,7 @@ export interface CardComponentProps {
 
 // TOutputs is the interface for the card's calculation results.
 // Defaults to Record<string, number> for backward compatibility.
-export interface CardStrategy<TOutputs extends Record<string, any> = Record<string, number>> {
+export interface CardStrategy<TOutputs extends CardOutputRecord = Record<string, number>> {
     id: string; // The value stored in the selector (e.g., 'rect', 'h_beam')
     label: string;
 
@@ -159,14 +169,14 @@ type HiddenOutputField = {
 
 export type OutputFieldConfig = VisibleOutputField | HiddenOutputField;
 
-export interface CardDefinition<TOutputs extends Record<string, any> = Record<string, number>> {
+export interface CardDefinition<TOutputs extends CardOutputRecord = Record<string, number>> {
     type: string;             // Unique ID (e.g., 'SECTION', 'BEAM')
     title: string;            // Display Name
-    icon: React.FC<any>;      // Lucide Icon definition (renders as component)
+    icon: LucideIcon;         // Lucide Icon definition (renders as component)
     description?: string;
 
     // Default values for new cards
-    defaultInputs: Record<string, any>;
+    defaultInputs: Record<string, CardInput>;
 
     // Configuration for UI generation
 
@@ -199,7 +209,7 @@ export interface CardDefinition<TOutputs extends Record<string, any> = Record<st
     //   so calculate() doesn't need to filter inputs manually.
     calculate: (
         inputs: Record<string, number>,
-        rawInputs?: Record<string, any>,
+        rawInputs?: Record<string, CardInput>,
         dynamicGroups?: Record<string, Array<{ inputKey: string; outputKey: string; value: number }>>
     ) => TOutputs;
 
