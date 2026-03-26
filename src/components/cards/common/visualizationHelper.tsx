@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from 'react';
+import type { CardInput } from '../../../types';
 import type { CardComponentProps } from '../../../lib/registry/types';
 import { AutoFitSvg } from './AutoFitSvg';
 import type { DimensionDef } from './AutoFitSvg';
@@ -33,12 +34,12 @@ interface StrategyAxis {
 
 interface CreateVisualizationOptions {
     strategyAxes: StrategyAxis[];
-    strategies: VisualizationStrategy<any>[];
+    strategies: VisualizationStrategy<Record<string, number>>[];
 
     // Optional: Transform raw card inputs to typed inputs
     // Default: Converts all values to numbers
     // resolvedInputs (2nd arg) contains post-reference-resolution values
-    transformInputs?: (inputs: Record<string, any>, resolvedInputs: Record<string, number>) => any;
+    transformInputs?: (inputs: Record<string, CardInput>, resolvedInputs: Record<string, number>) => Record<string, number>;
 
     // Optional: Default/Initial bounds if strategy undefined (unlikely)
     defaultBounds?: { minX: number; minY: number; maxX: number; maxY: number };
@@ -61,7 +62,7 @@ export function createVisualizationComponent(options: CreateVisualizationOptions
     return ({ card }) => {
         // 1. Extract & Transform Inputs
         const rawInputs = card.inputs;
-        let inputs: any;
+        let inputs: Record<string, number>;
 
         const resolved = card.resolvedInputs ?? {};
         if (transformInputs) {

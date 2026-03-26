@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import type { Card, CardType } from '../types';
+import type { Card, CardInput, CardType } from '../types';
 import { topologicalSort } from '../lib/engine/graph';
 import { registry } from '../lib/registry';
 import { applyExpression } from '../lib/utils/cardHelpers';
@@ -169,7 +169,7 @@ const recalculateAll = (cards: Card[]): Card[] => {
             // Skip calculate when a pre-calculation error (e.g. intra-card cycle) was detected
             if (!error) {
                 try {
-                    outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg);
+                    outputs = def.calculate(resolvedInputs, card.inputs, dynamicGroupsArg) as Record<string, number>;
                 } catch (err) {
                     const message = err instanceof Error ? err.message : String(err);
                     if (import.meta.env.DEV) console.warn(`[Tsumiki] Card "${card.alias}" (${card.type}) calculation failed:`, message);
@@ -207,9 +207,9 @@ export const useTsumikiStore = create<TsumikiState>((set) => ({
         const def = registry.get(type);
 
         // Initial inputs from Registry
-        let initialInputs: Record<string, any> = {};
+        let initialInputs: Record<string, CardInput> = {};
         if (def) {
-            initialInputs = JSON.parse(JSON.stringify(def.defaultInputs));
+            initialInputs = JSON.parse(JSON.stringify(def.defaultInputs)) as Record<string, CardInput>;
         }
 
         const newCard: Card = {

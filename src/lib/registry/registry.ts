@@ -1,20 +1,20 @@
-import type { CardDefinition } from './types';
+import type { CardDefinition, CardOutputRecord } from './types';
 
 class CardRegistry {
-    private definitions: Map<string, CardDefinition<any>> = new Map();
+    private definitions: Map<string, CardDefinition<CardOutputRecord>> = new Map();
 
-    register(def: CardDefinition<any>) {
+    register(def: CardDefinition<CardOutputRecord>) {
         if (this.definitions.has(def.type)) {
             console.warn(`Card type ${def.type} is already registered. Overwriting.`);
         }
         this.definitions.set(def.type, def);
     }
 
-    get(type: string): CardDefinition<any> | undefined {
+    get(type: string): CardDefinition<CardOutputRecord> | undefined {
         return this.definitions.get(type);
     }
 
-    getAll(): CardDefinition<any>[] {
+    getAll(): CardDefinition<CardOutputRecord>[] {
         return Array.from(this.definitions.values());
     }
 

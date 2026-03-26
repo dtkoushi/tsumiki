@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react';
-import type { DraggableSyntheticListeners } from '@dnd-kit/core';
+import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core';
 
 export interface SortableItemContextProps {
-    attributes: Record<string, any>;
+    attributes: DraggableAttributes;
     listeners: DraggableSyntheticListeners;
     setNodeRef: (element: HTMLElement | null) => void;
     style: React.CSSProperties;
@@ -11,7 +11,14 @@ export interface SortableItemContextProps {
 }
 
 export const SortableItemContext = createContext<SortableItemContextProps>({
-    attributes: {},
+    attributes: {
+        role: 'button',
+        tabIndex: 0,
+        'aria-disabled': false,
+        'aria-pressed': undefined,
+        'aria-roledescription': 'sortable',
+        'aria-describedby': '',
+    },
     listeners: undefined,
     setNodeRef: () => { },
     style: {},

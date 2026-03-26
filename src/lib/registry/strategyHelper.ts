@@ -1,4 +1,6 @@
-import type { CardDefinition, CardStrategy } from './types';
+import type { LucideIcon } from 'lucide-react';
+import type { CardInput } from '../../types';
+import type { CardDefinition, CardStrategy, CardComponentProps, CardOutputRecord } from './types';
 import { type InputFieldConfig, type SelectInputField } from '../utils/inputField';
 
 
@@ -45,7 +47,7 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
             const dummyInputs: Record<string, number> = {};
             if (def.defaultInputs) {
                 for (const [k, v] of Object.entries(def.defaultInputs)) {
-                    dummyInputs[k] = typeof v === 'object' && v !== null ? (parseFloat(v.value) || 0) : (parseFloat(v) || 0);
+                    dummyInputs[k] = parseFloat(String(v.value)) || 0;
                 }
             }
             const result = def.calculate(dummyInputs, def.defaultInputs);
@@ -105,16 +107,16 @@ function validateCardDefinition(def: CardDefinition, context: string): void {
 }
 
 
-interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Record<string, number>> {
+interface StrategyDefinitionOptions<TOutputs extends CardOutputRecord = Record<string, number>> {
     type: string;
     title: string;
-    icon: React.FC<any>;
+    icon: LucideIcon;
     description?: string;
 
     strategyAxes: Record<string, SelectInputField>;
 
     strategies: CardStrategy<TOutputs>[];
-    commonInputs?: Record<string, any>;
+    commonInputs?: Record<string, CardInput>;
     /**
      * Input fields shared across all strategies. Merged with each strategy's own
      * inputConfig in getInputConfig (strategy-specific fields take precedence).
@@ -122,13 +124,13 @@ interface StrategyDefinitionOptions<TOutputs extends Record<string, any> = Recor
     commonInputConfig?: CardDefinition<TOutputs>['inputConfig'];
     outputConfig: CardDefinition<TOutputs>['outputConfig'];
     getOutputConfig?: CardDefinition<TOutputs>['getOutputConfig'];
-    visualization?: React.FC<any>;
-    reportVisualization?: React.FC<any>;
+    visualization?: React.FC<CardComponentProps>;
+    reportVisualization?: React.FC<CardComponentProps>;
     sidebar?: CardDefinition<TOutputs>['sidebar'];
     shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
 
-export function createStrategyDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: StrategyDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
+export function createStrategyDefinition<TOutputs extends CardOutputRecord = Record<string, number>>(options: StrategyDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
     const {
         type,
         title,
@@ -156,18 +158,18 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
     }
 
     // Construct default inputs for all axes
-    const axisDefaults: Record<string, any> = {};
+    const axisDefaults: Record<string, CardInput> = {};
     axisEntries.forEach(([key, field]) => {
         axisDefaults[key] = { value: field.default ?? '' };
     });
 
-    const defaultInputs: Record<string, any> = {
+    const defaultInputs: Record<string, CardInput> = {
         ...axisDefaults,
         ...commonInputs
     };
 
     // Helper to resolve Strategy ID from inputs
-    const resolveStrategyId = (inputs: Record<string, any> | undefined): string => {
+    const resolveStrategyId = (inputs: Record<string, CardInput> | undefined): string => {
         if (!inputs) return defaultStrategy.id;
 
         // Single axis: ID is the axis value directly
@@ -253,19 +255,19 @@ export function createStrategyDefinition<TOutputs extends Record<string, any> = 
 }
 
 
-interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Record<string, number>> {
+interface SimpleCardDefinitionOptions<TOutputs extends CardOutputRecord = Record<string, number>> {
     type: string;
     title: string;
-    icon: React.FC<any>;
+    icon: LucideIcon;
     description?: string;
-    defaultInputs?: Record<string, any>;
+    defaultInputs?: Record<string, CardInput>;
     inputConfig?: CardDefinition<TOutputs>['inputConfig'];
     outputConfig: CardDefinition<TOutputs>['outputConfig'];
     calculate: CardDefinition<TOutputs>['calculate'];
     /** Render inside GenericCard's visualization area (SVG box). */
-    visualization?: React.FC<any>;
+    visualization?: React.FC<CardComponentProps>;
     /** Visualization component used exclusively for report generation (custom-component cards). */
-    reportVisualization?: React.FC<any>;
+    reportVisualization?: React.FC<CardComponentProps>;
     /** Replace GenericCard entirely. Use when inputs/outputs are dynamic or layout needs full control. */
     component?: CardDefinition<TOutputs>['component'];
     /** Variable-length paired (input → output) row groups rendered by GenericCard. */
@@ -277,7 +279,7 @@ interface SimpleCardDefinitionOptions<TOutputs extends Record<string, any> = Rec
     shouldRenderInput?: CardDefinition<TOutputs>['shouldRenderInput'];
 }
 
-export function createCardDefinition<TOutputs extends Record<string, any> = Record<string, number>>(options: SimpleCardDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
+export function createCardDefinition<TOutputs extends CardOutputRecord = Record<string, number>>(options: SimpleCardDefinitionOptions<TOutputs>): CardDefinition<TOutputs> {
     const {
         type,
         title,

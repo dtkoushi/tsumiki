@@ -16,7 +16,7 @@ export interface ResultField {
 
 interface ResultsPanelProps {
     cardId: string;
-    outputs: Record<string, any>;
+    outputs: Record<string, number>;
     fields: ResultField[];
     unitMode: UnitMode;
 }
